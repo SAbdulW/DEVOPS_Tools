@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TestCase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <FileName>BasicInt.script</FileName>
+  <Name>Ron1</Name>
+  <Description />
+  <Enabled>true</Enabled>
+  <LocalParams />
+  <TestCaseParams>
+    <ActionParams Key="machineName" Value="vm-v12-inna4">
+      <Variable>
+        <Name>machineName</Name>
+        <Type>String</Type>
+        <Value>vm-v12-inna4</Value>
+      </Variable>
+    </ActionParams>
+    <ActionParams Key="password" Value="">
+      <Variable>
+        <Name>password</Name>
+        <Type>String</Type>
+        <Value />
+      </Variable>
+    </ActionParams>
+    <ActionParams Key="url" Value="">
+      <Variable>
+        <Name>url</Name>
+        <Type>String</Type>
+        <Value />
+      </Variable>
+    </ActionParams>
+    <ActionParams Key="username" Value="">
+      <Variable>
+        <Name>username</Name>
+        <Type>String</Type>
+        <Value />
+      </Variable>
+    </ActionParams>
+  </TestCaseParams>
+  <Steps>
+    <Action Name="EMLogin" Command="EMLogin">
+      <XML>&lt;Step name="Login.LoginActionManager.EMLogin" reference="Login.dll"&gt;&lt;LoginDetails&gt;&lt;username IsMandatory="true"&gt;wsuperuser&lt;/username&gt;&lt;password IsMandatory="true"&gt;pumpkin1&lt;/password&gt;&lt;machineName IsMandatory="true"&gt;%machineName%&lt;/machineName&gt;&lt;loginAs desc="Login sequence in v11 requires a 'login as' input" options="Leader/Agent"&gt;null&lt;/loginAs&gt;&lt;/LoginDetails&gt;&lt;/Step&gt;</XML>
+      <Method DLL.Name="Login.dll" Method.Name="EMLogin" Method.Params="loginDetails" Method.FullName="Login.LoginActionManager.LoginActionManager.EMLogin(loginDetails)" Method.ClassName="LoginActionManager" Method.Namespace="Login" />
+      <StopOnFailed>false</StopOnFailed>
+      <TakeSnapShot>false</TakeSnapShot>
+      <StepParams />
+      <SubSteps />
+    </Action>
+    <Action Name="EMLogout" Command="EMLogout">
+      <XML>&lt;Step name="Login.LoginActionManager.EMLogout" reference="Login.dll"&gt;&lt;/Step&gt;</XML>
+      <Method DLL.Name="Login.dll" Method.Name="EMLogout" Method.Params="" Method.FullName="Login.LoginActionManager.LoginActionManager.EMLogout()" Method.ClassName="LoginActionManager" Method.Namespace="Login" />
+      <StopOnFailed>false</StopOnFailed>
+      <TakeSnapShot>false</TakeSnapShot>
+      <StepParams />
+      <SubSteps />
+    </Action>
+  </Steps>
+  <Testcases />
+</TestCase>
