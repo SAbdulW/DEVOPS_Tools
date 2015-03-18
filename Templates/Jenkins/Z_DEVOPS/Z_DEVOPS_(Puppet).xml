@@ -83,11 +83,11 @@
   <builders>
     <hudson.tasks.BatchFile>
       <command>echo =============== Copy YAML File From Team Repo  =============================&#xd;
-echo COMMAND TO RUN: cmd /c %WORKSPACE%\Scripts\Batch\FindAndReplace.bat &quot;${MasterBuildVersion}&quot; &quot;%MasterBuildVersion%&quot; &quot;%WORKSPACE%\..\ci\puppet.yaml&quot; &gt;  &quot;\\%PuppetServer%\puppet_agent\environments\%PuppetEnv%\hieradata\%PuppetEnv%_%BUILD_ID%.yaml&quot;&#xd;
+echo COMMAND TO RUN: cmd /c %WORKSPACE%\Scripts\Batch\FindAndReplace.bat &quot;${MasterBuildVersion}&quot; &quot;%MasterBuildVersion%&quot; &quot;%WORKSPACE%\..\ci\puppet.yaml&quot; &gt;  &quot;\\%PuppetServer%\puppet_agent\environments\%PuppetEnv%\hieradata\%PuppetEnv%_%BUILD_TAG%.yaml&quot;&#xd;
 &#xd;
-cmd /c %WORKSPACE%\Scripts\Batch\FindAndReplace.bat &quot;${MasterBuildVersion}&quot; &quot;%MasterBuildVersion%&quot; &quot;%WORKSPACE%\..\ci\puppet.yaml&quot; &gt;  &quot;\\%PuppetServer%\puppet_agent\environments\%PuppetEnv%\hieradata\%PuppetEnv%_%BUILD_ID%.yaml&quot;&#xd;
+cmd /c %WORKSPACE%\Scripts\Batch\FindAndReplace.bat &quot;${MasterBuildVersion}&quot; &quot;%MasterBuildVersion%&quot; &quot;%WORKSPACE%\..\ci\puppet.yaml&quot; &gt;  &quot;\\%PuppetServer%\puppet_agent\environments\%PuppetEnv%\hieradata\%PuppetEnv%_%BUILD_TAG%.yaml&quot;&#xd;
 &#xd;
-echo cmd /c %WORKSPACE%\Scripts\Batch\FindAndReplace.bat &quot;${MasterBuildVersion}&quot; &quot;11.2.1.155&quot; &quot;%WORKSPACE%\..\ci\puppet.yaml&quot; &gt;  &quot;\\%PuppetServer%\puppet_agent\environments\%PuppetEnv%\hieradata\%PuppetEnv%_%BUILD_ID%.yaml&quot;&#xd;
+echo cmd /c %WORKSPACE%\Scripts\Batch\FindAndReplace.bat &quot;${MasterBuildVersion}&quot; &quot;11.2.1.155&quot; &quot;%WORKSPACE%\..\ci\puppet.yaml&quot; &gt;  &quot;\\%PuppetServer%\puppet_agent\environments\%PuppetEnv%\hieradata\%PuppetEnv%_%BUILD_TAG%.yaml&quot;&#xd;
 </command>
     </hudson.tasks.BatchFile>
     <hudson.tasks.BatchFile>
@@ -151,7 +151,7 @@ TestEnvFolderPath=${TestEnvFolderPath}</properties>
     </org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder>
     <EnvInjectBuildWrapper plugin="envinject@1.90">
       <info>
-        <propertiesContent>command=cmd /c puppet agent --test --server=${PuppetServer} --certname=${PuppetEnv}-${BUILD_ID} --environment=${PuppetEnv} --debug &gt; C:\Impact360\WFOPuppet\logs\${PuppetEnv}-${BUILD_ID}.log</propertiesContent>
+        <propertiesContent>command=cmd /c puppet agent --test --server=${PuppetServer} --certname=${PuppetEnv}-${BUILD_TAG} --environment=${PuppetEnv} --debug &gt; c:\windows\temp\${PuppetEnv}-${BUILD_TAG}.log</propertiesContent>
         <loadFilesFromMaster>false</loadFilesFromMaster>
       </info>
     </EnvInjectBuildWrapper>
