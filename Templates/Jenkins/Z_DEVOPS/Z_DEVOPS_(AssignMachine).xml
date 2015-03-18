@@ -1,0 +1,205 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.14">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.4.1">
+      <useBuildBlocker>false</useBuildBlocker>
+    </hudson.plugins.buildblocker.BuildBlockerProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>ProvisioningRoot</name>
+          <description>&quot;Test bench Pool Path&quot; - A path that indicates where the environments are located in the Vcenter</description>
+          <defaultValue>Fixture/11.2.1.x/Green</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PendingPoolFolder</name>
+          <description>VM folder where the pending pool VM&apos;s are located (Relative to &apos;provisioning_root&apos;)</description>
+          <defaultValue>Pending</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>RunningPoolFolder</name>
+          <description>VM folder where the running pool VM&apos;s are located (Relative to &apos;provisioning_root&apos;)</description>
+          <defaultValue>Running</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>DevRootPath</name>
+          <description></description>
+          <defaultValue>D:\gitroot\Z_DEVOPS</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>RetryTime</name>
+          <description>The timeout in case the pool is empty. You can use  m -for minute or s- for seconds</description>
+          <defaultValue>6m</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>Slave-B-Staging01</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <customWorkspace>$DevRootPath</customWorkspace>
+  <builders>
+    <hudson.tasks.BatchFile>
+      <command>echo Get information from Vcenter on %ProvisioningRoot%/%PendingPoolFolder%</command>
+    </hudson.tasks.BatchFile>
+    <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@1.1.13-SNAPSHOT">
+      <buildStep class="org.jenkinsci.plugins.vsphere.builders.GetFolderInfo">
+        <sourceName>${ProvisioningRoot}/${PendingPoolFolder}</sourceName>
+        <numberVM>0</numberVM>
+        <numberFolder>0</numberFolder>
+      </buildStep>
+      <serverName>ATL Vsphere Server</serverName>
+      <serverHash>-1412856745</serverHash>
+    </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+    <org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder plugin="conditional-buildstep@1.3.3">
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+      <runCondition class="org.jenkins_ci.plugins.run_condition.core.NumericalComparisonCondition" plugin="run-condition@1.0">
+        <lhs>$NUM_FOLDER</lhs>
+        <rhs>0</rhs>
+        <comparator class="org.jenkins_ci.plugins.run_condition.core.NumericalComparisonCondition$EqualTo"/>
+      </runCondition>
+      <conditionalbuilders>
+        <hudson.tasks.BatchFile>
+          <command>echo &quot;%ProvisioningRoot%/%PendingPoolFolder%&quot; is empty. Will try again in %RetryTime% .&#xd;
+sleep %RetryTime%</command>
+        </hudson.tasks.BatchFile>
+        <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@1.1.13-SNAPSHOT">
+          <buildStep class="org.jenkinsci.plugins.vsphere.builders.GetFolderInfo">
+            <sourceName>${ProvisioningRoot}/${PendingPoolFolder}</sourceName>
+            <numberVM>0</numberVM>
+            <numberFolder>0</numberFolder>
+          </buildStep>
+          <serverName>ATL Vsphere Server</serverName>
+          <serverHash>-1412856745</serverHash>
+        </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+      </conditionalbuilders>
+    </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>
+    <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder plugin="conditional-buildstep@1.3.3">
+      <condition class="org.jenkins_ci.plugins.run_condition.core.NumericalComparisonCondition" plugin="run-condition@1.0">
+        <lhs>$NUM_FOLDER</lhs>
+        <rhs>0</rhs>
+        <comparator class="org.jenkins_ci.plugins.run_condition.core.NumericalComparisonCondition$EqualTo"/>
+      </condition>
+      <buildStep class="hudson.tasks.BatchFile">
+        <command>echo %ProvisioningRoot%\%PendingPoolFolder% is still empty. Build has failed!!!.&#xd;
+exit 2</command>
+      </buildStep>
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+    </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
+    <hudson.tasks.BatchFile>
+      <command>echo PendingFolderPath=%ProvisioningRoot%/%PendingPoolFolder%&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
+echo PendingFolderName=%ProvisioningRoot%/%PendingPoolFolder%/%LAST_FOLDER%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
+echo RunningFolderPath=%ProvisioningRoot%/%RunningPoolFolder%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
+echo VmFolderName=%LAST_FOLDER%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
+&#xd;
+TYPE &quot;%WORKSPACE%\assign.prop&quot;</command>
+    </hudson.tasks.BatchFile>
+    <EnvInjectBuilder plugin="envinject@1.90">
+      <info>
+        <propertiesFilePath>$WORKSPACE\assign.prop</propertiesFilePath>
+      </info>
+    </EnvInjectBuilder>
+    <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@1.1.13-SNAPSHOT">
+      <buildStep class="org.jenkinsci.plugins.vsphere.builders.Move">
+        <sourceName>${ProvisioningRoot}/${PendingPoolFolder}/${VmFolderName}</sourceName>
+        <location>${ProvisioningRoot}/${RunningPoolFolder}</location>
+      </buildStep>
+      <serverName>ATL Vsphere Server</serverName>
+      <serverHash>-1412856745</serverHash>
+    </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+    <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@1.1.13-SNAPSHOT">
+      <buildStep class="org.jenkinsci.plugins.vsphere.builders.GetFolderInfo">
+        <sourceName>${ProvisioningRoot}/${RunningPoolFolder}/$VmFolderName</sourceName>
+        <numberVM>0</numberVM>
+        <numberFolder>0</numberFolder>
+      </buildStep>
+      <serverName>ATL Vsphere Server</serverName>
+      <serverHash>-1412856745</serverHash>
+    </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+    <hudson.tasks.BatchFile>
+      <command>echo TestEnvFolderPath=%ProvisioningRoot%/%RunningPoolFolder%/%VmFolderName%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
+echo VmPath=%ProvisioningRoot%/%RunningPoolFolder%/%VmFolderName%/%FIRST_VM%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
+echo VmName=%FIRST_VM%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
+&#xd;
+&#xd;
+TYPE &quot;%WORKSPACE%\assign.prop&quot;</command>
+    </hudson.tasks.BatchFile>
+    <EnvInjectBuilder plugin="envinject@1.90">
+      <info>
+        <propertiesFilePath>$WORKSPACE\assign.prop</propertiesFilePath>
+      </info>
+    </EnvInjectBuilder>
+    <hudson.tasks.BatchFile>
+      <command>echo ==fullpath=%VmPath%===</command>
+    </hudson.tasks.BatchFile>
+    <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@1.1.13-SNAPSHOT">
+      <buildStep class="org.jenkinsci.plugins.vsphere.builders.GetIp">
+        <vm>${VmPath}</vm>
+        <timeoutInSeconds>60</timeoutInSeconds>
+      </buildStep>
+      <serverName>ATL Vsphere Server</serverName>
+      <serverHash>-1412856745</serverHash>
+    </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+    <hudson.tasks.BatchFile>
+      <command>echo VmIp=%VM_IP%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
+&#xd;
+echo VmName=%VmName%&#xd;
+&#xd;
+echo VmIp=%VM_IP%&#xd;
+echo VmName=%FIRST_VM%&#xd;
+&#xd;
+TYPE &quot;%WORKSPACE%\assign.prop&quot;</command>
+    </hudson.tasks.BatchFile>
+  </builders>
+  <publishers>
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.25">
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.FileBuildParameters>
+              <propertiesFile>$WORKSPACE\assign.prop</propertiesFile>
+              <failTriggerOnMissing>false</failTriggerOnMissing>
+              <useMatrixChild>false</useMatrixChild>
+              <onlyExactRuns>false</onlyExactRuns>
+            </hudson.plugins.parameterizedtrigger.FileBuildParameters>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+              <properties>#VmIp_A=${VM_IP}
+#VmName_A=${FIRST_VM}
+#PendingFolderPath=${PendingFolderPath}
+#TestEnvFolderPath=${TestEnvFolderPath}</properties>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+            <hudson.plugins.parameterizedtrigger.NodeParameters/>
+            <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
+          </configs>
+          <projects>Z_DEVOPS_(Puppet)</projects>
+          <condition>SUCCESS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+        </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.BuildTrigger>
+  </publishers>
+  <buildWrappers>
+    <org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder plugin="versionnumber@1.4.1">
+      <versionNumberString>${MasterBuildVersion}</versionNumberString>
+      <projectStartDate>1969-12-31 05:00:00.0 UTC</projectStartDate>
+      <environmentVariableName>MasterBuildVersion</environmentVariableName>
+      <oBuildsToday>-1</oBuildsToday>
+      <oBuildsThisMonth>-1</oBuildsThisMonth>
+      <oBuildsThisYear>-1</oBuildsThisYear>
+      <oBuildsAllTime>-1</oBuildsAllTime>
+      <skipFailedBuilds>false</skipFailedBuilds>
+      <useAsBuildDisplayName>true</useAsBuildDisplayName>
+    </org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder>
+  </buildWrappers>
+</project>
