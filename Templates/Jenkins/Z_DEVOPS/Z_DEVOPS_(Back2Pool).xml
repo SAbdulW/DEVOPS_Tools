@@ -29,6 +29,21 @@
           <description></description>
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ProvisioningRoot</name>
+          <description></description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>KeepTheFixtureWhenDone</name>
+          <description>If this option is checked, the machine will not be reverted back and can be used for the developer investigation. The IP of the machine can be taken from the log. When you finish using the machine , turn it off.</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ParkingPool</name>
+          <description>Pool Folder that has the env for investigation  </description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
@@ -42,471 +57,123 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.BatchFile>
-      <command>echo TestEnvFolderPath=%TestEnvFolderPath% and PendingFolderPath=&quot;%PendingFolderPath%&quot;</command>
+      <command>echo KeepTheFixtureWhenDone=%KeepTheFixtureWhenDone%&#xd;
+echo TestEnvFolderPath=%TestEnvFolderPath% and PendingFolderPath=&quot;%PendingFolderPath%&quot;&#xd;
+echo ProvisioningRoot=%ProvisioningRoot%</command>
     </hudson.tasks.BatchFile>
-    <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@1.1.13-SNAPSHOT">
-      <buildStep class="org.jenkinsci.plugins.vsphere.builders.GetFolderInfo">
-        <vsphere>
-          <url>https://10.156.21.79/sdk</url>
-          <session>vmware_soap_session=&quot;52a4fce4-a6c2-7b62-5ca5-499beb345701&quot;; Path=/; HttpOnly; Secure;</session>
-          <dcName>ATL-AP2-Lab</dcName>
-          <totalVMs>0</totalVMs>
-          <ret class="com.vmware.vim25.mo.Folder">
-            <serverConnection>
-              <url>https://10.156.21.79/sdk</url>
-              <userSession>
-                <key>52649066-0d8b-8c97-6244-10885bcac149</key>
-                <userName>VSPHERE.LOCAL\Administrator</userName>
-                <fullName>Administrator vsphere.local</fullName>
-                <loginTime>
-                  <time>1426205074040</time>
-                  <timezone>GMT+00:00</timezone>
-                </loginTime>
-                <lastActiveTime>
-                  <time>1426205074040</time>
-                  <timezone>GMT+00:00</timezone>
-                </lastActiveTime>
-                <locale>en</locale>
-                <messageLocale>en</messageLocale>
-                <extensionSession>false</extensionSession>
-                <ipAddress>10.156.22.203</ipAddress>
-                <userAgent>Java/1.7.0_65</userAgent>
-                <callCount>2</callCount>
-              </userSession>
-              <serviceInstance>
-                <serverConnection reference="../.."/>
-                <mor>
-                  <val>ServiceInstance</val>
-                  <type>ServiceInstance</type>
-                </mor>
-                <serviceContent>
-                  <rootFolder>
-                    <val>group-d1</val>
-                    <type>Folder</type>
-                  </rootFolder>
-                  <propertyCollector>
-                    <val>propertyCollector</val>
-                    <type>PropertyCollector</type>
-                  </propertyCollector>
-                  <viewManager>
-                    <val>ViewManager</val>
-                    <type>ViewManager</type>
-                  </viewManager>
-                  <about>
-                    <name>VMware vCenter Server</name>
-                    <fullName>VMware vCenter Server 5.5.0 build-1378903</fullName>
-                    <vendor>VMware, Inc.</vendor>
-                    <version>5.5.0</version>
-                    <build>1378903</build>
-                    <localeVersion>INTL</localeVersion>
-                    <localeBuild>000</localeBuild>
-                    <osType>win32-x64</osType>
-                    <productLineId>vpx</productLineId>
-                    <apiType>VirtualCenter</apiType>
-                    <apiVersion>5.5</apiVersion>
-                    <instanceUuid>5ABFA592-E135-4999-92E5-274D5E47982E</instanceUuid>
-                    <licenseProductName>VMware VirtualCenter Server</licenseProductName>
-                    <licenseProductVersion>5.0</licenseProductVersion>
-                  </about>
-                  <setting>
-                    <val>VpxSettings</val>
-                    <type>OptionManager</type>
-                  </setting>
-                  <userDirectory>
-                    <val>UserDirectory</val>
-                    <type>UserDirectory</type>
-                  </userDirectory>
-                  <sessionManager>
-                    <val>SessionManager</val>
-                    <type>SessionManager</type>
-                  </sessionManager>
-                  <authorizationManager>
-                    <val>AuthorizationManager</val>
-                    <type>AuthorizationManager</type>
-                  </authorizationManager>
-                  <serviceManager>
-                    <val>ServiceMgr</val>
-                    <type>ServiceManager</type>
-                  </serviceManager>
-                  <perfManager>
-                    <val>PerfMgr</val>
-                    <type>PerformanceManager</type>
-                  </perfManager>
-                  <scheduledTaskManager>
-                    <val>ScheduledTaskManager</val>
-                    <type>ScheduledTaskManager</type>
-                  </scheduledTaskManager>
-                  <alarmManager>
-                    <val>AlarmManager</val>
-                    <type>AlarmManager</type>
-                  </alarmManager>
-                  <eventManager>
-                    <val>EventManager</val>
-                    <type>EventManager</type>
-                  </eventManager>
-                  <taskManager>
-                    <val>TaskManager</val>
-                    <type>TaskManager</type>
-                  </taskManager>
-                  <extensionManager>
-                    <val>ExtensionManager</val>
-                    <type>ExtensionManager</type>
-                  </extensionManager>
-                  <customizationSpecManager>
-                    <val>CustomizationSpecManager</val>
-                    <type>CustomizationSpecManager</type>
-                  </customizationSpecManager>
-                  <customFieldsManager>
-                    <val>CustomFieldsManager</val>
-                    <type>CustomFieldsManager</type>
-                  </customFieldsManager>
-                  <diagnosticManager>
-                    <val>DiagMgr</val>
-                    <type>DiagnosticManager</type>
-                  </diagnosticManager>
-                  <licenseManager>
-                    <val>LicenseManager</val>
-                    <type>LicenseManager</type>
-                  </licenseManager>
-                  <searchIndex>
-                    <val>SearchIndex</val>
-                    <type>SearchIndex</type>
-                  </searchIndex>
-                  <fileManager>
-                    <val>FileManager</val>
-                    <type>FileManager</type>
-                  </fileManager>
-                  <datastoreNamespaceManager>
-                    <val>DatastoreNamespaceManager</val>
-                    <type>DatastoreNamespaceManager</type>
-                  </datastoreNamespaceManager>
-                  <virtualDiskManager>
-                    <val>virtualDiskManager</val>
-                    <type>VirtualDiskManager</type>
-                  </virtualDiskManager>
-                  <snmpSystem>
-                    <val>SnmpSystem</val>
-                    <type>HostSnmpSystem</type>
-                  </snmpSystem>
-                  <vmProvisioningChecker>
-                    <val>ProvChecker</val>
-                    <type>VirtualMachineProvisioningChecker</type>
-                  </vmProvisioningChecker>
-                  <vmCompatibilityChecker>
-                    <val>CompatChecker</val>
-                    <type>VirtualMachineCompatibilityChecker</type>
-                  </vmCompatibilityChecker>
-                  <ovfManager>
-                    <val>OvfManager</val>
-                    <type>OvfManager</type>
-                  </ovfManager>
-                  <ipPoolManager>
-                    <val>IpPoolManager</val>
-                    <type>IpPoolManager</type>
-                  </ipPoolManager>
-                  <dvSwitchManager>
-                    <val>DVSManager</val>
-                    <type>DistributedVirtualSwitchManager</type>
-                  </dvSwitchManager>
-                  <hostProfileManager>
-                    <val>HostProfileManager</val>
-                    <type>HostProfileManager</type>
-                  </hostProfileManager>
-                  <clusterProfileManager>
-                    <val>ClusterProfileManager</val>
-                    <type>ClusterProfileManager</type>
-                  </clusterProfileManager>
-                  <complianceManager>
-                    <val>MoComplianceManager</val>
-                    <type>ProfileComplianceManager</type>
-                  </complianceManager>
-                  <localizationManager>
-                    <val>LocalizationManager</val>
-                    <type>LocalizationManager</type>
-                  </localizationManager>
-                  <storageResourceManager>
-                    <val>StorageResourceManager</val>
-                    <type>StorageResourceManager</type>
-                  </storageResourceManager>
-                  <guestOperationsManager>
-                    <val>guestOperationsManager</val>
-                    <type>GuestOperationsManager</type>
-                  </guestOperationsManager>
-                </serviceContent>
-              </serviceInstance>
-              <vimService>
-                <wsc>
-                  <baseUrl>https://10.156.21.79/sdk</baseUrl>
-                  <cookie>vmware_soap_session=&quot;52a4fce4-a6c2-7b62-5ca5-499beb345701&quot;; Path=/; HttpOnly; Secure;</cookie>
-                  <vimNameSpace> xmlns=&quot;urn:vim25&quot;&gt;</vimNameSpace>
-                  <soapAction>urn:vim25/5.5</soapAction>
-                  <connectTimeout>0</connectTimeout>
-                  <readTimeout>0</readTimeout>
-                  <xmlGen class="com.vmware.vim25.ws.XmlGenDom"/>
-                </wsc>
-              </vimService>
-            </serverConnection>
-            <mor>
-              <val>group-v689</val>
-              <type>Folder</type>
-            </mor>
-          </ret>
-          <arrVM/>
-        </vsphere>
-        <sourceName>${TestEnvFolderPath}</sourceName>
-        <numberVM>0</numberVM>
-        <numberFolder>0</numberFolder>
-      </buildStep>
-      <serverName>ATL Vsphere Server</serverName>
-      <serverHash>-1412856745</serverHash>
-    </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
-    <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@1.1.13-SNAPSHOT">
-      <buildStep class="org.jenkinsci.plugins.vsphere.builders.RevertToSnapshot">
-        <vsphere>
-          <url>https://10.156.21.79/sdk</url>
-          <session>vmware_soap_session=&quot;520d91e3-88da-ae76-a452-d87844028420&quot;; Path=/; HttpOnly; Secure;</session>
-          <dcName>ATL-AP2-Lab</dcName>
-          <totalVMs>0</totalVMs>
-          <arrVM/>
-        </vsphere>
-        <vm>${FIRST_VM}</vm>
-        <snapshotName>${Snapshot}</snapshotName>
-      </buildStep>
-      <serverName>ATL Vsphere Server</serverName>
-      <serverHash>-1412856745</serverHash>
-    </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
-    <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@1.1.13-SNAPSHOT">
-      <buildStep class="org.jenkinsci.plugins.vsphere.builders.PowerOn">
-        <vsphere>
-          <url>https://10.156.21.79/sdk</url>
-          <session>vmware_soap_session=&quot;52630772-4a65-7e37-8870-dfd0478498f0&quot;; Path=/; HttpOnly; Secure;</session>
-          <dcName>ATL-AP2-Lab</dcName>
-          <totalVMs>0</totalVMs>
-          <arrVM/>
-        </vsphere>
-        <vm>${FIRST_VM}</vm>
-        <timeoutInSeconds>60</timeoutInSeconds>
-      </buildStep>
-      <serverName>ATL Vsphere Server</serverName>
-      <serverHash>-1412856745</serverHash>
-    </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
-    <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@1.1.13-SNAPSHOT">
-      <buildStep class="org.jenkinsci.plugins.vsphere.builders.Move">
-        <vsphere>
-          <url>https://10.156.21.79/sdk</url>
-          <session>vmware_soap_session=&quot;52f3389a-dbb6-3fe0-9441-f8ab51e254f3&quot;; Path=/; HttpOnly; Secure;</session>
-          <dcName>ATL-AP2-Lab</dcName>
-          <totalVMs>0</totalVMs>
-          <ret class="com.vmware.vim25.mo.Folder">
-            <serverConnection>
-              <url>https://10.156.21.79/sdk</url>
-              <userSession>
-                <key>52ed11a5-6da6-5c38-ff72-ab8377d95da7</key>
-                <userName>VSPHERE.LOCAL\Administrator</userName>
-                <fullName>Administrator vsphere.local</fullName>
-                <loginTime>
-                  <time>1426205129562</time>
-                  <timezone>GMT+00:00</timezone>
-                </loginTime>
-                <lastActiveTime>
-                  <time>1426205129562</time>
-                  <timezone>GMT+00:00</timezone>
-                </lastActiveTime>
-                <locale>en</locale>
-                <messageLocale>en</messageLocale>
-                <extensionSession>false</extensionSession>
-                <ipAddress>10.156.22.203</ipAddress>
-                <userAgent>Java/1.7.0_65</userAgent>
-                <callCount>2</callCount>
-              </userSession>
-              <serviceInstance>
-                <serverConnection reference="../.."/>
-                <mor reference="../../../../../../../org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer/buildStep/vsphere/ret/serverConnection/serviceInstance/mor"/>
-                <serviceContent>
-                  <rootFolder>
-                    <val>group-d1</val>
-                    <type>Folder</type>
-                  </rootFolder>
-                  <propertyCollector>
-                    <val>propertyCollector</val>
-                    <type>PropertyCollector</type>
-                  </propertyCollector>
-                  <viewManager>
-                    <val>ViewManager</val>
-                    <type>ViewManager</type>
-                  </viewManager>
-                  <about>
-                    <name>VMware vCenter Server</name>
-                    <fullName>VMware vCenter Server 5.5.0 build-1378903</fullName>
-                    <vendor>VMware, Inc.</vendor>
-                    <version>5.5.0</version>
-                    <build>1378903</build>
-                    <localeVersion>INTL</localeVersion>
-                    <localeBuild>000</localeBuild>
-                    <osType>win32-x64</osType>
-                    <productLineId>vpx</productLineId>
-                    <apiType>VirtualCenter</apiType>
-                    <apiVersion>5.5</apiVersion>
-                    <instanceUuid>5ABFA592-E135-4999-92E5-274D5E47982E</instanceUuid>
-                    <licenseProductName>VMware VirtualCenter Server</licenseProductName>
-                    <licenseProductVersion>5.0</licenseProductVersion>
-                  </about>
-                  <setting>
-                    <val>VpxSettings</val>
-                    <type>OptionManager</type>
-                  </setting>
-                  <userDirectory>
-                    <val>UserDirectory</val>
-                    <type>UserDirectory</type>
-                  </userDirectory>
-                  <sessionManager>
-                    <val>SessionManager</val>
-                    <type>SessionManager</type>
-                  </sessionManager>
-                  <authorizationManager>
-                    <val>AuthorizationManager</val>
-                    <type>AuthorizationManager</type>
-                  </authorizationManager>
-                  <serviceManager>
-                    <val>ServiceMgr</val>
-                    <type>ServiceManager</type>
-                  </serviceManager>
-                  <perfManager>
-                    <val>PerfMgr</val>
-                    <type>PerformanceManager</type>
-                  </perfManager>
-                  <scheduledTaskManager>
-                    <val>ScheduledTaskManager</val>
-                    <type>ScheduledTaskManager</type>
-                  </scheduledTaskManager>
-                  <alarmManager>
-                    <val>AlarmManager</val>
-                    <type>AlarmManager</type>
-                  </alarmManager>
-                  <eventManager>
-                    <val>EventManager</val>
-                    <type>EventManager</type>
-                  </eventManager>
-                  <taskManager>
-                    <val>TaskManager</val>
-                    <type>TaskManager</type>
-                  </taskManager>
-                  <extensionManager>
-                    <val>ExtensionManager</val>
-                    <type>ExtensionManager</type>
-                  </extensionManager>
-                  <customizationSpecManager>
-                    <val>CustomizationSpecManager</val>
-                    <type>CustomizationSpecManager</type>
-                  </customizationSpecManager>
-                  <customFieldsManager>
-                    <val>CustomFieldsManager</val>
-                    <type>CustomFieldsManager</type>
-                  </customFieldsManager>
-                  <diagnosticManager>
-                    <val>DiagMgr</val>
-                    <type>DiagnosticManager</type>
-                  </diagnosticManager>
-                  <licenseManager>
-                    <val>LicenseManager</val>
-                    <type>LicenseManager</type>
-                  </licenseManager>
-                  <searchIndex>
-                    <val>SearchIndex</val>
-                    <type>SearchIndex</type>
-                  </searchIndex>
-                  <fileManager>
-                    <val>FileManager</val>
-                    <type>FileManager</type>
-                  </fileManager>
-                  <datastoreNamespaceManager>
-                    <val>DatastoreNamespaceManager</val>
-                    <type>DatastoreNamespaceManager</type>
-                  </datastoreNamespaceManager>
-                  <virtualDiskManager>
-                    <val>virtualDiskManager</val>
-                    <type>VirtualDiskManager</type>
-                  </virtualDiskManager>
-                  <snmpSystem>
-                    <val>SnmpSystem</val>
-                    <type>HostSnmpSystem</type>
-                  </snmpSystem>
-                  <vmProvisioningChecker>
-                    <val>ProvChecker</val>
-                    <type>VirtualMachineProvisioningChecker</type>
-                  </vmProvisioningChecker>
-                  <vmCompatibilityChecker>
-                    <val>CompatChecker</val>
-                    <type>VirtualMachineCompatibilityChecker</type>
-                  </vmCompatibilityChecker>
-                  <ovfManager>
-                    <val>OvfManager</val>
-                    <type>OvfManager</type>
-                  </ovfManager>
-                  <ipPoolManager>
-                    <val>IpPoolManager</val>
-                    <type>IpPoolManager</type>
-                  </ipPoolManager>
-                  <dvSwitchManager>
-                    <val>DVSManager</val>
-                    <type>DistributedVirtualSwitchManager</type>
-                  </dvSwitchManager>
-                  <hostProfileManager>
-                    <val>HostProfileManager</val>
-                    <type>HostProfileManager</type>
-                  </hostProfileManager>
-                  <clusterProfileManager>
-                    <val>ClusterProfileManager</val>
-                    <type>ClusterProfileManager</type>
-                  </clusterProfileManager>
-                  <complianceManager>
-                    <val>MoComplianceManager</val>
-                    <type>ProfileComplianceManager</type>
-                  </complianceManager>
-                  <localizationManager>
-                    <val>LocalizationManager</val>
-                    <type>LocalizationManager</type>
-                  </localizationManager>
-                  <storageResourceManager>
-                    <val>StorageResourceManager</val>
-                    <type>StorageResourceManager</type>
-                  </storageResourceManager>
-                  <guestOperationsManager>
-                    <val>guestOperationsManager</val>
-                    <type>GuestOperationsManager</type>
-                  </guestOperationsManager>
-                </serviceContent>
-              </serviceInstance>
-              <vimService>
-                <wsc>
-                  <baseUrl>https://10.156.21.79/sdk</baseUrl>
-                  <cookie>vmware_soap_session=&quot;52f3389a-dbb6-3fe0-9441-f8ab51e254f3&quot;; Path=/; HttpOnly; Secure;</cookie>
-                  <vimNameSpace> xmlns=&quot;urn:vim25&quot;&gt;</vimNameSpace>
-                  <soapAction>urn:vim25/5.5</soapAction>
-                  <connectTimeout>0</connectTimeout>
-                  <readTimeout>0</readTimeout>
-                  <xmlGen class="com.vmware.vim25.ws.XmlGenDom"/>
-                </wsc>
-              </vimService>
-            </serverConnection>
-            <mor>
-              <val>group-v436</val>
-              <type>Folder</type>
-            </mor>
-          </ret>
-          <arrVM/>
-        </vsphere>
-        <sourceName>${TestEnvFolderPath}</sourceName>
-        <location>${PendingFolderPath}</location>
-      </buildStep>
-      <serverName>ATL Vsphere Server</serverName>
-      <serverHash>-1412856745</serverHash>
-    </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
-    <hudson.tasks.BatchFile>
-      <command>echo TestEnvFolderPath=%TestEnvFolderPath%  was reverted back to %Snapshot% and moved to %PendingFolderPath%</command>
-    </hudson.tasks.BatchFile>
+    <org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder plugin="conditional-buildstep@1.3.3">
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+      <runCondition class="org.jenkins_ci.plugins.run_condition.core.StringsMatchCondition" plugin="run-condition@1.0">
+        <arg1>$KeepTheFixtureWhenDone</arg1>
+        <arg2>true</arg2>
+        <ignoreCase>false</ignoreCase>
+      </runCondition>
+      <conditionalbuilders>
+        <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@1.1.13-SNAPSHOT">
+          <buildStep class="org.jenkinsci.plugins.vsphere.builders.Move">
+            <sourceName>${TestEnvFolderPath}</sourceName>
+            <location>$ProvisioningRoot/Parking</location>
+          </buildStep>
+          <serverName>ATL Vsphere Server</serverName>
+          <serverHash>-1412856745</serverHash>
+        </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+        <hudson.tasks.BatchFile>
+          <command>echo TestEnvFolderPath=%TestEnvFolderPath%  was  moved to %ProvisioningRoot%/Parking&#xd;
+echo DestPool=%ProvisioningRoot%/Parking &gt;%WORKSPACE%\backtoPool.prop</command>
+        </hudson.tasks.BatchFile>
+        <hudson.tasks.Shell>
+          <command>exit 0</command>
+        </hudson.tasks.Shell>
+      </conditionalbuilders>
+    </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>
+    <org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder plugin="conditional-buildstep@1.3.3">
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+      <runCondition class="org.jenkins_ci.plugins.run_condition.core.StringsMatchCondition" plugin="run-condition@1.0">
+        <arg1>$KeepTheFixtureWhenDone</arg1>
+        <arg2>false</arg2>
+        <ignoreCase>false</ignoreCase>
+      </runCondition>
+      <conditionalbuilders>
+        <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@1.1.13-SNAPSHOT">
+          <buildStep class="org.jenkinsci.plugins.vsphere.builders.GetFolderInfo">
+            <sourceName>${TestEnvFolderPath}</sourceName>
+            <numberVM>0</numberVM>
+            <numberFolder>0</numberFolder>
+          </buildStep>
+          <serverName>ATL Vsphere Server</serverName>
+          <serverHash>-1412856745</serverHash>
+        </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+        <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@1.1.13-SNAPSHOT">
+          <buildStep class="org.jenkinsci.plugins.vsphere.builders.RevertToSnapshot">
+            <vm>${FIRST_VM}</vm>
+            <snapshotName>${Snapshot}</snapshotName>
+          </buildStep>
+          <serverName>ATL Vsphere Server</serverName>
+          <serverHash>-1412856745</serverHash>
+        </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+        <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@1.1.13-SNAPSHOT">
+          <buildStep class="org.jenkinsci.plugins.vsphere.builders.PowerOn">
+            <vm>${FIRST_VM}</vm>
+            <timeoutInSeconds>180</timeoutInSeconds>
+          </buildStep>
+          <serverName>ATL Vsphere Server</serverName>
+          <serverHash>-1412856745</serverHash>
+        </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+        <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@1.1.13-SNAPSHOT">
+          <buildStep class="org.jenkinsci.plugins.vsphere.builders.Move">
+            <sourceName>${TestEnvFolderPath}</sourceName>
+            <location>${PendingFolderPath}</location>
+          </buildStep>
+          <serverName>ATL Vsphere Server</serverName>
+          <serverHash>-1412856745</serverHash>
+        </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+        <hudson.tasks.BatchFile>
+          <command>echo TestEnvFolderPath=%TestEnvFolderPath%  was reverted back to %Snapshot% and moved to %PendingFolderPath%&#xd;
+echo DestPool=%PendingFolderPath% &gt;%WORKSPACE%\backtoPool.prop</command>
+        </hudson.tasks.BatchFile>
+      </conditionalbuilders>
+    </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>
+    <EnvInjectBuilder plugin="envinject@1.90">
+      <info>
+        <propertiesFilePath>${WORKSPACE}\backtoPool.prop</propertiesFilePath>
+      </info>
+    </EnvInjectBuilder>
   </builders>
-  <publishers/>
+  <publishers>
+    <hudson.plugins.emailext.ExtendedEmailPublisher plugin="email-ext@2.39">
+      <recipientList>$DEFAULT_RECIPIENTS</recipientList>
+      <configuredTriggers>
+        <hudson.plugins.emailext.plugins.trigger.FailureTrigger>
+          <email>
+            <recipientList></recipientList>
+            <subject>$PROJECT_DEFAULT_SUBJECT</subject>
+            <body>$PROJECT_DEFAULT_CONTENT</body>
+            <recipientProviders>
+              <hudson.plugins.emailext.plugins.recipients.ListRecipientProvider/>
+            </recipientProviders>
+            <attachmentsPattern></attachmentsPattern>
+            <attachBuildLog>false</attachBuildLog>
+            <compressBuildLog>false</compressBuildLog>
+            <replyTo>$PROJECT_DEFAULT_REPLYTO</replyTo>
+            <contentType>project</contentType>
+          </email>
+        </hudson.plugins.emailext.plugins.trigger.FailureTrigger>
+      </configuredTriggers>
+      <contentType>default</contentType>
+      <defaultSubject>$DEFAULT_SUBJECT</defaultSubject>
+      <defaultContent>Created by $jenkins-ForRonDEVOPS_(Back2Pool)-10  Job
+URL=$BUILD_URL
+Provisioning IP = $VmIp
+${TestEnvFolderPath} Environment was moved to ${DestPool}</defaultContent>
+      <attachmentsPattern></attachmentsPattern>
+      <presendScript>$DEFAULT_PRESEND_SCRIPT</presendScript>
+      <attachBuildLog>false</attachBuildLog>
+      <compressBuildLog>false</compressBuildLog>
+      <replyTo>$DEFAULT_REPLYTO</replyTo>
+      <saveOutput>false</saveOutput>
+      <disabled>false</disabled>
+    </hudson.plugins.emailext.ExtendedEmailPublisher>
+  </publishers>
   <buildWrappers>
     <org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder plugin="versionnumber@1.4.1">
       <versionNumberString>${MasterBuildVersion}</versionNumberString>
