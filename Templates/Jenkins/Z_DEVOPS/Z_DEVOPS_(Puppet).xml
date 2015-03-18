@@ -151,7 +151,7 @@ TestEnvFolderPath=${TestEnvFolderPath}</properties>
     </org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder>
     <EnvInjectBuildWrapper plugin="envinject@1.90">
       <info>
-        <propertiesContent>command=cmd /c puppet agent --test --server=${PuppetServer} --certname=${PuppetEnv}-${BUILD_ID} --environment=${PuppetEnv} --debug &gt; c:\windows\temp\${PuppetEnv}-${BUILD_ID}.log</propertiesContent>
+        <propertiesContent>command=cmd /c puppet agent --test --server=${PuppetServer} --certname=${PuppetEnv}-${BUILD_ID} --environment=${PuppetEnv} --debug &gt; C:\Impact360\WFOPuppet\logs\${PuppetEnv}-${BUILD_ID}.log</propertiesContent>
         <loadFilesFromMaster>false</loadFilesFromMaster>
       </info>
     </EnvInjectBuildWrapper>
