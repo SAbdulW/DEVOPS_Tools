@@ -151,6 +151,11 @@ TYPE &quot;%WORKSPACE%\assign.prop&quot;</command>
       <serverName>ATL Vsphere Server</serverName>
       <serverHash>-1412856745</serverHash>
     </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+	<hudson.tasks.Shell>
+		<command>
+echo pp_timestamp=$(date +%s) >> $WORKSPACE/assign.prop
+		</command>
+	</hudson.tasks.Shell>
     <hudson.tasks.BatchFile>
       <command>echo VmIp=%VM_IP%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
 &#xd;
