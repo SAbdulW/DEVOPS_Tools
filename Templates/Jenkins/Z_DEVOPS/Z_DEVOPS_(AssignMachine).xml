@@ -153,7 +153,7 @@ TYPE &quot;%WORKSPACE%\assign.prop&quot;</command>
     </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
 	<hudson.tasks.Shell>
 		<command>
-echo pp_timestamp=$(date +%s) >> $WORKSPACE/assign.prop
+echo pp_timestamp=$(date +%s)>>$WORKSPACE/assign.prop
 		</command>
 	</hudson.tasks.Shell>
     <hudson.tasks.BatchFile>
