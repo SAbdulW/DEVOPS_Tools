@@ -1,0 +1,159 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.14">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.4.1">
+      <useBuildBlocker>false</useBuildBlocker>
+    </hudson.plugins.buildblocker.BuildBlockerProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>PuppetEnv</name>
+          <description>Environment to us in the puppet server</description>
+          <defaultValue>ci_wfo_env</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PuppetServer</name>
+          <description></description>
+          <defaultValue>atlpuppetmaster.lab.local</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>VmIp</name>
+          <description></description>
+          <defaultValue>10.200.50.00</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TestMachineAdmin</name>
+          <description></description>
+          <defaultValue>systemadmin</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.PasswordParameterDefinition>
+          <name>VmPw</name>
+          <description></description>
+          <defaultValue>d3oihSOqMY6ANI1hPitrCl1W8+z6FoYGB74IT3gB1ng=</defaultValue>
+        </hudson.model.PasswordParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PendingFolderPath</name>
+          <description></description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TestEnvFolderPath</name>
+          <description></description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>DevRootPath</name>
+          <description></description>
+          <defaultValue>D:\gitroot\Z_DEVOPS</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.3.4">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>git@atlgit:DEVOPS_Tools</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>origin/ci_wfo_env</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <gitTool>Default</gitTool>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>Slave-B-Staging01</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <customWorkspace>$DevRootPath\ci_global</customWorkspace>
+  <builders>
+    <hudson.tasks.BatchFile>
+      <command>echo =============== Copy YAML File From Team Repo  =============================&#xd;
+echo COMMAND TO RUN: cmd /c %WORKSPACE%\Scripts\Batch\FindAndReplace.bat &quot;${MasterBuildVersion}&quot; &quot;%MasterBuildVersion%&quot; &quot;%WORKSPACE%\..\ci\puppet.yaml&quot; &gt;  &quot;\\%PuppetServer%\puppet_agent\environments\%PuppetEnv%\hieradata\%PuppetEnv%_%pp_timestamp%.yaml&quot;&#xd;
+&#xd;
+cmd /c %WORKSPACE%\Scripts\Batch\FindAndReplace.bat &quot;${MasterBuildVersion}&quot; &quot;%MasterBuildVersion%&quot; &quot;%WORKSPACE%\..\ci\puppet.yaml&quot; &gt;  &quot;\\%PuppetServer%\puppet_agent\environments\%PuppetEnv%\hieradata\%PuppetEnv%_%pp_timestamp%.yaml&quot;&#xd;
+&#xd;
+echo cmd /c %WORKSPACE%\Scripts\Batch\FindAndReplace.bat &quot;${MasterBuildVersion}&quot; &quot;11.2.1.155&quot; &quot;%WORKSPACE%\..\ci\puppet.yaml&quot; &gt;  &quot;\\%PuppetServer%\puppet_agent\environments\%PuppetEnv%\hieradata\%PuppetEnv%_%pp_timestamp%.yaml&quot;&#xd;
+</command>
+    </hudson.tasks.BatchFile>
+    <hudson.tasks.BatchFile>
+      <command>echo =============== Run Puppet Slave ===========================&#xd;
+echo COMMAND TO RUN: cscript &quot;%WORKSPACE%\Scripts\RunProcess\run_Process.vbs&quot; %VmIp% %TestMachineAdmin% %VmPw% &quot;%command%&quot; &#xd;
+&#xd;
+cscript &quot;%WORKSPACE%\Scripts\RunProcess\run_Process.vbs&quot; %VmIp% %TestMachineAdmin% %VmPw% &quot;%command%&quot;&#xd;
+&#xd;
+echo IF %ERRORLEVEL%=2 exit /b 0&#xd;
+&#xd;
+exit /b 0</command>
+    </hudson.tasks.BatchFile>
+  </builders>
+  <publishers>
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.25">
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+              <properties>Test_Machine_Name=${Test_Machine_Name}
+VmIp=${VmIp}
+PendingFolderPath=${PendingFolderPath}
+TestEnvFolderPath=${TestEnvFolderPath}</properties>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+            <hudson.plugins.parameterizedtrigger.NodeParameters/>
+            <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
+          </configs>
+          <projects>Z_DEVOPS_(RAFTests)</projects>
+          <condition>SUCCESS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+        </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+        <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+              <properties>Test_Machine_Name=${Test_Machine_Name}
+VmIp=${VmIp}
+PendingFolderPath=${PendingFolderPath}
+TestEnvFolderPath=${TestEnvFolderPath}</properties>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+            <hudson.plugins.parameterizedtrigger.NodeParameters/>
+            <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
+          </configs>
+          <projects>Z_DEVOPS_(Back2Pool)</projects>
+          <condition>FAILED</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+        </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.BuildTrigger>
+  </publishers>
+  <buildWrappers>
+    <org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder plugin="versionnumber@1.4.1">
+      <versionNumberString>${MasterBuildVersion}</versionNumberString>
+      <projectStartDate>1969-12-31 05:00:00.0 UTC</projectStartDate>
+      <environmentVariableName>MasterBuildVersion</environmentVariableName>
+      <oBuildsToday>-1</oBuildsToday>
+      <oBuildsThisMonth>-1</oBuildsThisMonth>
+      <oBuildsThisYear>-1</oBuildsThisYear>
+      <oBuildsAllTime>-1</oBuildsAllTime>
+      <skipFailedBuilds>false</skipFailedBuilds>
+      <useAsBuildDisplayName>true</useAsBuildDisplayName>
+    </org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder>
+    <EnvInjectBuildWrapper plugin="envinject@1.90">
+      <info>
+        <propertiesContent>command=cmd /c puppet agent --test --server=${PuppetServer} --certname=${PuppetEnv}-${pp_timestamp} --environment=${PuppetEnv} --debug &gt; c:\windows\temp\${PuppetEnv}-${pp_timestamp}.log</propertiesContent>
+        <loadFilesFromMaster>false</loadFilesFromMaster>
+      </info>
+    </EnvInjectBuildWrapper>
+  </buildWrappers>
+</project>
