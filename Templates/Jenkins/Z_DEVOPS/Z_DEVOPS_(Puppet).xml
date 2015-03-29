@@ -151,7 +151,7 @@ TestEnvFolderPath=${TestEnvFolderPath}</properties>
     </org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder>
     <EnvInjectBuildWrapper plugin="envinject@1.90">
       <info>
-        <propertiesContent>command=cmd /c puppet agent --test --server=${PuppetServer} --certname=${PuppetEnv}-${pp_timestamp} --environment=${PuppetEnv} --debug &gt; c:\windows\temp\${PuppetEnv}-${pp_timestamp}.log</propertiesContent>
+        <propertiesContent>command=cmd /c puppet agent --test --server=${PuppetServer} --certname=${PuppetEnv}_${pp_timestamp} --environment=${PuppetEnv} --debug &gt; c:\windows\temp\${PuppetEnv}_${pp_timestamp}.log</propertiesContent>
         <loadFilesFromMaster>false</loadFilesFromMaster>
       </info>
     </EnvInjectBuildWrapper>
