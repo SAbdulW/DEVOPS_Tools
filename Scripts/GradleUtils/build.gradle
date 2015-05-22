@@ -44,11 +44,13 @@ configurations {
 
 dependencies {
     envConfig 'com.microsoft.technet.sysinternals:PSTools:2.11@zip'
+    envConfig 'com.poweradmin:paexec:1.26@zip'
 }
 
 // prepare environment, getting the tools
 task init() << {
     ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("PSTools-")}, dest: "${projectDir}\\Pstools\\") { patternset { include(name:"PsExec.exe")}}
+    ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("paexec")}, dest: "${projectDir}\\PAExec\\")
 }
 
 task runPuppetAgent(dependsOn: 'init') << {
@@ -58,22 +60,34 @@ task runPuppetAgent(dependsOn: 'init') << {
 // Get list of repositories from Artifactory, write the list into a file
 
 def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvironment, String iVmIP, String iUser, String iPw) {
-    //File ppCommandFile = File.createTempFile("ppCmd",".bat");
-    //String ppFilePath = ppCommandFile.getAbsolutePath()
-    //ppFilePath = ppFilePath.replaceAll("\\\\","/")
 
     String sCmd = ""
     // CommandLine to execute in the agent
-    sCmd = "\"C:\\Program Files\\Puppet Labs\\Puppet\\bin\\puppet.bat\" agent --test --server=${iPuppetServer} --certname=${iCertName} --environment=${iEnvironment} --debug"
-    //ppCommandFile.text = sCmd
+    sCmd = "\"C:\\Program Files\\Puppet Labs\\Puppet\\bin\\puppet.bat\" agent --test --server=${iPuppetServer} --certname=${iCertName} --environment=${iEnvironment} --debug --detailed-exitcodes"
+
     //Create the psexec command
-   // String sPsExecCmd ="cmd /c ${projectDir}\\Pstools\\PsExec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    // String sPsExecCmd ="cmd /c ${projectDir}\\Pstools\\PsExec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    //String sPsExecCmd ="cmd /c ${projectDir}\\Pstools\\PsExec.exe -accepteula -i \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    String sPsExecCmd ="cmd /c ${projectDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
 
-    String sPsExecCmd ="cmd /c ${projectDir}\\Pstools\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    logger.quiet ("GradleUtils: the command: ${sPsExecCmd} ")
 
+    result=exec {
+        commandLine 'cmd', '/c', sPsExecCmd
 
-    logger.quiet ("GradleUtils: the sPsExecCmd: ${sPsExecCmd} ")
-    executeOnCMDFile sPsExecCmd
+    }
+
+    int rtnCode = result.getExitValue();
+
+    if (rtnCode==2){
+        logger.quiet ("GradleUtils: there were changes during the transaction: exitCode (${rtnCode})")
+    }else if (rtnCode==4){
+        logger.quiet ("GradleUtils: there were failures during the transaction: exitCode (${rtnCode})")
+    }else if (rtnCode==6){
+        logger.quiet ("GradleUtils: there were both changes and failures during the transaction: exitCode (${rtnCode})")
+    }
+
+   // executeOnCMDFile sPsExecCmd
     //executeAsIs sPsExecCmd
     //ppCommandFile.delete()
 }
@@ -93,6 +107,8 @@ def executeOnCMDFile(String command){
     //temp.delete()
 }
 
+
+
 def executeOnCMD(String command) {
 
     return executeOnCMD(command, new File(System.properties.'java.io.tmpdir'))
@@ -105,8 +121,9 @@ def executeOnCMD (String command, File workingDir) {
             .redirectErrorStream(true)
             .start()
     process.inputStream.eachLine {println it}
-    process.waitFor();
-    return process.exitValue()
+    //With the paexec , no need to waitFor
+    //process.waitFor();
+    //return process.exitValue()
 }
 
 def executeOnShellFile(String command){
