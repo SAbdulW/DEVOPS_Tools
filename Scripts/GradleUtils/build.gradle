@@ -56,6 +56,8 @@ task init() << {
 task runPuppetAgent(dependsOn: 'init') << {
     logger.quiet ("GradleUtils: run the puppet agent")
     runPuppetAgentCommand "$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw"
+
+    //getRtnCode ("org.gradle.process.internal.ExecException: Process 'command 'cmd'' finished with non-zero exit value 2")
 }
 // Get list of repositories from Artifactory, write the list into a file
 
@@ -72,26 +74,43 @@ def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvir
 
     logger.quiet ("GradleUtils: the command: ${sPsExecCmd} ")
 
-    result=exec {
-        commandLine 'cmd', '/c', sPsExecCmd
-
+    String rtnCode=""
+    try {
+        exec {
+            commandLine 'cmd', '/c', sPsExecCmd
+        }
+    }catch (Exception e) {
+        logger.quiet ("GradleUtils: some " + e.toString())
+        rtnCode =  getRtnCode(e.toString())
     }
 
-    int rtnCode = result.getExitValue();
+    logger.quiet ("GradleUtils: there were changes during the transaction: exitCode (${rtnCode})")
+    //rtnCode = result.getExitValue()
 
-    if (rtnCode==2){
+    if (rtnCode=="2"){
         logger.quiet ("GradleUtils: there were changes during the transaction: exitCode (${rtnCode})")
-    }else if (rtnCode==4){
-        logger.quiet ("GradleUtils: there were failures during the transaction: exitCode (${rtnCode})")
-    }else if (rtnCode==6){
-        logger.quiet ("GradleUtils: there were both changes and failures during the transaction: exitCode (${rtnCode})")
-    }
+        //throw new GradleException("GradleUtils: there were changes during the transaction: exitCode (${rtnCode})")
+    }else if (rtnCode=="4"){
+        throw new GradleException("GradleUtils: there were FAILURES during the transaction: exitCode (${rtnCode})")
+        //logger.quiet ("GradleUtils: there were failures during the transaction: exitCode (${rtnCode})")
 
-   // executeOnCMDFile sPsExecCmd
+    }else if (rtnCode=="6"){
+        throw new GradleException("GradleUtils: there were both changes and FAILURES during the transaction: exitCode (${rtnCode})")
+        //logger.quiet ("GradleUtils: there were both changes and failures during the transaction: exitCode (${rtnCode})")
+    }
+    // executeOnCMDFile sPsExecCmd
     //executeAsIs sPsExecCmd
     //ppCommandFile.delete()
 }
-
+def getRtnCode (String strException){
+    int lastIndex =   strException.lastIndexOf("exit value")
+    String strReturn=""
+    if (lastIndex>0){
+        strReturn =   strException.substring(lastIndex+ "exit value".length()+1)
+        //logger.quiet ("GradleUtils: strReturn=->${strReturn}<-")
+    }
+    return strReturn;
+}
 
 def executeOnCMDFile(String command){
     File temp = File.createTempFile("cish",".bat");
