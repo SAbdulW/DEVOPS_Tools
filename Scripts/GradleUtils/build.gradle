@@ -1,0 +1,218 @@
+import groovy.json.JsonSlurper
+
+buildscript {
+    repositories {
+        maven {
+            url "${artifactory_contextUrl}/plugins-release"
+            credentials {
+                username = "${artifactory_user}"
+                password = "${artifactory_password}"
+            }
+        }
+    }
+    dependencies {
+        classpath 'com.verint.plugins:vebutu-plugin:latest.release'
+
+    }
+}
+
+apply plugin: 'vebutu'
+
+ext.supportedGradleVersion = '2.3'
+
+allprojects {
+	apply plugin: 'idea'
+	group = 'com.verint.devops.gradleutils'
+	version = currentVersion
+}
+
+
+repositories {
+    //Resolving the artifact from the release repo, the one promoted by team
+    maven {
+        url "${artifactory_contextUrl}/ci-wfo-puppet-repos"
+        credentials {
+            username = "${artifactory_user}"
+            password = "${artifactory_password}"
+        }
+    }
+}
+
+configurations {
+    envConfig
+}
+
+dependencies {
+    envConfig 'com.microsoft.technet.sysinternals:PSTools:2.11@zip'
+    envConfig 'com.poweradmin:paexec:1.26@zip'
+}
+
+// prepare environment, getting the tools
+task init() << {
+    ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("PSTools-")}, dest: "${projectDir}\\Pstools\\") { patternset { include(name:"PsExec.exe")}}
+    ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("paexec")}, dest: "${projectDir}\\PAExec\\")
+}
+
+task runPuppetAgent(dependsOn: 'init') << {
+    logger.quiet ("GradleUtils: run the puppet agent")
+    runPuppetAgentCommand "$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw"
+
+    //getRtnCode ("org.gradle.process.internal.ExecException: Process 'command 'cmd'' finished with non-zero exit value 2")
+}
+// Get list of repositories from Artifactory, write the list into a file
+
+def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvironment, String iVmIP, String iUser, String iPw) {
+
+    String sCmd = ""
+    // CommandLine to execute in the agent
+    sCmd = "\"C:\\Program Files\\Puppet Labs\\Puppet\\bin\\puppet.bat\" agent --test --server=${iPuppetServer} --certname=${iCertName} --environment=${iEnvironment} --debug --detailed-exitcodes"
+
+    //Create the psexec command
+    // String sPsExecCmd ="cmd /c ${projectDir}\\Pstools\\PsExec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    //String sPsExecCmd ="cmd /c ${projectDir}\\Pstools\\PsExec.exe -accepteula -i \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    String sPsExecCmd ="cmd /c ${projectDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+
+    logger.quiet ("GradleUtils: the command: ${sPsExecCmd} ")
+
+    String rtnCode=""
+    try {
+        exec {
+            commandLine 'cmd', '/c', sPsExecCmd
+        }
+    }catch (Exception e) {
+        logger.quiet ("GradleUtils: some " + e.toString())
+        rtnCode =  getRtnCode(e.toString())
+    }
+
+    logger.quiet ("GradleUtils: there were changes during the transaction: exitCode (${rtnCode})")
+    //rtnCode = result.getExitValue()
+
+    if (rtnCode=="2"){
+        logger.quiet ("GradleUtils: there were changes during the transaction: exitCode (${rtnCode})")
+        //throw new GradleException("GradleUtils: there were changes during the transaction: exitCode (${rtnCode})")
+    }else if (rtnCode=="4"){
+        throw new GradleException("GradleUtils: there were FAILURES during the transaction: exitCode (${rtnCode})")
+        //logger.quiet ("GradleUtils: there were failures during the transaction: exitCode (${rtnCode})")
+
+    }else if (rtnCode=="6"){
+        throw new GradleException("GradleUtils: there were both changes and FAILURES during the transaction: exitCode (${rtnCode})")
+        //logger.quiet ("GradleUtils: there were both changes and failures during the transaction: exitCode (${rtnCode})")
+    }
+    // executeOnCMDFile sPsExecCmd
+    //executeAsIs sPsExecCmd
+    //ppCommandFile.delete()
+}
+def getRtnCode (String strException){
+    int lastIndex =   strException.lastIndexOf("exit value")
+    String strReturn=""
+    if (lastIndex>0){
+        strReturn =   strException.substring(lastIndex+ "exit value".length()+1)
+        //logger.quiet ("GradleUtils: strReturn=->${strReturn}<-")
+    }
+    return strReturn;
+}
+
+def executeOnCMDFile(String command){
+    File temp = File.createTempFile("cish",".bat");
+    temp.write(command)
+    //println "             *************Temp command: ******:" + temp.getAbsolutePath()
+
+    String filePath = temp.getAbsolutePath()
+    //filePath = filePath.replaceAll("\\\\","/")
+    println "             *************Temp command: ******:" + filePath
+
+    executeOnCMD filePath
+    //TODO: uncomment code bellow
+    //temp.delete()
+}
+
+
+
+def executeOnCMD(String command) {
+
+    return executeOnCMD(command, new File(System.properties.'java.io.tmpdir'))
+}
+
+def executeOnCMD (String command, File workingDir) {
+    println "---CommandToExecute:" + command
+    def process = new ProcessBuilder(command)
+            .directory(workingDir)
+            .redirectErrorStream(true)
+            .start()
+    process.inputStream.eachLine {println it}
+    //With the paexec , no need to waitFor
+    //process.waitFor();
+    //return process.exitValue()
+}
+
+def executeOnShellFile(String command){
+    File temp = File.createTempFile("cish",".sh");
+    temp.write(command)
+    //println "             *************Temp command: ******:" + temp.getAbsolutePath()
+
+    String filePath = temp.getAbsolutePath()
+    //filePath = filePath.replaceAll("\\\\","/")
+    println "             *************Temp command: ******:" + filePath
+
+    executeOnShell filePath
+    //TODO: uncomment code bellow
+    //temp.delete()
+}
+def executeOnShell(String command) {
+
+    return executeOnShell(command, new File(System.properties.'java.io.tmpdir'))
+}
+
+def executeOnShell(String command, File workingDir) {
+    println "---CommandToExecute:" + command
+    def process = new ProcessBuilder(addShellPrefix(command))
+            .directory(workingDir)
+            .redirectErrorStream(true)
+            .start()
+    process.inputStream.eachLine {println it}
+    process.waitFor();
+    return process.exitValue()
+}
+
+def addShellPrefix(String command) {
+    def commandArray = new String[3]
+    commandArray[0] = "sh"
+    commandArray[1] = "-c"
+    commandArray[2] = command
+    return commandArray
+}
+
+//Execute directly
+
+def executeAsIs(String command) {
+    println "---CommandAsIsToExecute:" + command
+    def process = "$command".execute()
+    process.text.eachLine {println it}
+    process.waitFor();
+    return process.exitValue()
+}
+
+def boolean containsPrefixes(String srcString, String prefixes)
+{
+    def prefixesList= prefixes.split("##")
+    //println ("    -------Check if : " + srcString + " has the :" + prefixes)
+    boolean hasIt=false
+    for (int i=0; i< prefixesList.length; i++) {
+        String strTest=prefixesList[i]
+        //println (" -------strTest: " + strTest)
+        if (srcString.contains(strTest))
+        {
+            hasIt = true
+            break
+        }
+    }
+
+    return hasIt
+}
+
+task wrapper(type: Wrapper) {
+	gradleVersion = supportedGradleVersion
+}
+
+
+//reference
