@@ -55,9 +55,17 @@ task init() << {
 
 task runPuppetAgent(dependsOn: 'init') << {
     logger.quiet ("GradleUtils: run the puppet agent")
+
+    String pp_timestamp= Calendar.getInstance().getTimeInMillis();
+    // Replace the yaml content with the new build number and create the yaml file
+    String strSearch="\${MasterBuildVersion}"
+    String certname="${environment}_${pp_timestamp}"
+    logger.quiet ("GradleUtils: certname:${certname}")
+
+    createYAML ("${currentVersion}", "${yamlSrcPath}", "${yamlDestPath}\\${certname}.yaml" )
+
     runPuppetAgentCommand "$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw"
 
-    //getRtnCode ("org.gradle.process.internal.ExecException: Process 'command 'cmd'' finished with non-zero exit value 2")
 }
 // Get list of repositories from Artifactory, write the list into a file
 
@@ -101,6 +109,29 @@ def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvir
     // executeOnCMDFile sPsExecCmd
     //executeAsIs sPsExecCmd
     //ppCommandFile.delete()
+}
+
+
+def createYAML (String strReplaceWith, String sourcePathYAML, String destPathYAML) {
+    // Open the
+    File sourceFile = new File (sourcePathYAML);
+    File destFile =  new File (destPathYAML);
+    String srcFilePath = sourceFile.getCanonicalPath()
+    String destFilePath = destFile.getCanonicalPath()
+
+    String sourceContent = sourceFile.getText("UTF-8")
+
+    logger.quiet ("GradleUtils: sourceContent YAML at ${srcFilePath}\n${sourceContent}")
+
+    if (sourceContent.indexOf("{MasterBuildVersion}")>0){
+        sourceContent=sourceContent.replaceAll("[\${}]","HT")
+
+        sourceContent=sourceContent.replaceAll("HTHTMasterBuildVersionHT",strReplaceWith)
+    }
+
+    logger.quiet ("GradleUtils: updatedContent YAML at ${destFilePath} \n${sourceContent}")
+    destFile.write(sourceContent,"UTF-8")
+
 }
 def getRtnCode (String strException){
     int lastIndex =   strException.lastIndexOf("exit value")
