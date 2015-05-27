@@ -1,0 +1,149 @@
+{ 
+ "viewName": "Z_DEVOPS", 
+ "jobList": "Z_DEVOPS (Commit Build)##Z_DEVOPS_(AssignMachine)##Z_DEVOPS_(Puppet)##Z_DEVOPS_(Back2Pool)##Z_DEVOPS_(RAFTests)##Z_DEVOPS_(Back2Pool)", 
+ "jobs":{"Z_DEVOPS (Commit Build)": {
+    "jobName": "Z_DEVOPS (Commit Build)",
+    "customWorkspace": "${DevRootPath}",
+    "buildParams": {
+        "Branch": "dev",
+        "DevRootPath": "D:/gitroot/Z_DEVOPS",
+        "Where_to_run_the_build": "Slave-B-Staging01",
+        "RepoURL": "git@scgit:SC_OPS"
+      },
+    "artifactory": {
+
+      },
+    "buildTrigger": {
+        "0":{"current":"Z_DEVOPS_(AssignMachine)",
+              "update":"Z_DEVOPS_(AssignMachine)"}
+      },
+    "buildBloker": {
+
+      }
+},
+"Z_DEVOPS_(AssignMachine)": {
+    "jobName": "Z_DEVOPS_(AssignMachine)",
+    "customWorkspace": "$DevRootPath",
+    "buildParams": {
+        "ProvisioningRoot": "Fixture/11.2.1.x/Green",
+        "PendingPoolFolder": "Pending",
+        "RunningPoolFolder": "Running",
+        "DevRootPath": "D:/gitroot/Z_DEVOPS",
+        "RetryTime": "6m"
+      },
+    "artifactory": {
+
+      },
+    "buildTrigger": {
+        "0":{"current":"Z_DEVOPS_(Puppet)",
+              "update":"Z_DEVOPS_(Puppet)"}
+      },
+    "buildBloker": {
+
+      }
+},
+"Z_DEVOPS_(Puppet)": {
+    "jobName": "Z_DEVOPS_(Puppet)",
+    "customWorkspace": "$DevRootPath/ci_global",
+    "buildParams": {
+        "PuppetEnv": "ci_wfo_env",
+        "PuppetServer": "atlpuppetmaster.lab.local",
+        "VmIp": "10.200.50.00",
+        "TestMachineAdmin": "systemadmin",
+        "VmPw": "!veRinT$5",
+        "PendingFolderPath": "",
+        "TestEnvFolderPath": "",
+        "DevRootPath": "D:/gitroot/Z_DEVOPS"
+      },
+    "artifactory": {
+
+      },
+    "buildTrigger": {
+        "0":{"current":"Z_DEVOPS_(RAFTests)",
+              "update":"Z_DEVOPS_(RAFTests)"},
+        "1":{"current":"Z_DEVOPS_(Back2Pool)",
+              "update":"Z_DEVOPS_(Back2Pool)"}
+      },
+    "buildBloker": {
+
+      }
+},
+"Z_DEVOPS_(Back2Pool)": {
+    "jobName": "Z_DEVOPS_(Back2Pool)",
+    "customWorkspace": "",
+    "buildParams": {
+        "TestEnvFolderPath": "Automation/CI/11.2SP1Latest-Greatst",
+        "PendingFolderPath": "Automation/CI/11.2SP1Latest-Running",
+        "Snapshot": "Base",
+        "Test_Machine_Name": "",
+        "ProvisioningRoot": "",
+        "KeepTheFixtureWhenDone": "false",
+        "ParkingPool": ""
+      },
+    "artifactory": {
+
+      },
+    "buildTrigger": {
+
+      },
+    "buildBloker": {
+
+      }
+},
+"Z_DEVOPS_(RAFTests)": {
+    "jobName": "Z_DEVOPS_(RAFTests)",
+    "customWorkspace": "$DevRootPath",
+    "buildParams": {
+        "DevRootPath": "D:/gitroot/Z_DEVOPS",
+        "ScriptLocation": "ci_global/IntegrationTests/RAF/Generic/workflows/BasicInt.script",
+        "EnvPramLocation": "ci_global/IntegrationTests/RAF/Generic/workflows/env.params",
+        "PrivateScriptLocation": "ci/IntegrationTests/RAF/workflows/Int.suite",
+        "PrivateEnvPramLocation": "ci/IntegrationTests/RAF/workflows/env.params",
+        "VmIp": "#10.156.16.125",
+        "TestMachineAdmin": "systemadmin",
+        "VmPw": "!veRinT$5",
+        "RafDir": "Regression Automation Framework",
+        "Test_Machine_Name": "2008base",
+        "PrivateRaf": "false"
+      },
+    "artifactory": {
+
+      },
+    "buildTrigger": {
+        "0":{"current":"Z_DEVOPS_(Back2Pool)",
+              "update":"Z_DEVOPS_(Back2Pool)"}
+      },
+    "buildBloker": {
+
+      }
+},
+"Z_DEVOPS_(Back2Pool)": {
+    "jobName": "Z_DEVOPS_(Back2Pool)",
+    "customWorkspace": "",
+    "buildParams": {
+        "TestEnvFolderPath": "Automation/CI/11.2SP1Latest-Greatst",
+        "PendingFolderPath": "Automation/CI/11.2SP1Latest-Running",
+        "Snapshot": "Base",
+        "Test_Machine_Name": "",
+        "ProvisioningRoot": "",
+        "KeepTheFixtureWhenDone": "false",
+        "ParkingPool": ""
+      },
+    "artifactory": {
+
+      },
+    "buildTrigger": {
+
+      },
+    "buildBloker": {
+
+      }
+}
+},
+"plugins": {	    "buildParams": "hudson.model.ParametersDefinitionProperty",
+	    "buildTrigger": "hudson.plugins.parameterizedtrigger.BuildTriggerConfig",
+	    "artifactory": "org.jfrog.hudson.gradle.ArtifactoryGradleConfigurator",
+	    "buildBloker": "hudson.plugins.buildblocker.BuildBlockerProperty"
+
+  }
+}

@@ -43,11 +43,6 @@ Publish Git and Artifactory&#xd;
           <description></description>
           <defaultValue>git@scgit:SC_OPS</defaultValue>
         </hudson.model.StringParameterDefinition>
-        <hudson.model.BooleanParameterDefinition>
-          <name>KeepTheFixtureWhenDone</name>
-          <description>If this option is checked, the machine will not be reverted back and can be used for the developer investigation. The IP of the machine can be taken from the log. When you finish using the machine , turn it off.</description>
-          <defaultValue>false</defaultValue>
-        </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>

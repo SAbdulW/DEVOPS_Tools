@@ -77,29 +77,23 @@
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <jdk>(Default)</jdk>
   <triggers/>
   <concurrentBuild>false</concurrentBuild>
   <customWorkspace>$DevRootPath\ci_global</customWorkspace>
   <builders>
-    <hudson.tasks.BatchFile>
-      <command>echo =============== Copy YAML File From Team Repo  =============================&#xd;
-echo COMMAND TO RUN: cmd /c %WORKSPACE%\Scripts\Batch\FindAndReplace.bat &quot;${MasterBuildVersion}&quot; &quot;%MasterBuildVersion%&quot; &quot;%WORKSPACE%\..\ci\puppet.yaml&quot; &gt;  &quot;\\%PuppetServer%\puppet_agent\environments\%PuppetEnv%\hieradata\%PuppetEnv%_%pp_timestamp%.yaml&quot;&#xd;
-&#xd;
-cmd /c %WORKSPACE%\Scripts\Batch\FindAndReplace.bat &quot;${MasterBuildVersion}&quot; &quot;%MasterBuildVersion%&quot; &quot;%WORKSPACE%\..\ci\puppet.yaml&quot; &gt;  &quot;\\%PuppetServer%\puppet_agent\environments\%PuppetEnv%\hieradata\%PuppetEnv%_%pp_timestamp%.yaml&quot;&#xd;
-&#xd;
-echo cmd /c %WORKSPACE%\Scripts\Batch\FindAndReplace.bat &quot;${MasterBuildVersion}&quot; &quot;11.2.1.155&quot; &quot;%WORKSPACE%\..\ci\puppet.yaml&quot; &gt;  &quot;\\%PuppetServer%\puppet_agent\environments\%PuppetEnv%\hieradata\%PuppetEnv%_%pp_timestamp%.yaml&quot;&#xd;
-</command>
-    </hudson.tasks.BatchFile>
-    <hudson.tasks.BatchFile>
-      <command>echo =============== Run Puppet Slave ===========================&#xd;
-echo COMMAND TO RUN: cscript &quot;%WORKSPACE%\Scripts\RunProcess\run_Process.vbs&quot; %VmIp% %TestMachineAdmin% %VmPw% &quot;%command%&quot; &#xd;
-&#xd;
-cscript &quot;%WORKSPACE%\Scripts\RunProcess\run_Process.vbs&quot; %VmIp% %TestMachineAdmin% %VmPw% &quot;%command%&quot;&#xd;
-&#xd;
-echo IF %ERRORLEVEL%=2 exit /b 0&#xd;
-&#xd;
-exit /b 0</command>
-    </hudson.tasks.BatchFile>
+    <hudson.plugins.gradle.Gradle plugin="gradle@1.24">
+      <description></description>
+      <switches>-i</switches>
+      <tasks>runPA -PcurrentVersion=$MasterBuildVersion -PvmIP=$VmIp</tasks>
+      <rootBuildScriptDir>${workspace}\Scripts\GradleUtils\</rootBuildScriptDir>
+      <buildFile></buildFile>
+      <gradleName>(Default)</gradleName>
+      <useWrapper>true</useWrapper>
+      <makeExecutable>false</makeExecutable>
+      <fromRootBuildScriptDir>true</fromRootBuildScriptDir>
+      <useWorkspaceAsHome>true</useWorkspaceAsHome>
+    </hudson.plugins.gradle.Gradle>
   </builders>
   <publishers>
     <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.25">
@@ -149,11 +143,5 @@ TestEnvFolderPath=${TestEnvFolderPath}</properties>
       <skipFailedBuilds>false</skipFailedBuilds>
       <useAsBuildDisplayName>true</useAsBuildDisplayName>
     </org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder>
-    <EnvInjectBuildWrapper plugin="envinject@1.90">
-      <info>
-        <propertiesContent>command=cmd /c puppet agent --test --server=${PuppetServer} --certname=${PuppetEnv}_${pp_timestamp} --environment=${PuppetEnv} --debug &gt; c:\windows\temp\${PuppetEnv}_${pp_timestamp}.log</propertiesContent>
-        <loadFilesFromMaster>false</loadFilesFromMaster>
-      </info>
-    </EnvInjectBuildWrapper>
   </buildWrappers>
 </project>

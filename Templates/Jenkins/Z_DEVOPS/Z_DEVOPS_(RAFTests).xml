@@ -76,6 +76,7 @@
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <jdk>(Default)</jdk>
   <triggers/>
   <concurrentBuild>false</concurrentBuild>
   <customWorkspace>$DevRootPath</customWorkspace>
@@ -85,15 +86,12 @@
   # Control will enter here if $DIRECTORY exists.
   rm -r &quot;$WORKSPACE/raf&quot;
 fi
-
 if [ ! -d c:/temp ]; then
   # Create C:\temp if does not exists.
   mkdir &quot;c:/temp&quot;
 fi
 
-
 echo -------------- Download RAF---------
-
 
 mkdir $WORKSPACE/raf
 curl -o $WORKSPACE/raf/RegressionAutomationFramework.zip http://atlartifactory:8081/artifactory/automation-release/com/verint/automation/RegressionAutomationFramework/2.6.0.833/RegressionAutomationFramework-2.6.0.833.zip

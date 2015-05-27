@@ -1,7 +1,6 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<project>
+<?xml version="1.0" encoding="UTF-8"?><project>
   <actions/>
-  <description></description>
+  <description/>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.4.1">
@@ -11,7 +10,7 @@
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
           <name>TestEnvFolderPath</name>
-          <description>&quot;Test bench Pool Path&quot; - A path that indicates where the environments are located in the Vcenter</description>
+          <description>"Test bench Pool Path" - A path that indicates where the environments are located in the Vcenter</description>
           <defaultValue>Automation/CI/11.2SP1Latest-Greatst</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -26,13 +25,13 @@
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>Test_Machine_Name</name>
-          <description></description>
-          <defaultValue></defaultValue>
+          <description/>
+          <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>ProvisioningRoot</name>
-          <description></description>
-          <defaultValue></defaultValue>
+          <description/>
+          <defaultValue/>
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>KeepTheFixtureWhenDone</name>
@@ -42,7 +41,7 @@
         <hudson.model.StringParameterDefinition>
           <name>ParkingPool</name>
           <description>Pool Folder that has the env for investigation  </description>
-          <defaultValue></defaultValue>
+          <defaultValue/>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
@@ -57,8 +56,8 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.BatchFile>
-      <command>echo KeepTheFixtureWhenDone=%KeepTheFixtureWhenDone%&#xd;
-echo TestEnvFolderPath=%TestEnvFolderPath% and PendingFolderPath=&quot;%PendingFolderPath%&quot;&#xd;
+      <command>echo KeepTheFixtureWhenDone=%KeepTheFixtureWhenDone%&#13;
+echo TestEnvFolderPath=%TestEnvFolderPath% and PendingFolderPath="%PendingFolderPath%"&#13;
 echo ProvisioningRoot=%ProvisioningRoot%</command>
     </hudson.tasks.BatchFile>
     <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@1.1.13-SNAPSHOT">
@@ -79,14 +78,14 @@ echo ProvisioningRoot=%ProvisioningRoot%</command>
       </runCondition>
       <conditionalbuilders>
         <hudson.tasks.BatchFile>
-          <command>echo TIMESTAMP=%DATE:/=-%_%TIME::=-% &#xd;
-set TIMESTAMP=%date%_%time%&#xd;
-set TIMESTAMP=%TIMESTAMP: =_%&#xd;
-set TIMESTAMP=%TIMESTAMP::=%&#xd;
-set TIMESTAMP=%TIMESTAMP:/=_%&#xd;
-set TIMESTAMP=%TIMESTAMP:.=_%&#xd;
-&#xd;
-echo TIMESTAMP=%TIMESTAMP% &gt;%WORKSPACE%\timestamp.prop&#xd;
+          <command>echo TIMESTAMP=%DATE:/=-%_%TIME::=-% &#13;
+set TIMESTAMP=%date%_%time%&#13;
+set TIMESTAMP=%TIMESTAMP: =_%&#13;
+set TIMESTAMP=%TIMESTAMP::=%&#13;
+set TIMESTAMP=%TIMESTAMP:/=_%&#13;
+set TIMESTAMP=%TIMESTAMP:.=_%&#13;
+&#13;
+echo TIMESTAMP=%TIMESTAMP% &gt;%WORKSPACE%\timestamp.prop&#13;
 </command>
         </hudson.tasks.BatchFile>
         <EnvInjectBuilder plugin="envinject@1.90">
@@ -111,7 +110,7 @@ echo TIMESTAMP=%TIMESTAMP% &gt;%WORKSPACE%\timestamp.prop&#xd;
           <serverHash>-1412856745</serverHash>
         </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
         <hudson.tasks.BatchFile>
-          <command>echo TestEnvFolderPath=%TestEnvFolderPath%  was  moved to %ProvisioningRoot%/Parking&#xd;
+          <command>echo TestEnvFolderPath=%TestEnvFolderPath%  was  moved to %ProvisioningRoot%/Parking&#13;
 echo DestPool=%ProvisioningRoot%/Parking &gt;%WORKSPACE%\backtoPool.prop</command>
         </hudson.tasks.BatchFile>
 
@@ -150,7 +149,7 @@ echo DestPool=%ProvisioningRoot%/Parking &gt;%WORKSPACE%\backtoPool.prop</comman
           <serverHash>-1412856745</serverHash>
         </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
         <hudson.tasks.BatchFile>
-          <command>echo TestEnvFolderPath=%TestEnvFolderPath%  was reverted back to %Snapshot% and moved to %PendingFolderPath%&#xd;
+          <command>echo TestEnvFolderPath=%TestEnvFolderPath%  was reverted back to %Snapshot% and moved to %PendingFolderPath%&#13;
 echo DestPool=%PendingFolderPath% &gt;%WORKSPACE%\backtoPool.prop</command>
         </hudson.tasks.BatchFile>
       </conditionalbuilders>
@@ -167,13 +166,13 @@ echo DestPool=%PendingFolderPath% &gt;%WORKSPACE%\backtoPool.prop</command>
       <configuredTriggers>
         <hudson.plugins.emailext.plugins.trigger.FailureTrigger>
           <email>
-            <recipientList></recipientList>
+            <recipientList/>
             <subject>$PROJECT_DEFAULT_SUBJECT</subject>
             <body>$PROJECT_DEFAULT_CONTENT</body>
             <recipientProviders>
               <hudson.plugins.emailext.plugins.recipients.ListRecipientProvider/>
             </recipientProviders>
-            <attachmentsPattern></attachmentsPattern>
+            <attachmentsPattern/>
             <attachBuildLog>false</attachBuildLog>
             <compressBuildLog>false</compressBuildLog>
             <replyTo>$PROJECT_DEFAULT_REPLYTO</replyTo>
@@ -187,7 +186,7 @@ echo DestPool=%PendingFolderPath% &gt;%WORKSPACE%\backtoPool.prop</command>
 URL=$BUILD_URL
 Provisioning IP = $VmIp
 ${TestEnvFolderPath} Environment was moved to ${DestPool}</defaultContent>
-      <attachmentsPattern></attachmentsPattern>
+      <attachmentsPattern/>
       <presendScript>$DEFAULT_PRESEND_SCRIPT</presendScript>
       <attachBuildLog>false</attachBuildLog>
       <compressBuildLog>false</compressBuildLog>
