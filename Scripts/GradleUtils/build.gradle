@@ -105,6 +105,8 @@ def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvir
     }else if (rtnCode=="6"){
         throw new GradleException("GradleUtils: there were both changes and FAILURES during the transaction: exitCode (${rtnCode})")
         //logger.quiet ("GradleUtils: there were both changes and failures during the transaction: exitCode (${rtnCode})")
+    }else{
+        throw new GradleException("GradleUtils: there are FAILURES during the transaction: exitCode (${rtnCode})")
     }
     // executeOnCMDFile sPsExecCmd
     //executeAsIs sPsExecCmd
