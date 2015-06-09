@@ -66,6 +66,9 @@ task runPuppetAgent(dependsOn: 'init') << {
 
     runPuppetAgentCommand "$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw"
 
+	//wait for the application ready
+	if ("${chkApp}".toBoolean())
+		waitAppReady "$vmIP"
 }
 // Get list of repositories from Artifactory, write the list into a file
 
@@ -241,6 +244,17 @@ def boolean containsPrefixes(String srcString, String prefixes)
     }
 
     return hasIt
+}
+
+def waitAppReady (String vmIP) {
+    logger.quiet ("-----Start wait login page-----")
+
+    //waits up to 3 minutes (and checks every 500 milliseconds) for a web server on vmIP to serve up the specified URL.
+    ant.waitfor (maxwait:"3", maxwaitunit:"minute", checkevery:"500", timeoutproperty:"web.timeout") {
+         http (url:"http://${vmIP}/wfo/control/signin")
+    }
+    ant.fail (message:"Can't display the Login page, time out!", if:"web.timeout")
+	logger.quiet("-----Login: READY-----")
 }
 
 task wrapper(type: Wrapper) {
