@@ -64,7 +64,10 @@ task runPuppetAgent(dependsOn: 'init') << {
 
     createYAML ("${currentVersion}", "${yamlSrcPath}", "${yamlDestPath}\\${certname}.yaml" )
 
+    runPuppetAgentCommand "$puppetServer", "$certname","$environment_base","$vmIP","$vmUser","$vmPw"
+
     runPuppetAgentCommand "$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw"
+
 
 }
 // Get list of repositories from Artifactory, write the list into a file
