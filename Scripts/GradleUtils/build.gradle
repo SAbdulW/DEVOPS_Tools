@@ -256,7 +256,7 @@ def waitAppReady (String vmIP) {
     ant.waitfor (maxwait:"10", maxwaitunit:"minute", checkevery:"500", timeoutproperty:"web.timeout") {
          http (url:"http://${vmIP}/wfo/control/signin")
     }
-    ant.fail (message:"Can't display the Login page, time out!", if:"web.timeout")
+    ant.fail (message:"Can't display the WFO Login page, time out!", if:"web.timeout")
 	logger.quiet("-----Login: READY-----")
 }
 
