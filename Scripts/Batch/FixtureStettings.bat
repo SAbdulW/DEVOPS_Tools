@@ -4,6 +4,7 @@ cmd /c sc stop puppet  >>c:\share\setting.log
 timeout 15 >>c:\share\setting.log
 cmd /c sc config puppet start= disabled >>c:\share\setting.log
 cmd /c  rd /S /Q C:\ProgramData\PuppetLabs\puppet\etc\ssl >>c:\share\setting.log
+cmd /c  rd /S /Q C:\ProgramData\PuppetLabs\puppet\etc\ssl >>c:\share\setting.log
 cmd /c netsh interface ip set dns "Ethernet" dhcp >>c:\share\setting.log
 cmd /c netsh interface ip set address "Ethernet" dhcp >>c:\share\setting.log
 cmd /c ipconfig /all >>c:\share\setting.log
