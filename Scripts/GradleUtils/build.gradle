@@ -68,7 +68,7 @@ task runPuppetAgent(dependsOn: 'init') << {
 
     runPuppetAgentCommand "$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw"
 
-
+	runDeployEar ( vmIP, vmUser,  vmPw)
 	//wait for the application ready
 	if ("${chkApp}".toBoolean())
 		waitAppReady "$vmIP"
