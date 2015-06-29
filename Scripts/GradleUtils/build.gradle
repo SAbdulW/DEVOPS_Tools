@@ -53,25 +53,37 @@ task init() << {
     ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("paexec")}, dest: "${projectDir}\\PAExec\\")
 }
 
+
 task runPuppetAgent(dependsOn: 'init') << {
     logger.quiet ("GradleUtils: run the puppet agent")
+    def String[] yamlFiles = "${yamlFiles}".split(',');
+	for (String yamlSrcPath : yamlFiles){
+		logger.quiet ("Yaml = ${yamlSrcPath}")
 
-    String pp_timestamp= Calendar.getInstance().getTimeInMillis();
-    // Replace the yaml content with the new build number and create the yaml file
-    String strSearch="\${MasterBuildVersion}"
-    String certname="${environment}_${pp_timestamp}"
-    logger.quiet ("GradleUtils: certname:${certname}")
+		String pp_timestamp= Calendar.getInstance().getTimeInMillis();
+		// Replace the yaml content with the new build number and create the yaml file
+		String strSearch="\${MasterBuildVersion}"
+		String certname="${environment}_${pp_timestamp}"
+		logger.quiet ("GradleUtils: certname:${certname}")
 
-    createYAML ("${currentVersion}", "${yamlSrcPath}", "${yamlDestPath}\\${certname}.yaml" )
+		createYAML ("${currentVersion}", "${yamlSrcPath}", "${yamlDestPath}\\${certname}.yaml" )
 
-    runPuppetAgentCommand "$puppetServer", "$certname","$environment_base","$vmIP","$vmUser","$vmPw"
+		runPuppetAgentCommand "$puppetServer", "$certname","$environment_base","$vmIP","$vmUser","$vmPw"
 
-    runPuppetAgentCommand "$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw"
+		runPuppetAgentCommand "$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw"
+    }
 
-	runDeployEar ( vmIP, vmUser,  vmPw)
+    if ("${deployEarFile}".toBoolean())
+    runDeployEar ( vmIP, vmUser,  vmPw)
+
+
 	//wait for the application ready
-	if ("${chkApp}".toBoolean())
-		waitAppReady "$vmIP"
+
+
+    if ("${chkApp}".toBoolean())
+    waitAppReady "$vmIP"
+	
+	
 }
 task deployEar(dependsOn: 'init') << {
 runDeployEar ( vmIP, vmUser,  vmPw)
