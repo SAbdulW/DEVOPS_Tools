@@ -70,8 +70,10 @@ task runPuppetAgent(dependsOn: 'init') << {
 		runPuppetAgentCommand "$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw"
     }
 
-    if ("${deployEarFile}".toBoolean())
+    if ("${deployEarFile}".toBoolean()){
 		runDeployEar (vmIP, vmUser,  vmPw)
+        restartWFOService (vmIP, vmUser,  vmPw)
+    }
 
 	//wait for the application ready
 
@@ -155,6 +157,35 @@ def runDeployEar ( String iVmIP, String iUser, String iPw) {
     if (rtnCode!="" && rtnCode!="0" ) {
         logger.quiet ("GradleUtils: Failed with: exitCode (${rtnCode})")
         throw new GradleException("GradleUtils: Failed to deploy EAR: exitCode (${rtnCode})")
+    }
+}
+
+
+def restartWFOService ( String iVmIP, String iUser, String iPw) {
+    String sCmd = ""
+    // CommandLine to execute in the agent
+    sCmd = "%windir%\\system32\\WindowsPowerShell\\v1.0\\powershell.exe -executionpolicy remotesigned Restart-Service WFO_ProductionDomain_ProductionServer" 
+	
+	String sPsExecCmd ="cmd /c ${projectDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+
+    logger.quiet ("GradleUtils: the command restartWFOService: ${sPsExecCmd} ")
+
+    String rtnCode=""
+    try {
+        exec {
+	       commandLine 'cmd', '/c', sPsExecCmd
+        }
+    }
+	catch (Exception e) {
+        logger.quiet ("GradleUtils: some " + e.toString())
+        rtnCode =  getRtnCode(e.toString())
+    }
+
+    logger.quiet ("startWFOService: exitCode (${rtnCode})")
+ 
+    if (rtnCode!="" && rtnCode!="0" ) {
+        logger.quiet ("GradleUtils: Failed with: exitCode (${rtnCode})")
+        throw new GradleException("GradleUtils: restartWFOService: exitCode (${rtnCode})")
     }
 }
 
