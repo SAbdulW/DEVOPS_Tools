@@ -63,7 +63,7 @@ task runPuppetAgent(dependsOn: 'init') << {
 		String certname="${environment}_${pp_timestamp}"
 		logger.quiet ("GradleUtils: certname:${certname}")
 
-		createYAML ("${currentVersion}", "${yamlSrcPath}", "${yamlDestPath}\\${certname}.yaml" )
+		createYAML ("${currentVersion}", "${yamlSrcPath}", "${yamlDestPath}\\${certname}.yaml")
 
 		runPuppetAgentCommand "$puppetServer", "$certname","$environment_base","$vmIP","$vmUser","$vmPw"
 
@@ -71,7 +71,7 @@ task runPuppetAgent(dependsOn: 'init') << {
     }
 
     if ("${deployEarFile}".toBoolean())
-    runDeployEar ( vmIP, vmUser,  vmPw)
+		runDeployEar (vmIP, vmUser,  vmPw)
 
 	//wait for the application ready
 
