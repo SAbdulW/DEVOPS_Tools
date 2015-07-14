@@ -164,7 +164,8 @@ def runDeployEar ( String iVmIP, String iUser, String iPw) {
 def restartWFOService ( String iVmIP, String iUser, String iPw) {
     String sCmd = ""
     // CommandLine to execute in the agent
-    sCmd = "%windir%\\system32\\WindowsPowerShell\\v1.0\\powershell.exe -executionpolicy Unrestricted Restart-Service WFO_ProductionDomain_ProductionServer"
+    //sCmd = "%windir%\\system32\\WindowsPowerShell\\v1.0\\powershell.exe -executionpolicy Unrestricted Restart-Service WFO_ProductionDomain_ProductionServer"
+    sCmd = "net start WFO_ProductionDomain_ProductionServer"
 	
 	String sPsExecCmd ="cmd /c ${projectDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
 
