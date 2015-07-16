@@ -172,19 +172,24 @@ def restartWFOService ( String iVmIP, String iUser, String iPw) {
     logger.quiet ("GradleUtils: the command restartWFOService: ${sPsExecCmd} ")
 
     String rtnCode=""
+    String errMessage =""
     try {
         exec {
 	       commandLine 'cmd', '/c', sPsExecCmd
         }
     }
+
 	catch (Exception e) {
         logger.quiet ("GradleUtils: some " + e.toString())
         rtnCode =  getRtnCode(e.toString())
+        errMessage = e.toString()
     }
 
     logger.quiet ("startWFOService: exitCode (${rtnCode})")
- 
-    if (rtnCode!="" && rtnCode!="0" ) {
+
+    if (errMessage.contains("service has already been started")){
+        logger.quiet ("GradleUtils: WFO service is already started, keep going! ")
+    }else if (rtnCode!="" && rtnCode!="0" ){
         logger.quiet ("GradleUtils: Failed with: exitCode (${rtnCode})")
         throw new GradleException("GradleUtils: restartWFOService: exitCode (${rtnCode})")
     }
