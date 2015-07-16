@@ -26,6 +26,10 @@ if (env.equals('dev')) {
 	apply plugin: 'artifactory'
 }
 
+dependencies {
+	compile(group: 'com.verint.iserver.frameworkintegrationserver.components', name: 'Framework Integration Server', version: "${fisVersion}", ext: 'msi')
+}
+
 def wfoEAR = file("${EARName}.ear")
 
 artifacts {
