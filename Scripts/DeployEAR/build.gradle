@@ -26,9 +26,20 @@ if (env.equals('dev')) {
 	apply plugin: 'artifactory'
 }
 
-dependencies {
-	compile(group: 'com.verint.iserver.frameworkintegrationserver.components', name: 'Framework Integration Server', version: "${fisVersion}", ext: 'msi')
+repositories {
+	//Resolving the artifact from the release repo, the one promoted by team
+	maven {
+		url "${artifactory_contextUrl}/ci-release"
+		credentials {
+			username = "${artifactory_user}"
+			password = "${artifactory_password}"
+		}
+	}
 }
+
+/*dependencies {
+	compile(group: 'com.verint.iserver.frameworkintegrationserver.components', name: 'Framework Integration Server', version: "${fisVersion}", ext: 'msi')
+}*/
 
 def wfoEAR = file("${EARName}.ear")
 
@@ -51,6 +62,12 @@ if (env.equals('dev')) {
 			contextUrl = "${artifactory_contextUrl}"	// The base Artifactory URL if not overridden by the publisher/resolver
 			repository {
 				repoKey = 'repo'
+				username = "${artifactory_user}"
+				password = "${artifactory_password}"
+				maven = true
+			}
+			repository {
+				repoKey = 'plugins-release'
 				username = "${artifactory_user}"
 				password = "${artifactory_password}"
 				maven = true
