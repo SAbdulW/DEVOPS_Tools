@@ -42,7 +42,7 @@ dependencies {
 }
 
 def wfoEAR = file("${EARName}.ear")
-def wfoPOM = file("${projectDir}/pom-default.xml")
+def wfoPOM = file("${EARName}.pom")
 
 artifacts {
 	archives file: wfoEAR, name: "${EARName}", type: 'ear'
@@ -83,5 +83,6 @@ task updatePOM() {
 		ant.replace(file: "${projectDir}/pom-default.xml", token: "<version1></version1>", value: "<version>${currentVersion}</version>")
 		ant.replace(file: "${projectDir}/pom-default.xml", token: "<version2></version2>", value: "<version>${fisVersion}</version>")
 		//ant.replaceregexp (file: "${projectDir}/build/poms/pom-default.xml", match: "Framework Integration Server", replace:"FrameworkIntegrationServer", byline:"true")
+		ant.rename(src: "${projectDir}/pom-default.xml", dest="${projectDir}/${EARName}.pom")
 	}
 }
