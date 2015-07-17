@@ -85,6 +85,11 @@ task deployEar(dependsOn: 'init') << {
 	runDeployEar (vmIP, vmUser,  vmPw)
 }
 
+task restartWFO(dependsOn: 'init') << {
+    restartWFOService (vmIP, vmUser,  vmPw)
+}
+
+
 // Get list of repositories from Artifactory, write the list into a file
 def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvironment, String iVmIP, String iUser, String iPw) {
     String sCmd = ""
@@ -172,24 +177,24 @@ def restartWFOService ( String iVmIP, String iUser, String iPw) {
     logger.quiet ("GradleUtils: the command restartWFOService: ${sPsExecCmd} ")
 
     String rtnCode=""
-    String errMessage =""
+
     try {
         exec {
-	       commandLine 'cmd', '/c', sPsExecCmd
+            commandLine('cmd', '/c', sPsExecCmd)
         }
+
     }
 
 	catch (Exception e) {
         logger.quiet ("GradleUtils: some " + e.toString())
         rtnCode =  getRtnCode(e.toString())
-        errMessage = e.toString()
     }
 
     logger.quiet ("startWFOService: exitCode (${rtnCode})")
 
-    if (errMessage.contains("service has already been started")){
-        logger.quiet ("GradleUtils: WFO service is already started, keep going! ")
-    }else if (rtnCode!="" && rtnCode!="0" ){
+    if (rtnCode=="2"){
+        logger.quiet ("GradleUtils: Exit code (2) keep going! ")
+    }else if (rtnCode!="" && rtnCode!="0"  ){
         logger.quiet ("GradleUtils: Failed with: exitCode (${rtnCode})")
         throw new GradleException("GradleUtils: restartWFOService: exitCode (${rtnCode})")
     }
