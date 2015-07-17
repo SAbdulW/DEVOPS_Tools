@@ -37,9 +37,9 @@ repositories {
 	}
 }
 
-/*dependencies {
-	compile(group: 'com.verint.iserver.frameworkintegrationserver.components', name: 'Framework Integration Server', version: "${fisVersion}", ext: 'msi')
-}*/
+dependencies {
+	compile(group: 'com.verint.iserver.frameworkintegrationserver.components', name: 'Framework Integration Server', version: "${fisVersion}")
+}
 
 def wfoEAR = file("${EARName}.ear")
 
@@ -73,5 +73,12 @@ if (env.equals('dev')) {
 				maven = true
 			}
 		}
+	}
+}
+
+task updatePOM() {
+	doLast {
+		ant.replace(file: "${projectDir}/build/poms/pom-default.xml", token: "Framework Integration Server", value: "FrameworkIntegrationServer")
+		//ant.replaceregexp (file: "${projectDir}/build/poms/pom-default.xml", match: "Framework Integration Server", replace:"FrameworkIntegrationServer", byline:"true")
 	}
 }
