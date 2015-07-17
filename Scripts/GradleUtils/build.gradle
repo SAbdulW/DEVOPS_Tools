@@ -176,15 +176,23 @@ def restartWFOService ( String iVmIP, String iUser, String iPw) {
     try {
         exec {
 	       commandLine 'cmd', '/c', sPsExecCmd
+
+           //store the output instead of printing to the console:
+           standardOutput = new ByteArrayOutputStream()
+
+           //extension method stopTomcat.output() can be used to obtain the output:
+           errMessage= standardOutput.toString()
+
         }
+
     }
 
 	catch (Exception e) {
         logger.quiet ("GradleUtils: some " + e.toString())
         rtnCode =  getRtnCode(e.toString())
-        errMessage = e.toString()
+        //errMessage = e.toString()
     }
-
+    logger.quiet ("console: ${errMessage}")
     logger.quiet ("startWFOService: exitCode (${rtnCode})")
 
     if (errMessage.contains("service has already been started")){
