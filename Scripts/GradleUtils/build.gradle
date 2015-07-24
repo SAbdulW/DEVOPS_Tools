@@ -12,6 +12,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.verint.plugins:vebutu-plugin:latest.release'
+        classpath 'org.yaml:snakeyaml:1.16-SNAPSHOT'
     }
 }
 
@@ -54,6 +55,8 @@ task init() << {
 task testPP() << {
 
     loadPuppetLog ("ci_wfo_env_test", "ci_wfo_env_test")
+    def String[] yamlFiles = "${yamlFiles}".split(',');
+    extractInstalledVersion (yamlFiles, new File("${projectDir}\\PPLogs\\registryExport.json") )
 
 }
 task runPuppetAgent(dependsOn: 'init') << {
@@ -74,6 +77,9 @@ task runPuppetAgent(dependsOn: 'init') << {
     }
 
     loadPuppetLog( "$certname","$environment")
+
+    extractInstalledVersion(yamlFiles, new File("${projectDir}\\PPLogs\\registryExport.json"))
+
 
     if ("${deployEarFile}".toBoolean()){
 		runDeployEar (vmIP, vmUser,  vmPw)
@@ -225,7 +231,7 @@ def createYAML (String strReplaceWith, String sourcePathYAML, String destPathYAM
     destFile.write(sourceContent,"UTF-8")
 }
 
-def loadPuppetLog (String certName, String env){
+def loadPuppetLog (String certName, String env  ){
 
     configurations {
         logConfig
@@ -246,6 +252,60 @@ def loadPuppetLog (String certName, String env){
 
 
     //
+}
+
+import org.yaml.snakeyaml.Yaml
+import groovy.json.JsonSlurper
+
+def extractInstalledVersion (String [] yamlFiles, File jsRegistry){
+
+    //load json object
+    def jsRegistryObj = loadJsonObject (jsRegistry)
+    yamlFiles.each { sourcePathYAML ->
+        File sourceFile = new File (sourcePathYAML);
+        String srcFilePath = sourceFile.getCanonicalPath()
+        String sourceContent = sourceFile.getText("UTF-8")
+        Yaml yaml = new Yaml();
+        Object data = yaml.load(sourceContent);
+        logger.quiet("YAML object" + data)
+
+        data."wfoComponents".each { wfoComponents ->
+            //logger.quiet(wfoComponents)
+            Map<Object> wfoComponentsMap = (Map<Object>) wfoComponents
+            wfoComponentsMap.each { wfoComponent ->
+                wfoComponent.each { it ->
+                    logger.quiet("${it}")
+                    String [] prop =    "${it}".split("=")
+                    if (prop[0]=="ComponentName") {
+                        logger.quiet("________________________got IT: " + prop[1] )
+                        String installedVersion = getVersionInstalledFromRegistryJson (jsRegistryObj,prop[1] )
+                        logger.quiet("__**********************************************************************************************______________________got installed version: " + installedVersion)
+                    }
+                }
+            }
+        }
+    }
+}
+
+def getVersionInstalledFromRegistryJson (Object jsonObject, String componentName){
+    def found = false;
+    String rtnVersion = ""
+    jsonObject.each { registryItem ->
+        logger.quiet("" + registryItem.getValue())
+        def registryItemValue = registryItem.getValue()
+        String regComponentName =registryItemValue."ComponentName"
+        if ((regComponentName == componentName) && !found) {
+            rtnVersion =  registryItemValue."InstalledVersion"
+            found = true
+        }
+    }
+    return      rtnVersion
+}
+
+def loadJsonObject(File jsonFile) {
+    def InputJSON = new JsonSlurper().parseText(jsonFile.text)
+
+    return InputJSON
 }
 
 def getRtnCode (String strException) {
