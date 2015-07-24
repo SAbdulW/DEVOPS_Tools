@@ -57,6 +57,7 @@ task testPP() << {
     loadPuppetLog ("ci_wfo_env_test", "ci_wfo_env_test")
     def String[] yamlFiles = "${yamlFiles}".split(',');
     extractInstalledVersion (yamlFiles, new File("${projectDir}\\PPLogs\\registryExport.json") )
+    renameYAML "\\\\atlpuppetmaster\\puppet_agent\\environments\\ci_wfo_env_test\\hieradata\\ci_wfo_env_test.yaml"
 
 }
 task runPuppetAgent(dependsOn: 'init') << {
@@ -75,6 +76,11 @@ task runPuppetAgent(dependsOn: 'init') << {
 		createYAML ("${currentVersion}", "${yamlSrcPath}", "${yamlDestPath}\\${certname}.yaml")
 		runPuppetAgentCommand "$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw"
     }
+    //Run by the very end for gradle tasks:
+    // - publish logs
+    renameYAML "${yamlDestPath}\\${certname}.yaml"
+    runPuppetAgentCommand "$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw"
+
 
     loadPuppetLog( "$certname","$environment")
 
@@ -229,6 +235,15 @@ def createYAML (String strReplaceWith, String sourcePathYAML, String destPathYAM
 
     logger.quiet ("GradleUtils: updatedContent YAML at ${destFilePath} \n${sourceContent}")
     destFile.write(sourceContent,"UTF-8")
+}
+
+def renameYAML (String destPathYAML) {
+    // Open the
+
+    File destFile =  new File (destPathYAML);
+
+    String destFilePath = destFile.getCanonicalPath()
+    destFile.renameTo(new File ("${destFilePath}.bak"))
 }
 
 def loadPuppetLog (String certName, String env  ){
