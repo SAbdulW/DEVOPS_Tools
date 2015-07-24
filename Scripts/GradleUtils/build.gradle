@@ -246,7 +246,12 @@ def loadPuppetLog (String certName, String env  ){
     unzipDir.mkdirs()
     //logger.quiet ("${unzipDirPath}")
     ant.unzip(src: project.configurations.logConfig.find {it.name.startsWith("${certName}-")}, dest: "${unzipDirPath}")
-//    String logZipURL="${artifactory_contextUrl}/devops/com/verint/puppet/logs/${env}/${certName}/15.1.0.1/${certName}-15.1.0.1.zip"
+    String logZipURL="${artifactory_contextUrl}/devops/com/verint/puppet/logs/${env}/${certName}/15.1.0.1/${certName}-15.1.0.1.zip"
+    logger.quiet("\nGradleUtils: ****************************************************************************")
+    logger.quiet("GradleUtils: *                      LINKS TO LOG IN ARTIFACTORY                         *")
+    logger.quiet("GradleUtils: *  URL: ${logZipURL}  *")
+    logger.quiet("\nGradleUtils: ****************************************************************************")
+
 //    ant.get(src: logZipURL, dest:"${projectDir}" )
 //    ant.unzip(src:"${projectDir}\\${certName}-15.1.0.1.zip" , dest: "${projectDir}\\PPLogs\\")
 
@@ -261,37 +266,66 @@ def extractInstalledVersion (String [] yamlFiles, File jsRegistry){
 
     //load json object
     def jsRegistryObj = loadJsonObject (jsRegistry)
+    def installedVersionsFile = new File ("${projectDir}\\PPLogs\\installedVersions.json")
+    String installedVersionsContent = ""
+    logger.quiet("\nGradleUtils: ****************************************************************************")
+    logger.quiet("GradleUtils: *                      GETTING INSTALLED VERSION                           *")
+    logger.quiet("GradleUtils: Notes: the installed version is get from registry. So if you think the version is not correct\n" +
+            "GradleUtils:        Few possiblities:\n" +
+            "GradleUtils:        - Your installation is failed \n" +
+            "GradleUtils:        - The componentName is wrong. It need to be the same as DisplayName in registry")
+
+    logger.quiet("GradleUtils: Getting the installed version for component listed in YAML files below:")
+
     yamlFiles.each { sourcePathYAML ->
         File sourceFile = new File (sourcePathYAML);
         String srcFilePath = sourceFile.getCanonicalPath()
         String sourceContent = sourceFile.getText("UTF-8")
         Yaml yaml = new Yaml();
         Object data = yaml.load(sourceContent);
-        logger.quiet("YAML object" + data)
+        logger.quiet("GradleUtils: ${sourcePathYAML}")
 
         data."wfoComponents".each { wfoComponents ->
             //logger.quiet(wfoComponents)
             Map<Object> wfoComponentsMap = (Map<Object>) wfoComponents
             wfoComponentsMap.each { wfoComponent ->
                 wfoComponent.each { it ->
-                    logger.quiet("${it}")
                     String [] prop =    "${it}".split("=")
                     if (prop[0]=="ComponentName") {
-                        logger.quiet("________________________got IT: " + prop[1] )
+                        String componentName = prop[1]
                         String installedVersion = getVersionInstalledFromRegistryJson (jsRegistryObj,prop[1] )
-                        logger.quiet("__**********************************************************************************************______________________got installed version: " + installedVersion)
+
+                        if (installedVersionsContent=="") {
+                            installedVersionsContent ="  \"${componentName}\": {\n" +
+                                    "    \"ComponentName\": \"${componentName}\",\n" +
+                                    "    \"InstalledVersion\": \"${installedVersion}\"\n" +
+                                    "  }"
+                        }else{
+                            installedVersionsContent =installedVersionsContent +",\n  \"${componentName}\": {\n" +
+                                    "    \"ComponentName\": \"${componentName}\",\n" +
+                                    "    \"InstalledVersion\": \"${installedVersion}\"\n" +
+                                    "  }"
+                        }
                     }
                 }
             }
         }
     }
+
+    installedVersionsFile.write "{\n${installedVersionsContent}\n}"
+    logger.quiet("\nGradleUtils: ****************************************************************************")
+    logger.quiet("GradleUtils: *                      IMPORTANCE - INSTALLED VERSION                      *")
+    logger.quiet("GradleUtils: ****************************************************************************")
+    logger.quiet(installedVersionsFile.text)
+    logger.quiet("GradleUtils: ****************************************************************************\n")
+    logger.quiet("GradleUtils: ..\\PPLogs\\installedVersions.json *****************\n")
 }
 
 def getVersionInstalledFromRegistryJson (Object jsonObject, String componentName){
     def found = false;
     String rtnVersion = ""
     jsonObject.each { registryItem ->
-        logger.quiet("" + registryItem.getValue())
+        //logger.quiet("" + registryItem.getValue())
         def registryItemValue = registryItem.getValue()
         String regComponentName =registryItemValue."ComponentName"
         if ((regComponentName == componentName) && !found) {
