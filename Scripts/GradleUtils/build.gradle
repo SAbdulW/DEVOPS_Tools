@@ -68,24 +68,33 @@ task runPuppetAgent(dependsOn: 'init') << {
     logger.quiet ("GradleUtils: certname:${certname}")
     logger.quiet ("GradleUtils: run the initial set up on base environment with certname:${certname}")
 
-    runPuppetAgentCommand "$puppetServer", "$certname","$environment_base","$vmIP","$vmUser","$vmPw"
+    String errRtnErrorCode=""
+    errRtnErrorCode=runPuppetAgentCommand("$puppetServer", "$certname","$environment_base","$vmIP","$vmUser","$vmPw")
 
     def String[] yamlFiles = "${yamlFiles}".split(',');
 	for (String yamlSrcPath : yamlFiles){
-		logger.quiet ("GradleUtils: run the setting for Yaml = ${yamlSrcPath}")
-		createYAML ("${currentVersion}", "${yamlSrcPath}", "${yamlDestPath}\\${certname}.yaml")
-		runPuppetAgentCommand "$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw"
+        if ((errRtnErrorCode=="2") ||(errRtnErrorCode=="")) {
+            logger.quiet ("GradleUtils: run the setting for Yaml = ${yamlSrcPath}")
+            createYAML ("${currentVersion}", "${yamlSrcPath}", "${yamlDestPath}\\${certname}.yaml")
+            errRtnErrorCode=runPuppetAgentCommand("$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw")
+        }
     }
+
+    if ((errRtnErrorCode!="2") &&(errRtnErrorCode!="")) {
+        logger.quiet("\nGradleUtils: ****************************************************************************")
+        logger.quiet("GradleUtils: *                      ERROR ERROR IN PUPPET STEPS - COLLECTING LOGS         *")
+        logger.quiet("\nGradleUtils: ****************************************************************************")
+    }
+
     //Run by the very end for gradle tasks:
     // - publish logs
     renameYAML "${yamlDestPath}\\${certname}.yaml"
     runPuppetAgentCommand "$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw"
-
-
     loadPuppetLog( "$certname","$environment")
-
     extractInstalledVersion(yamlFiles, new File("${projectDir}\\PPLogs\\registryExport.json"))
 
+    //Now publish the error
+    handlePuppetErrCode errRtnErrorCode
 
     if ("${deployEarFile}".toBoolean()){
 		runDeployEar (vmIP, vmUser,  vmPw)
@@ -103,6 +112,23 @@ task deployEar(dependsOn: 'init') << {
 
 task restartWFO(dependsOn: 'init') << {
     restartWFOService (vmIP, vmUser,  vmPw)
+}
+
+// Handle the error return
+def handlePuppetErrCode (String errCode){
+    if ((errCode=="2") ||(errCode=="")){
+        //do nothing
+    } else if (errCode=="4") {
+        throw new GradleException("GradleUtils: there were FAILURES during the transaction: exitCode (${rtnCode})")
+        //logger.quiet ("GradleUtils: there were failures during the transaction: exitCode (${rtnCode})")
+    }
+    else if (errCode=="6") {
+        throw new GradleException("GradleUtils: there were both changes and FAILURES during the transaction: exitCode (${rtnCode})")
+        //logger.quiet ("GradleUtils: there were both changes and failures during the transaction: exitCode (${rtnCode})")
+    }
+    else {
+        throw new GradleException("GradleUtils: there are FAILURES during the transaction: exitCode (${rtnCode})")
+    }
 }
 
 
@@ -132,22 +158,7 @@ def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvir
 
     logger.quiet ("GradleUtils: there were changes during the transaction: exitCode (${rtnCode})")
     //rtnCode = result.getExitValue()
-
-    if (rtnCode=="2") {
-        logger.quiet ("GradleUtils: there were changes during the transaction: exitCode (${rtnCode})")
-        //throw new GradleException("GradleUtils: there were changes during the transaction: exitCode (${rtnCode})")
-    }
-	else if (rtnCode=="4") {
-        throw new GradleException("GradleUtils: there were FAILURES during the transaction: exitCode (${rtnCode})")
-        //logger.quiet ("GradleUtils: there were failures during the transaction: exitCode (${rtnCode})")
-    }
-	else if (rtnCode=="6") {
-        throw new GradleException("GradleUtils: there were both changes and FAILURES during the transaction: exitCode (${rtnCode})")
-        //logger.quiet ("GradleUtils: there were both changes and failures during the transaction: exitCode (${rtnCode})")
-    }
-	else {
-        throw new GradleException("GradleUtils: there are FAILURES during the transaction: exitCode (${rtnCode})")
-    }
+    return rtnCode
     // executeOnCMDFile sPsExecCmd
     //executeAsIs sPsExecCmd
     //ppCommandFile.delete()
