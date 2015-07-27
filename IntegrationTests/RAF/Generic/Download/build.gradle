@@ -38,9 +38,9 @@ configurations {
 }
 
 dependencies {
-                rafConfig (group: 'com.verint.automation', name: 'RegressionAutomationFramework', version: '2.6.0.833', ext: 'zip')
-                rafScripts (group: 'com.verint.automation', name: 'TestsScripts', version: '11.2.1.2', ext: 'zip')
-                rafProducts (group: 'com.verint.automation', name: 'raf_products', version: '11.2.1.2', ext: 'zip')
+                rafConfig (group: 'com.verint.automation', name: 'RegressionAutomationFramework', version: "${rafVersion}", ext: 'zip')
+                rafScripts (group: 'com.verint.automation', name: 'TestsScripts', version: "${rafScriptsVersion}", ext: 'zip')
+                rafProducts (group: 'com.verint.automation', name: 'raf_products', version: "${rafProductsVersion}", ext: 'zip')
 }
 
 
