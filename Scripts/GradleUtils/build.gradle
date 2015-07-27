@@ -71,12 +71,15 @@ task runPuppetAgent(dependsOn: 'init') << {
     String errRtnErrorCode=""
     errRtnErrorCode=runPuppetAgentCommand("$puppetServer", "$certname","$environment_base","$vmIP","$vmUser","$vmPw")
 
+    logger.quiet ("GradleUtils: ErrorCode - Base - ${errRtnErrorCode}")
+
     def String[] yamlFiles = "${yamlFiles}".split(',');
 	for (String yamlSrcPath : yamlFiles){
         if ((errRtnErrorCode=="2") ||(errRtnErrorCode=="")) {
             logger.quiet ("GradleUtils: run the setting for Yaml = ${yamlSrcPath}")
             createYAML ("${currentVersion}", "${yamlSrcPath}", "${yamlDestPath}\\${certname}.yaml")
             errRtnErrorCode=runPuppetAgentCommand("$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw")
+            logger.quiet ("GradleUtils: ErrorCode - ${yamlSrcPath} - ${errRtnErrorCode}")
         }
     }
 
