@@ -69,8 +69,11 @@ task unzipPruducts(type:Copy) {
                 into LibDir    
 }
 task installRaf{
- unzipRaf.execute() 
-  unzipPruducts.execute() 
-  unzipScripts.execute() 
+	ant.unzip(src: project.configurations.rafConfig.find {it.name.startsWith("RegressionAutomationFramework")}, dest: "${rafdir}")
+	ant.unzip(src: project.configurations.rafScripts.find {it.name.startsWith("TestsScripts")}, dest: "${rafdir}/Regression Automation Framework/workflows")
+	ant.unzip(src: project.configurations.rafProducts.find {it.name.startsWith("raf_products")}, dest: "${rafdir}/Regression Automation Framework/lib")	
+//  unzipRaf.execute() 
+//  unzipPruducts.execute() 
+//  unzipScripts.execute() 
 }
 
