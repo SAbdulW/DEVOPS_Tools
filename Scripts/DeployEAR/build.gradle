@@ -78,10 +78,21 @@ if (env.equals('dev')) {
 	}
 }
 
+import groovy.json.JsonSlurper
+
+def getJsonObjectFromFile(String jsonFileLocation) {
+	def jsonFile = new File(jsonFileLocation)
+	def InputJSON = new JsonSlurper().parseText(jsonFile.text)
+	return InputJSON
+}
+
 task updatePOM() {
 	doFirst {
+		def objRegJson = getJsonObjectFromFile("${projectDir}/../GradleUtils/PPLogs/registryExport.json")
+		String installedVersion = objRegJson.”{4E693109-AB2D-41D8-A88D-1506E0D654B9}”.”InstalledVersion”
+
 		ant.replace(file: "${projectDir}/pom-default.xml", token: "<version1></version1>", value: "<version>${currentVersion}</version>")
-		ant.replace(file: "${projectDir}/pom-default.xml", token: "<version2></version2>", value: "<version>${fisVersion}</version>")
+		ant.replace(file: "${projectDir}/pom-default.xml", token: "<version2></version2>", value: "<version>${installedVersion}</version>")
 		//ant.replaceregexp (file: "${projectDir}/build/poms/pom-default.xml", match: "Framework Integration Server", replace:"FrameworkIntegrationServer", byline:"true")
 		ant.rename(src: "${projectDir}/pom-default.xml", dest: "${projectDir}/${EARName}.pom")
 	}
