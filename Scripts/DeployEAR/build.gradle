@@ -88,7 +88,7 @@ def getJsonObjectFromFile(String jsonFileLocation) {
 
 task updatePOM() {
 	doFirst {
-		def objRegJson = getJsonObjectFromFile("${projectDir}/../GradleUtils/PPLogs/registryExport.json")
+		def objRegJson = getJsonObjectFromFile("${regJsonPath}/${regJsonFile}")
 		String installedVersion = objRegJson."{4E693109-AB2D-41D8-A88D-1506E0D654B9}"."InstalledVersion"
 
 		ant.replace(file: "${projectDir}/pom-default.xml", token: "<version1></version1>", value: "<version>${currentVersion}</version>")
