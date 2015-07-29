@@ -63,7 +63,9 @@ task testPP() << {
 
 }
 task runPuppetAgent(dependsOn: 'init') << {
-    logger.quiet ("GradleUtils: run the puppet agent")
+    logger.quiet ("GradleUtils: Stop Watchdog service")
+	remoteService( vmIP, vmUser, vmPw, watchdogService , "stop")
+	logger.quiet ("GradleUtils: run the puppet agent")
     String pp_timestamp= Calendar.getInstance().getTimeInMillis();
     // Replace the yaml content with the new build number and create the yaml file
     String certname="${environment}_${pp_timestamp}"
@@ -108,12 +110,16 @@ task runPuppetAgent(dependsOn: 'init') << {
 
     if ("${deployEarFile}".toBoolean()){
 		runDeployEar (vmIP, vmUser,  vmPw)
-        restartWFOService (vmIP, vmUser,  vmPw)
+        remoteService (vmIP, vmUser,  vmPw, wfoService, "Start")
     }
 
 	//wait for the application ready
     if ("${chkApp}".toBoolean())
         waitAppReady "$vmIP"
+
+
+	remoteService( vmIP, vmUser, vmPw, watchdogService , "start")
+
 }
 
 task deployEar(dependsOn: 'init') << {
@@ -121,7 +127,7 @@ task deployEar(dependsOn: 'init') << {
 }
 
 task restartWFO(dependsOn: 'init') << {
-    restartWFOService (vmIP, vmUser,  vmPw)
+    restartRemoteService (vmIP, vmUser,  vmPw,wfoService)
 }
 
 // Handle the error return
@@ -203,15 +209,14 @@ def runDeployEar ( String iVmIP, String iUser, String iPw) {
 }
 
 
-def restartWFOService ( String iVmIP, String iUser, String iPw) {
-    String sCmd = ""
-    // CommandLine to execute in the agent
-    //sCmd = "%windir%\\system32\\WindowsPowerShell\\v1.0\\powershell.exe -executionpolicy Unrestricted Restart-Service WFO_ProductionDomain_ProductionServer"
-    sCmd = "net start WFO_ProductionDomain_ProductionServer"
+def remoteService( String iVmIP, String iUser, String iPw,String iServiceName ,String iAction) {
+
+String sCmd = ""
+    sCmd = "net ${iAction} ${iServiceName}"
 	
 	String sPsExecCmd ="cmd /c ${projectDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
 
-    logger.quiet ("GradleUtils: the command restartWFOService: ${sPsExecCmd} ")
+    logger.quiet ("GradleUtils: the command RemoteService: ${sPsExecCmd} ")
 
     String rtnCode=""
 
@@ -227,15 +232,22 @@ def restartWFOService ( String iVmIP, String iUser, String iPw) {
         rtnCode =  getRtnCode(e.toString())
     }
 
-    logger.quiet ("startWFOService: exitCode (${rtnCode})")
+    logger.quiet ("RemoteService: exitCode (${rtnCode})")
 
     if (rtnCode=="2"){
         logger.quiet ("GradleUtils: Exit code (2) keep going! ")
     }else if (rtnCode!="" && rtnCode!="0"  ){
         logger.quiet ("GradleUtils: Failed with: exitCode (${rtnCode})")
-        throw new GradleException("GradleUtils: restartWFOService: exitCode (${rtnCode})")
+        throw new GradleException("GradleUtils: remoteService: exitCode (${rtnCode})")
     }
 }
+
+def restartRemoteService( String iVmIP, String iUser, String iPw, String serviceName) {
+ remoteService( iVmIP, iUser, iPw, serviceName , "stop")
+ remoteService( iVmIP, iUser, iPw, serviceName , "start")
+}
+
+
 
 def createYAML (String strReplaceWith, String sourcePathYAML, String destPathYAML) {
     // Open the
