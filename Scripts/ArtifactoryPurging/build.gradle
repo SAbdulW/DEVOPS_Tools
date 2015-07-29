@@ -108,13 +108,13 @@ def List artifactorySearch(String repoKey, int lastNumDays, String repoPath ){
     //String selectedDateString = selectedDate.format("yyyy-MM-dd")
     //String selectedDateString = "2015-07-28T00:00:00.000-00:00"
     logger.quiet("ArtifactoryPurging: *                     Selected Date : ${selectedDateString}*")
-
-
+    String notMatch="maven-metadata.xml"
     String aqlQuery= "items.find(\n" +
             "    {\n" +
             "        \"repo\":{\"\$eq\":\"${repoKey}\"}\n" +
             "        ,\"created\":{\"\$lt\":\"${selectedDateString}\"}" +
             "        ,\"path\":{\"\$match\":\"${repoPath}*\"}" +
+            "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" +
             "    }\n" +
             ")"
 
@@ -135,8 +135,12 @@ def deleteItems(List resultsList){
 
     resultsList.each { resultItem ->
         //itemURI =deleteItem (resultItem)
-        itemURI =deleteItemFolder (resultItem)
-        strResult = strResult + "\n${itemURI}"
+        String itemPath = resultItem."path";
+
+        if( (resultItem."name" != "maven-metadata.xml") && ((itemPath.contains("/15") || (itemPath.contains("/11"))))) {
+            itemURI = deleteItemFolder(resultItem)
+            strResult = strResult + "\n${itemURI}"
+        }
     }
 
     logger.quiet("\nArtifactoryPurging: ****************************************************************************")
@@ -159,8 +163,13 @@ def deleteItem(Object itemToDelete){
     String rtnCode=""
     try {
         exec {
-            commandLine 'sh', '-c', sCmd
-            logger.info("************ArtifactoryPurging: ${itemToDeleteURI} is DELETED")
+            if (!("${viewOnly}".toBoolean())) {
+                commandLine 'sh', '-c', sCmd
+                logger.info("************ArtifactoryPurging: ${itemToDeleteURI} is DELETED")
+            }else{
+                logger.info("************ArtifactoryPurging: ${itemToDeleteURI} is TO BE DELETED")
+            }
+
         }
     }
     catch (Exception e) {
@@ -190,8 +199,13 @@ def deleteItemFolder(Object itemToDelete){
     String rtnCode=""
     try {
         exec {
-            commandLine 'sh', '-c', sCmd
-            logger.info("************ArtifactoryPurging: ${itemFolderToDeleteURI} is DELETED")
+            if (!("${viewOnly}".toBoolean())) {
+                commandLine 'sh', '-c', sCmd
+                logger.info("************ArtifactoryPurging: ${itemFolderToDeleteURI} is DELETED")
+            }else{
+                logger.info("************ArtifactoryPurging: ${itemFolderToDeleteURI} is TO BE DELETED")
+            }
+
         }
     }
     catch (Exception e) {
