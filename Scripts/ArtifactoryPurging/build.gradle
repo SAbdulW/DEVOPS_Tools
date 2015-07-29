@@ -1,0 +1,223 @@
+import groovy.json.JsonSlurper
+
+
+ext.supportedGradleVersion = '2.3'
+
+allprojects {
+	apply plugin: 'idea'
+	group = 'com.verint.artifactorypurging'
+	version = currentVersion
+}
+
+// Get list of repositories from Artifactory, write the list into a file
+task artifactoryPurgingTask() <<{
+
+   // artifactorySearch ("ci-release", 1)
+    //List resultsList = artifactorySearch ("devops", 1, "com/verint/puppet/logs")
+    //List resultsList = artifactorySearch ("ci-snapshot", 1, "com/verint")
+    //deleteItems(resultsList)
+
+    logger.quiet("\nArtifactoryPurging: ****************************************************************************")
+    logger.quiet("ArtifactoryPurging: *                     PURGING                                                *")
+    logger.quiet("\npurgingRepos: ${purgingRepos}")
+    logger.quiet("\npurgingDateToKeeps: ${purgingDateToKeeps}")
+    logger.quiet("\npurgingPathMatch: ${purgingPathMatch}")
+    logger.quiet("ArtifactoryPurging: *                                                              *")
+    logger.quiet("\nArtifactoryPurging: ****************************************************************************")
+
+    logger.quiet ("$purgingRepos")
+    logger.quiet ("$purgingDateToKeeps")
+    logger.quiet ("$purgingPathMatch")
+
+    artifactoryPurging ("$purgingRepos", "$purgingDateToKeeps", "$purgingPathMatch")
+}
+
+def artifactoryPurging (String repos, String dayToKeeps, String pathMatches){
+    def reposList= repos.split(',')
+    def dayToKeepsList = dayToKeeps.split(',')
+    def pathMatchesList = pathMatches.split(',')
+
+    if ((reposList.length != dayToKeepsList.length)||(reposList.length !=pathMatchesList.length)){
+        logger.quiet ("         ### ERROR: Wrong configuration, mismatch two lists of repos")
+    }else{
+        for (int i=0; i< reposList.length; i++){
+            String repoKey = reposList[i]
+            String dayToKeep = dayToKeepsList[i]
+            String pathMatch = pathMatchesList[i]
+            logger.quiet ("$repoKey")
+            logger.quiet ("$dayToKeep")
+            logger.quiet ("$pathMatch")
+
+            List resultsList = artifactorySearch (reposList[i], dayToKeep.toInteger(), pathMatchesList[i])
+            deleteItems(resultsList)
+        }
+    }
+}
+
+def String executeAQL(String query){
+    logger.quiet("\nArtifactoryPurging: ****************************************************************************")
+    logger.quiet("ArtifactoryPurging: *                     Execute AQL :                                          *")
+    logger.quiet("\n${query}")
+    logger.quiet("ArtifactoryPurging: *                                                              *")
+    logger.quiet("\nArtifactoryPurging: ****************************************************************************")
+
+    String filePath =""
+    File tempArtifactsList = File.createTempFile("aqlResult",".result");
+    filePath = tempArtifactsList.getAbsolutePath()
+    filePath = filePath.replaceAll("\\\\","/")
+
+    File aqlQueryFile=File.createTempFile("aqlQueryFile",".query");
+    String aqlQueryFilePath = aqlQueryFile.getAbsolutePath()
+    aqlQueryFilePath = aqlQueryFilePath.replaceAll("\\\\","/")
+
+    aqlQueryFile.text = "${query}"
+
+    String sCmd = ""
+
+    sCmd = "curl -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$contextURL/api/search/aql\" -T\"${aqlQueryFilePath}\"  -o \"$filePath\""
+    logger.quiet("ArtifactoryPurging: * Command to execute: ${sCmd}")
+
+    String rtnCode=""
+    try {
+        exec {
+            commandLine 'sh', '-c', sCmd
+        }
+    }
+    catch (Exception e) {
+        logger.quiet ("ArtifactoryPurging: some " + e.toString())
+
+    }
+
+    //executeOnShellFile sCmd
+
+    //def inputJSON = new JsonSlurper().parseText(tempArtifactsList.text)
+    String rtnText = tempArtifactsList.text
+    tempArtifactsList.delete()
+    aqlQueryFile.delete()
+    //return inputJSON
+    return rtnText
+}
+
+def List artifactorySearch(String repoKey, int lastNumDays, String repoPath ){
+    logger.quiet("\nArtifactoryPurging: ****************************************************************************")
+    logger.quiet("ArtifactoryPurging: *                     Search artifact from repo: ${repoKey}         *")
+    logger.quiet("\nArtifactoryPurging: ****************************************************************************")
+    def selectedDate = new Date() -lastNumDays
+    String selectedDateString = selectedDate.format("yyyy-MM-dd hh:mm:ss")
+    selectedDateString = selectedDateString.replaceAll(" ","T")
+    //String selectedDateString = selectedDate.format("yyyy-MM-dd")
+    //String selectedDateString = "2015-07-28T00:00:00.000-00:00"
+    logger.quiet("ArtifactoryPurging: *                     Selected Date : ${selectedDateString}*")
+    String notMatch="maven-metadata.xml"
+    String aqlQuery= "items.find(\n" +
+            "    {\n" +
+            "        \"repo\":{\"\$eq\":\"${repoKey}\"}\n" +
+            "        ,\"created\":{\"\$lt\":\"${selectedDateString}\"}" +
+            "        ,\"path\":{\"\$match\":\"${repoPath}*\"}" +
+            "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" +
+            "    }\n" +
+            ")"
+
+    def String resultsJsonText=executeAQL(aqlQuery)
+    def resultsJson = new JsonSlurper().parseText(resultsJsonText)
+
+    List resultsList  = resultsJson.results
+    //logger.quiet("Result:\n" + resultsList)
+    File searchResultFile = new File ("searchResult.json")
+    searchResultFile.text = "${resultsJsonText}"
+
+    return resultsList
+}
+
+def deleteItems(List resultsList){
+    String strResult=""
+    String itemURI = ""
+
+    resultsList.each { resultItem ->
+        //itemURI =deleteItem (resultItem)
+        String itemPath = resultItem."path";
+
+        if( (resultItem."name" != "maven-metadata.xml") && ((itemPath.contains("/15") || (itemPath.contains("/11"))))) {
+            itemURI = deleteItemFolder(resultItem)
+            strResult = strResult + "\n${itemURI}"
+        }
+    }
+
+    logger.quiet("\nArtifactoryPurging: ****************************************************************************")
+    logger.quiet("ArtifactoryPurging: *                     DELETED ITEMS URI         *")
+    logger.quiet("\nArtifactoryPurging: ****************************************************************************")
+    logger.quiet("${strResult}")
+
+}
+def deleteItem(Object itemToDelete){
+    String itemToDeleteURI = "${contextURL}" + "/" + itemToDelete."repo" + "/" +  itemToDelete."path" //+ "/" + itemToDelete."name"
+    logger.info("Deleting URI...:  ${itemToDeleteURI} ")
+
+    itemToDeleteURI=itemToDeleteURI.replaceAll(" ", "%20" )
+
+    String sCmd = ""
+
+    sCmd = "curl -f -X DELETE -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"${itemToDeleteURI}\" "
+    logger.info("ArtifactoryPurging: * Command to delete: ${sCmd}")
+
+    String rtnCode=""
+    try {
+        exec {
+            if (!("${viewOnly}".toBoolean())) {
+                commandLine 'sh', '-c', sCmd
+                logger.info("************ArtifactoryPurging: ${itemToDeleteURI} is DELETED")
+            }else{
+                logger.info("************ArtifactoryPurging: ${itemToDeleteURI} is TO BE DELETED")
+            }
+
+        }
+    }
+    catch (Exception e) {
+        logger.info("************ArtifactoryPurging: ${itemToDeleteURI} is FAILED deleted")
+        logger.info ("ArtifactoryPurging: some " + e.toString())
+
+    }
+    return itemToDeleteURI
+}
+
+def deleteItemFolder(Object itemToDelete){
+    String itemPath= itemToDelete."path"
+    int lastIndex = itemPath.lastIndexOf("/")
+    //String itemPathFolder = itemPath.substring(0,lastIndex)
+    //To delete the whole folder
+    String itemPathFolder = itemPath
+    String itemFolderToDeleteURI = "${contextURL}" + "/" + itemToDelete."repo" + "/" +  itemPathFolder //+ "/" + itemToDelete."name"
+    logger.info("Deleting URI Folder...:  ${itemFolderToDeleteURI} ")
+
+    itemFolderToDeleteURI=itemFolderToDeleteURI.replaceAll(" ", "%20" )
+
+    String sCmd = ""
+
+    sCmd = "curl -f -X DELETE -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"${itemFolderToDeleteURI}\" "
+    logger.info("ArtifactoryPurging: * Command to delete: ${sCmd}")
+
+    String rtnCode=""
+    try {
+        exec {
+            if (!("${viewOnly}".toBoolean())) {
+                commandLine 'sh', '-c', sCmd
+                logger.info("************ArtifactoryPurging: ${itemFolderToDeleteURI} is DELETED")
+            }else{
+                logger.info("************ArtifactoryPurging: ${itemFolderToDeleteURI} is TO BE DELETED")
+            }
+
+        }
+    }
+    catch (Exception e) {
+        logger.info("************ArtifactoryPurging: ${itemFolderToDeleteURI} is FAILED deleted")
+        logger.info ("ArtifactoryPurging: some " + e.toString())
+
+    }
+    return itemFolderToDeleteURI
+}
+
+
+
+task wrapper(type: Wrapper) {
+	gradleVersion = supportedGradleVersion
+}
