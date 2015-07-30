@@ -354,6 +354,7 @@ def extractInstalledVersion (String [] yamlFiles, File jsRegistry){
             String componentName =""
             String installedVersion=""
             String componentGAV = ""
+            String componentPC = "false"
 
             wfoComponentsMap.each { wfoComponent ->
                 wfoComponent.each { it ->
@@ -370,6 +371,10 @@ def extractInstalledVersion (String [] yamlFiles, File jsRegistry){
                     if (prop[0]=="ComponentGAV") {
                         componentGAV = prop[1]
                     }
+                    if (prop[0]=="ComponentPC") {
+                        componentPC = prop[1]
+                    }
+
                 }
             }
 
@@ -385,12 +390,14 @@ def extractInstalledVersion (String [] yamlFiles, File jsRegistry){
                         "    \"ComponentName\": \"${componentName}\",\n" +
                         "    \"InstalledVersion\": \"${installedVersion}\"\n" +
                         "    \"ComponentGAV\": \"${componentGAV}\"\n" +
+                        "    \"ComponentPC\": \"${componentPC}\"\n" +
                         "  }"
             }else{
                 installedVersionsContent =installedVersionsContent +",\n  \"${componentName}\": {\n" +
                         "    \"ComponentName\": \"${componentName}\",\n" +
                         "    \"InstalledVersion\": \"${installedVersion}\"\n" +
                         "    \"ComponentGAV\": \"${componentGAV}\"\n" +
+                        "    \"ComponentPC\": \"${componentPC}\"\n" +
                         "  }"
             }
 
