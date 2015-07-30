@@ -54,11 +54,16 @@ task init() << {
 
 task testPP() << {
 
+    loadPuppetLog ("ci_wfo_env_1438279679740", "ci_wfo_env" )
     //loadPuppetLog ("ci_wfo_env_test", "ci_wfo_env_test")
     def String[] yamlFiles = "${yamlFiles}".split(',');
-
     yamlValidation (yamlFiles)
-    //extractInstalledVersion (yamlFiles, new File("${projectDir}\\PPLogs\\registryExport.json") )
+    extractInstalledVersion (yamlFiles, new File("${projectDir}\\PPLogs\\registryExport.json") )
+
+    //def sviXMLObj = loadXMLObject (new File ("${projectDir}\\PPLogs\\ServerVersionInformation.xml"))
+
+    //getVersionInstalledFromSVIXML (sviXMLObj, "Coaching Reporting")
+
     //renameYAML "\\\\atlpuppetmaster\\puppet_agent\\environments\\ci_wfo_env_test\\hieradata\\ci_wfo_env_test.yaml"
 
 }
@@ -314,12 +319,17 @@ def loadPuppetLog (String certName, String env  ){
 
 import org.yaml.snakeyaml.Yaml
 import groovy.json.JsonSlurper
+import groovy.util.XmlSlurper
 
 def extractInstalledVersion (String [] yamlFiles, File jsRegistry){
 
     //load json object
     def jsRegistryObj = loadJsonObject (jsRegistry)
     def installedVersionsFile = new File ("${projectDir}\\PPLogs\\installedVersions.json")
+
+    def sviXMLFile= new File ("${projectDir}\\PPLogs\\ServerVersionInformation.xml")
+    def sviXMLObj = loadXMLObject(sviXMLFile)
+
     String installedVersionsContent = ""
     logger.quiet("\nGradleUtils: ****************************************************************************")
     logger.quiet("GradleUtils: *                      GETTING INSTALLED VERSION                           *")
@@ -341,27 +351,49 @@ def extractInstalledVersion (String [] yamlFiles, File jsRegistry){
         data."wfoComponents".each { wfoComponents ->
             //logger.quiet(wfoComponents)
             Map<Object> wfoComponentsMap = (Map<Object>) wfoComponents
+            String componentName =""
+            String installedVersion=""
+            String componentGAV = ""
+
             wfoComponentsMap.each { wfoComponent ->
                 wfoComponent.each { it ->
+                    logger.quiet("${it}")
                     String [] prop =    "${it}".split("=")
                     if (prop[0]=="ComponentName") {
-                        String componentName = prop[1]
-                        String installedVersion = getVersionInstalledFromRegistryJson (jsRegistryObj,prop[1] )
+                        componentName = prop[1]
+                        installedVersion = getVersionInstalledFromRegistryJson (jsRegistryObj,prop[1] )
 
-                        if (installedVersionsContent=="") {
-                            installedVersionsContent ="  \"${componentName}\": {\n" +
-                                    "    \"ComponentName\": \"${componentName}\",\n" +
-                                    "    \"InstalledVersion\": \"${installedVersion}\"\n" +
-                                    "  }"
-                        }else{
-                            installedVersionsContent =installedVersionsContent +",\n  \"${componentName}\": {\n" +
-                                    "    \"ComponentName\": \"${componentName}\",\n" +
-                                    "    \"InstalledVersion\": \"${installedVersion}\"\n" +
-                                    "  }"
+                        if (installedVersion=="") {
+                            installedVersion = getVersionInstalledFromSVIXML (sviXMLObj,prop[1] )
                         }
+                    }
+                    if (prop[0]=="ComponentGAV") {
+                        componentGAV = prop[1]
                     }
                 }
             }
+
+            //logger.quiet("GradleUtils: ${componentName} : ${installedVersion} : ${componentGAV}")
+
+            //Fill the version
+            if (componentGAV!="")
+                componentGAV = componentGAV.substring(0, componentGAV.lastIndexOf(":"))+ ":" + "${installedVersion}"
+
+
+            if (installedVersionsContent=="") {
+                installedVersionsContent ="  \"${componentName}\": {\n" +
+                        "    \"ComponentName\": \"${componentName}\",\n" +
+                        "    \"InstalledVersion\": \"${installedVersion}\"\n" +
+                        "    \"ComponentGAV\": \"${componentGAV}\"\n" +
+                        "  }"
+            }else{
+                installedVersionsContent =installedVersionsContent +",\n  \"${componentName}\": {\n" +
+                        "    \"ComponentName\": \"${componentName}\",\n" +
+                        "    \"InstalledVersion\": \"${installedVersion}\"\n" +
+                        "    \"ComponentGAV\": \"${componentGAV}\"\n" +
+                        "  }"
+            }
+
         }
     }
 
@@ -389,11 +421,44 @@ def getVersionInstalledFromRegistryJson (Object jsonObject, String componentName
     return      rtnVersion
 }
 
+def getVersionInstalledFromSVIXML (Object xmlObject, String componentName){
+    def found = false;
+    String rtnVersion = ""
+
+    xmlObject."Components"."Component".each { xmlItem ->
+        //logger.quiet("${xmlItem}")
+        //logger.quiet("name:" + xmlItem.@name + " version:" + xmlItem.@version)
+        if ((xmlItem.@name == componentName) && !found) {
+            logger.quiet("name:" + xmlItem.@name + " version:" + xmlItem.@version)
+            rtnVersion =  xmlItem.@version
+            found = true
+        }
+    }
+    return rtnVersion
+}
+
 def loadJsonObject(File jsonFile) {
     def InputJSON = new JsonSlurper().parseText(jsonFile.text)
 
     return InputJSON
 }
+
+def loadXMLObject(File xmlFile) {
+
+    def rtnXML = null
+
+    //logger.quiet (xmlFile.text)
+    try {
+        //rtnXML = new XmlSlurper().parseText(xmlFile.text)
+        rtnXML = new XmlParser().parseText(xmlFile.text)
+    }catch (Exception e){
+        logger.quiet("\nGradleUtils: XML doesn't exist or wrong format :" + xmlFile.getAbsolutePath())
+        logger.quiet("${e}")
+        rtnXML = null
+    }
+    return rtnXML
+}
+
 
 def getRtnCode (String strException) {
     int lastIndex =   strException.lastIndexOf("exit value")
