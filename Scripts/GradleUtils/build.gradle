@@ -388,15 +388,15 @@ def extractInstalledVersion (String [] yamlFiles, File jsRegistry){
             if (installedVersionsContent=="") {
                 installedVersionsContent ="  \"${componentName}\": {\n" +
                         "    \"ComponentName\": \"${componentName}\",\n" +
-                        "    \"InstalledVersion\": \"${installedVersion}\"\n" +
-                        "    \"ComponentGAV\": \"${componentGAV}\"\n" +
+                        "    \"InstalledVersion\": \"${installedVersion}\",\n" +
+                        "    \"ComponentGAV\": \"${componentGAV}\",\n" +
                         "    \"ComponentPC\": \"${componentPC}\"\n" +
                         "  }"
             }else{
                 installedVersionsContent =installedVersionsContent +",\n  \"${componentName}\": {\n" +
                         "    \"ComponentName\": \"${componentName}\",\n" +
-                        "    \"InstalledVersion\": \"${installedVersion}\"\n" +
-                        "    \"ComponentGAV\": \"${componentGAV}\"\n" +
+                        "    \"InstalledVersion\": \"${installedVersion}\",\n" +
+                        "    \"ComponentGAV\": \"${componentGAV}\",\n" +
                         "    \"ComponentPC\": \"${componentPC}\"\n" +
                         "  }"
             }
