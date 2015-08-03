@@ -1,0 +1,307 @@
+import groovy.json.JsonSlurper
+
+
+ext.supportedGradleVersion = '2.3'
+
+allprojects {
+	apply plugin: 'idea'
+	group = 'com.verint.artifactorypromotion'
+	version = currentVersion
+}
+
+// Get list of repositories from Artifactory, write the list into a file
+task artifactoryPromotionTask() <<{
+
+   // artifactorySearch ("ci-release", 1)
+    //List resultsList = artifactorySearch ("devops", 1, "com/verint/puppet/logs")
+    //List resultsList = artifactorySearch ("ci-snapshot", 1, "com/verint")
+    //deleteItems(resultsList)
+
+    logger.quiet("\nArtifactoryPromotion: ****************************************************************************")
+    logger.quiet("ArtifactoryPromotion: *                     PROMOTE                                                *")
+    logger.quiet("\nsourceRepos: ${sourceRepos}")
+    logger.quiet("\ntargetRepos: ${targetRepos}")
+    logger.quiet("\nteamGroupPrefixes: ${teamGroupPrefixes}")
+    logger.quiet("ArtifactoryPromotion: *                                                              *")
+    logger.quiet("\nArtifactoryPromotion: ****************************************************************************")
+
+    ArtifactoryPromotion ("$sourceRepos", "$targetRepos", "$teamGroupPrefixes", "${installedVersionFiles}")
+}
+
+def ArtifactoryPromotion (String srcRepos, String tagRepos, String teamGroupPrefixes, String installedVersionFilesPath ){
+    def srcReposList= srcRepos.split(',')
+    def tagReposList = tagRepos.split(',')
+    def teamGroupPrefixesList = teamGroupPrefixes.split(',')
+
+    def jsObject = loadJsonObject(new File ("${installedVersionFilesPath}"))
+
+    //if ((srcReposList.length != tagReposList.length)||(srcReposList.length !=teamGroupPrefixesList.length)){
+    if (srcReposList.length != tagReposList.length){
+        logger.quiet ("         ### ERROR: Wrong configuration, mismatch two lists of repos")
+    }else{
+        for (int i=0; i< srcReposList.length; i++){
+            String repoSrc = srcReposList[i]
+            String repoTag = tagReposList[i]
+            logger.quiet ("Source Repo           : $repoSrc")
+            logger.quiet ("Promote to Target Repo: $repoTag")
+
+            List resultsFolderList = makeFolderList (jsObject)
+            //Filter
+            //resultsFolderList = filterFolderList (resultsFolderList, teamGroupPrefixesList[i]
+            moveFolderList(resultsFolderList,repoSrc, repoTag)
+        }
+    }
+}
+
+
+def loadJsonObject(File jsonFile) {
+    def InputJSON = new JsonSlurper().parseText(jsonFile.text)
+    return InputJSON
+}
+
+//moveItem("http://scartifactory:8081/artifactory/api/storage/ops-dev-release-repo/com/verint/ops/vctutils/11.2.1.67",
+//        "/ops-qa-release-repo/com/verint/ops/vctutils/11.2.1.67")
+
+def makeFolderList(Object jsObject){
+    List returnList = []
+    String folderItem = ""
+    jsObject.each { componentObj ->
+        def component = componentObj.getValue()
+        String componentGAV = component."ComponentGAV"
+        String componentPC = component."ComponentPC"
+        if ("${componentPC}".toBoolean()) {
+            String [] componentGAVParts =  "${componentGAV}".split(":")
+            String groupID = componentGAVParts[0]
+            String artifactID = componentGAVParts[1]
+            String artifactVersion = componentGAVParts[2]
+            folderItem = groupID.replaceAll("\\.","/") + "/" + artifactID + "/" + artifactVersion
+            logger.quiet ("Promoting candiate           : $folderItem")
+            returnList.add (folderItem)
+        }else{
+            //logger.quiet ("Not Promoting candiate           : $componentGAV")
+        }
+    }
+    return returnList
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = supportedGradleVersion
+}
+
+def moveFolderList(List folderList, String repoSrc, String repoTag){
+    String srcUri = ""
+    String destUri = ""
+    folderList.each { pathGAV ->
+        srcUri = "http://atlartifactory:8081/artifactory/api/move/${repoSrc}/${pathGAV}"
+        destUri = "${repoTag}/${pathGAV}"
+        moveItem (srcUri, destUri)
+    }
+}
+
+
+def moveItem(String srcUri, String destUri){
+    //
+    //"http://atlartifactory:8081/artifactory/api/move/ci-snapshot/com/verint/algo/components/ForecastingandScheduling/11.2.1.210?to=/ci-release/com/verint/algo/components/ForecastingandScheduling/11.2.1.210"
+
+    //Replace /api/storage/ -> /api/move
+
+    srcUri=srcUri.replaceAll( " ", "%20" )
+    destUri=destUri.replaceAll( " ", "%20" )
+    String sCmd = ""
+    sCmd = "curl -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$srcUri?to=$destUri\""
+    logger.quiet ("ArtifactoryPromotion: ***Command Move Item ***: " + sCmd )
+
+    String rtnCode=""
+    try {
+        exec {
+            //commandLine 'sh', '-c', sCmd
+        }
+    }
+    catch (Exception e) {
+        logger.quiet ("ArtifactoryPromotion: some " + e.toString())
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def String executeAQL(String query){
+    logger.quiet("\nArtifactoryPromotion: ****************************************************************************")
+    logger.quiet("ArtifactoryPromotion: *                     Execute AQL :                                          *")
+    logger.quiet("\n${query}")
+    logger.quiet("ArtifactoryPromotion: *                                                              *")
+    logger.quiet("\nArtifactoryPromotion: ****************************************************************************")
+
+    String filePath =""
+    File tempArtifactsList = File.createTempFile("aqlResult",".result");
+    filePath = tempArtifactsList.getAbsolutePath()
+    filePath = filePath.replaceAll("\\\\","/")
+
+    File aqlQueryFile=File.createTempFile("aqlQueryFile",".query");
+    String aqlQueryFilePath = aqlQueryFile.getAbsolutePath()
+    aqlQueryFilePath = aqlQueryFilePath.replaceAll("\\\\","/")
+
+    aqlQueryFile.text = "${query}"
+
+    String sCmd = ""
+
+    sCmd = "curl -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$contextURL/api/search/aql\" -T\"${aqlQueryFilePath}\"  -o \"$filePath\""
+    logger.quiet("ArtifactoryPromotion: * Command to execute: ${sCmd}")
+
+    String rtnCode=""
+    try {
+        exec {
+            commandLine 'sh', '-c', sCmd
+        }
+    }
+    catch (Exception e) {
+        logger.quiet ("ArtifactoryPromotion: some " + e.toString())
+
+    }
+
+    //executeOnShellFile sCmd
+
+    //def inputJSON = new JsonSlurper().parseText(tempArtifactsList.text)
+    String rtnText = tempArtifactsList.text
+    tempArtifactsList.delete()
+    aqlQueryFile.delete()
+    //return inputJSON
+    return rtnText
+}
+
+def List artifactorySearch(String repoKey, int lastNumDays, String repoPath ){
+    logger.quiet("\nArtifactoryPromotion: ****************************************************************************")
+    logger.quiet("ArtifactoryPromotion: *                     Search artifact from repo: ${repoKey}         *")
+    logger.quiet("\nArtifactoryPromotion: ****************************************************************************")
+    def selectedDate = new Date() -lastNumDays
+    String selectedDateString = selectedDate.format("yyyy-MM-dd hh:mm:ss")
+    selectedDateString = selectedDateString.replaceAll(" ","T")
+    //String selectedDateString = selectedDate.format("yyyy-MM-dd")
+    //String selectedDateString = "2015-07-28T00:00:00.000-00:00"
+    logger.quiet("ArtifactoryPromotion: *                     Selected Date : ${selectedDateString}*")
+    String notMatch="maven-metadata.xml"
+    String aqlQuery= "items.find(\n" +
+            "    {\n" +
+            "        \"repo\":{\"\$eq\":\"${repoKey}\"}\n" +
+            "        ,\"created\":{\"\$lt\":\"${selectedDateString}\"}" +
+            "        ,\"path\":{\"\$match\":\"${repoPath}*\"}" +
+            "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" +
+            "    }\n" +
+            ")"
+
+    def String resultsJsonText=executeAQL(aqlQuery)
+    def resultsJson = new JsonSlurper().parseText(resultsJsonText)
+
+    List resultsList  = resultsJson.results
+    //logger.quiet("Result:\n" + resultsList)
+    File searchResultFile = new File ("searchResult.json")
+    searchResultFile.text = "${resultsJsonText}"
+
+    return resultsList
+}
+
+def deleteItems(List resultsList){
+    String strResult=""
+    String itemURI = ""
+
+    resultsList.each { resultItem ->
+        //itemURI =deleteItem (resultItem)
+        String itemPath = resultItem."path";
+
+        if( (resultItem."name" != "maven-metadata.xml") && ((itemPath.contains("/15") || (itemPath.contains("/11"))))) {
+            itemURI = deleteItemFolder(resultItem)
+            strResult = strResult + "\n${itemURI}"
+        }
+    }
+
+    logger.quiet("\nArtifactoryPromotion: ****************************************************************************")
+    logger.quiet("ArtifactoryPromotion: *                     DELETED ITEMS URI         *")
+    logger.quiet("\nArtifactoryPromotion: ****************************************************************************")
+    logger.quiet("${strResult}")
+
+}
+def deleteItem(Object itemToDelete){
+    String itemToDeleteURI = "${contextURL}" + "/" + itemToDelete."repo" + "/" +  itemToDelete."path" //+ "/" + itemToDelete."name"
+    logger.info("Deleting URI...:  ${itemToDeleteURI} ")
+
+    itemToDeleteURI=itemToDeleteURI.replaceAll(" ", "%20" )
+
+    String sCmd = ""
+
+    sCmd = "curl -f -X DELETE -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"${itemToDeleteURI}\" "
+    logger.info("ArtifactoryPromotion: * Command to delete: ${sCmd}")
+
+    String rtnCode=""
+    try {
+        exec {
+            if (!("${viewOnly}".toBoolean())) {
+                commandLine 'sh', '-c', sCmd
+                logger.info("************ArtifactoryPromotion: ${itemToDeleteURI} is DELETED")
+            }else{
+                logger.info("************ArtifactoryPromotion: ${itemToDeleteURI} is TO BE DELETED")
+            }
+
+        }
+    }
+    catch (Exception e) {
+        logger.info("************ArtifactoryPromotion: ${itemToDeleteURI} is FAILED deleted")
+        logger.info ("ArtifactoryPromotion: some " + e.toString())
+
+    }
+    return itemToDeleteURI
+}
+
+def deleteItemFolder(Object itemToDelete){
+    String itemPath= itemToDelete."path"
+    int lastIndex = itemPath.lastIndexOf("/")
+    //String itemPathFolder = itemPath.substring(0,lastIndex)
+    //To delete the whole folder
+    String itemPathFolder = itemPath
+    String itemFolderToDeleteURI = "${contextURL}" + "/" + itemToDelete."repo" + "/" +  itemPathFolder //+ "/" + itemToDelete."name"
+    logger.info("Deleting URI Folder...:  ${itemFolderToDeleteURI} ")
+
+    itemFolderToDeleteURI=itemFolderToDeleteURI.replaceAll(" ", "%20" )
+
+    String sCmd = ""
+
+    sCmd = "curl -f -X DELETE -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"${itemFolderToDeleteURI}\" "
+    logger.info("ArtifactoryPromotion: * Command to delete: ${sCmd}")
+
+    String rtnCode=""
+    try {
+        exec {
+            if (!("${viewOnly}".toBoolean())) {
+                commandLine 'sh', '-c', sCmd
+                logger.info("************ArtifactoryPromotion: ${itemFolderToDeleteURI} is DELETED")
+            }else{
+                logger.info("************ArtifactoryPromotion: ${itemFolderToDeleteURI} is TO BE DELETED")
+            }
+
+        }
+    }
+    catch (Exception e) {
+        logger.info("************ArtifactoryPromotion: ${itemFolderToDeleteURI} is FAILED deleted")
+        logger.info ("ArtifactoryPromotion: some " + e.toString())
+
+    }
+    return itemFolderToDeleteURI
+}
+
+
