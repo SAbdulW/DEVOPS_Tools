@@ -1,6 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?><project>
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
   <actions/>
-  <description/>
+  <description></description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.14">
@@ -13,22 +14,22 @@
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
           <name>ProvisioningRoot</name>
-          <description>"Test bench Pool Path" - A path that indicates where the environments are located in the Vcenter</description>
+          <description>&quot;Test bench Pool Path&quot; - A path that indicates where the environments are located in the Vcenter</description>
           <defaultValue>Fixture/11.2.1.x/Green</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>PendingPoolFolder</name>
-          <description>VM folder where the pending pool VM's are located (Relative to 'provisioning_root')</description>
+          <description>VM folder where the pending pool VM&apos;s are located (Relative to &apos;provisioning_root&apos;)</description>
           <defaultValue>Pending</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>RunningPoolFolder</name>
-          <description>VM folder where the running pool VM's are located (Relative to 'provisioning_root')</description>
+          <description>VM folder where the running pool VM&apos;s are located (Relative to &apos;provisioning_root&apos;)</description>
           <defaultValue>Running</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>DevRootPath</name>
-          <description/>
+          <description></description>
           <defaultValue>D:\gitroot\Z_DEVOPS</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -45,6 +46,7 @@
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <jdk>(Default)</jdk>
   <triggers/>
   <concurrentBuild>false</concurrentBuild>
   <customWorkspace>$DevRootPath</customWorkspace>
@@ -52,7 +54,7 @@
     <hudson.tasks.BatchFile>
       <command>echo Get information from Vcenter on %ProvisioningRoot%/%PendingPoolFolder%</command>
     </hudson.tasks.BatchFile>
-    <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@1.1.13-SNAPSHOT">
+    <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@11.2.1.7">
       <buildStep class="org.jenkinsci.plugins.vsphere.builders.GetFolderInfo">
         <sourceName>${ProvisioningRoot}/${PendingPoolFolder}</sourceName>
         <numberVM>0</numberVM>
@@ -70,10 +72,10 @@
       </runCondition>
       <conditionalbuilders>
         <hudson.tasks.BatchFile>
-          <command>echo "%ProvisioningRoot%/%PendingPoolFolder%" is empty. Will try again in %RetryTime% .&#13;
+          <command>echo &quot;%ProvisioningRoot%/%PendingPoolFolder%&quot; is empty. Will try again in %RetryTime% .&#xd;
 sleep %RetryTime%</command>
         </hudson.tasks.BatchFile>
-        <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@1.1.13-SNAPSHOT">
+        <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@11.2.1.7">
           <buildStep class="org.jenkinsci.plugins.vsphere.builders.GetFolderInfo">
             <sourceName>${ProvisioningRoot}/${PendingPoolFolder}</sourceName>
             <numberVM>0</numberVM>
@@ -91,12 +93,12 @@ sleep %RetryTime%</command>
         <comparator class="org.jenkins_ci.plugins.run_condition.core.NumericalComparisonCondition$EqualTo"/>
       </condition>
       <buildStep class="hudson.tasks.BatchFile">
-        <command>echo %ProvisioningRoot%\%PendingPoolFolder% is still empty. Build has failed!!!.&#13;
+        <command>echo %ProvisioningRoot%\%PendingPoolFolder% is still empty. Build has failed!!!.&#xd;
 exit 2</command>
       </buildStep>
       <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
     </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
-    <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@1.1.13-SNAPSHOT">
+    <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@11.2.1.7">
       <buildStep class="org.jenkinsci.plugins.vsphere.builders.Move">
         <sourceName>${ProvisioningRoot}/${PendingPoolFolder}/${LAST_FOLDER}</sourceName>
         <location>${ProvisioningRoot}/${RunningPoolFolder}</location>
@@ -105,19 +107,19 @@ exit 2</command>
       <serverHash>-1412856745</serverHash>
     </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
     <hudson.tasks.BatchFile>
-      <command>echo PendingFolderPath=%ProvisioningRoot%/%PendingPoolFolder%&gt;"%WORKSPACE%\assign.prop"&#13;
-echo PendingFolderName=%ProvisioningRoot%/%PendingPoolFolder%/%LAST_FOLDER%&gt;&gt;"%WORKSPACE%\assign.prop"&#13;
-echo RunningFolderPath=%ProvisioningRoot%/%RunningPoolFolder%&gt;&gt;"%WORKSPACE%\assign.prop"&#13;
-echo VmFolderName=%LAST_FOLDER%&gt;&gt;"%WORKSPACE%\assign.prop"&#13;
-&#13;
-TYPE "%WORKSPACE%\assign.prop"</command>
+      <command>echo PendingFolderPath=%ProvisioningRoot%/%PendingPoolFolder%&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
+echo PendingFolderName=%ProvisioningRoot%/%PendingPoolFolder%/%LAST_FOLDER%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
+echo RunningFolderPath=%ProvisioningRoot%/%RunningPoolFolder%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
+echo VmFolderName=%LAST_FOLDER%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
+&#xd;
+TYPE &quot;%WORKSPACE%\assign.prop&quot;</command>
     </hudson.tasks.BatchFile>
     <EnvInjectBuilder plugin="envinject@1.90">
       <info>
         <propertiesFilePath>$WORKSPACE\assign.prop</propertiesFilePath>
       </info>
     </EnvInjectBuilder>
-    <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@1.1.13-SNAPSHOT">
+    <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@11.2.1.7">
       <buildStep class="org.jenkinsci.plugins.vsphere.builders.GetFolderInfo">
         <sourceName>${ProvisioningRoot}/${RunningPoolFolder}/$VmFolderName</sourceName>
         <numberVM>0</numberVM>
@@ -127,12 +129,12 @@ TYPE "%WORKSPACE%\assign.prop"</command>
       <serverHash>-1412856745</serverHash>
     </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
     <hudson.tasks.BatchFile>
-      <command>echo TestEnvFolderPath=%ProvisioningRoot%/%RunningPoolFolder%/%VmFolderName%&gt;&gt;"%WORKSPACE%\assign.prop"&#13;
-echo VmPath=%ProvisioningRoot%/%RunningPoolFolder%/%VmFolderName%/%FIRST_VM%&gt;&gt;"%WORKSPACE%\assign.prop"&#13;
-echo VmName=%FIRST_VM%&gt;&gt;"%WORKSPACE%\assign.prop"&#13;
-&#13;
-&#13;
-TYPE "%WORKSPACE%\assign.prop"</command>
+      <command>echo TestEnvFolderPath=%ProvisioningRoot%/%RunningPoolFolder%/%VmFolderName%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
+echo VmPath=%ProvisioningRoot%/%RunningPoolFolder%/%VmFolderName%/%FIRST_VM%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
+echo VmName=%FIRST_VM%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
+&#xd;
+&#xd;
+TYPE &quot;%WORKSPACE%\assign.prop&quot;</command>
     </hudson.tasks.BatchFile>
     <EnvInjectBuilder plugin="envinject@1.90">
       <info>
@@ -142,7 +144,7 @@ TYPE "%WORKSPACE%\assign.prop"</command>
     <hudson.tasks.BatchFile>
       <command>echo ==fullpath=%VmPath%===</command>
     </hudson.tasks.BatchFile>
-    <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@1.1.13-SNAPSHOT">
+    <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@11.2.1.7">
       <buildStep class="org.jenkinsci.plugins.vsphere.builders.GetIp">
         <vm>${VmPath}</vm>
         <timeoutInSeconds>60</timeoutInSeconds>
@@ -150,20 +152,19 @@ TYPE "%WORKSPACE%\assign.prop"</command>
       <serverName>ATL Vsphere Server</serverName>
       <serverHash>-1412856745</serverHash>
     </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
-	<hudson.tasks.Shell>
-		<command>
-echo pp_timestamp=$(date +%s) &gt;&gt; $WORKSPACE/assign.prop
+    <hudson.tasks.Shell>
+      <command>echo pp_timestamp=$(date +%s) &gt;&gt; $WORKSPACE/assign.prop
 		</command>
-	</hudson.tasks.Shell>
+    </hudson.tasks.Shell>
     <hudson.tasks.BatchFile>
-      <command>echo VmIp=%VM_IP%&gt;&gt;"%WORKSPACE%\assign.prop"&#13;
-&#13;
-echo VmName=%VmName%&#13;
-&#13;
-echo VmIp=%VM_IP%&#13;
-echo VmName=%FIRST_VM%&#13;
-&#13;
-TYPE "%WORKSPACE%\assign.prop"</command>
+      <command>echo VmIp=%VM_IP%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
+&#xd;
+echo VmName=%VmName%&#xd;
+&#xd;
+echo VmIp=%VM_IP%&#xd;
+echo VmName=%FIRST_VM%&#xd;
+&#xd;
+TYPE &quot;%WORKSPACE%\assign.prop&quot;</command>
     </hudson.tasks.BatchFile>
   </builders>
   <publishers>

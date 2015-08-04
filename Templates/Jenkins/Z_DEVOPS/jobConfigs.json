@@ -1,14 +1,17 @@
 { 
- "viewName": "Z_DEVOPS", 
- "jobList": "Z_DEVOPS (Commit Build)##Z_DEVOPS_(AssignMachine)##Z_DEVOPS_(Puppet)##Z_DEVOPS_(Back2Pool)##Z_DEVOPS_(RAFTests)##Z_DEVOPS_(Back2Pool)", 
+ "viewName": "/view/Z_DEVOPS", 
+ "jobList": "/job/Z_DEVOPS%20(Commit%20Build)/##/job/Z_DEVOPS_(AssignMachine)/##/job/Z_DEVOPS_(Puppet)/##/job/Z_DEVOPS_(Back2Pool)/##/job/Z_DEVOPS_(ArtifactoryPromotion)/##/job/Z_DEVOPS_(RAFTests)/##/job/Z_DEVOPS_(Back2Pool)/##/job/Z_DEVOPS_(ArtifactoryPromotion)/",
+ "firstJobName": "Z_DEVOPS (Commit Build)", 
  "jobs":{"Z_DEVOPS (Commit Build)": {
-    "jobName": "Z_DEVOPS (Commit Build)",
+    "jobURL": "/job/Z_DEVOPS%20(Commit%20Build)/",
     "customWorkspace": "${DevRootPath}",
     "buildParams": {
         "Branch": "dev",
         "DevRootPath": "D:/gitroot/Z_DEVOPS",
         "Where_to_run_the_build": "Slave-B-Staging01",
-        "RepoURL": "git@scgit:SC_OPS"
+        "RepoURL": "git@scgit:SC_OPS",
+        "KeepTheFixtureWhenDone": "false",
+        "PromoteOnSuccess": "false"
       },
     "artifactory": {
 
@@ -22,7 +25,7 @@
       }
 },
 "Z_DEVOPS_(AssignMachine)": {
-    "jobName": "Z_DEVOPS_(AssignMachine)",
+    "jobURL": "/job/Z_DEVOPS_(AssignMachine)/",
     "customWorkspace": "$DevRootPath",
     "buildParams": {
         "ProvisioningRoot": "Fixture/11.2.1.x/Green",
@@ -43,7 +46,7 @@
       }
 },
 "Z_DEVOPS_(Puppet)": {
-    "jobName": "Z_DEVOPS_(Puppet)",
+    "jobURL": "/job/Z_DEVOPS_(Puppet)/",
     "customWorkspace": "$DevRootPath/ci_global",
     "buildParams": {
         "PuppetEnv": "ci_wfo_env",
@@ -53,7 +56,11 @@
         "VmPw": "!veRinT$5",
         "PendingFolderPath": "",
         "TestEnvFolderPath": "",
-        "DevRootPath": "D:/gitroot/Z_DEVOPS"
+        "DevRootPath": "D:/gitroot/Z_DEVOPS",
+        "PromoteOnSuccess": "false",
+        "YamlFiles": "../../../ci/puppet.yaml",
+        "deployEarFile": "true",
+        "CheckIfWFOLoginPageIsUp ": "false"
       },
     "artifactory": {
 
@@ -69,7 +76,7 @@
       }
 },
 "Z_DEVOPS_(Back2Pool)": {
-    "jobName": "Z_DEVOPS_(Back2Pool)",
+    "jobURL": "/job/Z_DEVOPS_(Back2Pool)/",
     "customWorkspace": "",
     "buildParams": {
         "TestEnvFolderPath": "Automation/CI/11.2SP1Latest-Greatst",
@@ -84,6 +91,27 @@
 
       },
     "buildTrigger": {
+        "0":{"current":"Z_DEVOPS_(ArtifactoryPromotion), ",
+              "update":"Z_DEVOPS_(ArtifactoryPromotion), "}
+      },
+    "buildBloker": {
+
+      }
+},
+"Z_DEVOPS_(ArtifactoryPromotion)": {
+    "jobURL": "/job/Z_DEVOPS_(ArtifactoryPromotion)/",
+    "customWorkspace": "${DevRootPath}",
+    "buildParams": {
+        "sourceRepos": "ci-release",
+        "targetRepos": "cd-passed-pl",
+        "checkPipelineGreen": "true",
+        "PromoteOnSuccess": "false",
+        "DevRootPath": "D:/gitroot/Z_DEVOPS"
+      },
+    "artifactory": {
+
+      },
+    "buildTrigger": {
 
       },
     "buildBloker": {
@@ -91,7 +119,7 @@
       }
 },
 "Z_DEVOPS_(RAFTests)": {
-    "jobName": "Z_DEVOPS_(RAFTests)",
+    "jobURL": "/job/Z_DEVOPS_(RAFTests)/",
     "customWorkspace": "$DevRootPath",
     "buildParams": {
         "DevRootPath": "D:/gitroot/Z_DEVOPS",
@@ -118,7 +146,7 @@
       }
 },
 "Z_DEVOPS_(Back2Pool)": {
-    "jobName": "Z_DEVOPS_(Back2Pool)",
+    "jobURL": "/job/Z_DEVOPS_(Back2Pool)/",
     "customWorkspace": "",
     "buildParams": {
         "TestEnvFolderPath": "Automation/CI/11.2SP1Latest-Greatst",
@@ -128,6 +156,27 @@
         "ProvisioningRoot": "",
         "KeepTheFixtureWhenDone": "false",
         "ParkingPool": ""
+      },
+    "artifactory": {
+
+      },
+    "buildTrigger": {
+        "0":{"current":"Z_DEVOPS_(ArtifactoryPromotion), ",
+              "update":"Z_DEVOPS_(ArtifactoryPromotion), "}
+      },
+    "buildBloker": {
+
+      }
+},
+"Z_DEVOPS_(ArtifactoryPromotion)": {
+    "jobURL": "/job/Z_DEVOPS_(ArtifactoryPromotion)/",
+    "customWorkspace": "${DevRootPath}",
+    "buildParams": {
+        "sourceRepos": "ci-release",
+        "targetRepos": "cd-passed-pl",
+        "checkPipelineGreen": "true",
+        "PromoteOnSuccess": "false",
+        "DevRootPath": "D:/gitroot/Z_DEVOPS"
       },
     "artifactory": {
 
