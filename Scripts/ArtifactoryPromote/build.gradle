@@ -109,12 +109,19 @@ def moveItem(String srcUri, String destUri){
     destUri=destUri.replaceAll( " ", "%20" )
     String sCmd = ""
     sCmd = "curl -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$srcUri?to=$destUri\""
-    logger.quiet ("ArtifactoryPromotion: ***Command Move Item ***: " + sCmd )
 
     String rtnCode=""
     try {
-        exec {
-            //commandLine 'sh', '-c', sCmd
+
+        if (!("${viewOnly}".toBoolean())) {
+
+            logger.quiet ("ArtifactoryPromotion: EXECUTING...:\n" + sCmd )
+
+            exec {
+                commandLine 'sh', '-c', sCmd
+            }
+        }else{
+            logger.quiet ("ArtifactoryPromotion: VIEW ONLY -CMD TO BE EXECUTED:\n" + sCmd )
         }
     }
     catch (Exception e) {
