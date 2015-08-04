@@ -113,7 +113,7 @@ def moveItem(String srcUri, String destUri){
     String rtnCode=""
     try {
 
-        if (!("${viewOnly}".toBoolean())) {
+        if ("${letPromote}".toBoolean()) {
 
             logger.quiet ("ArtifactoryPromotion: EXECUTING...:\n" + sCmd )
 
