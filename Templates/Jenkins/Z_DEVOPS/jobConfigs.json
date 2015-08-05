@@ -9,7 +9,7 @@
         "Branch": "dev",
         "DevRootPath": "D:/gitroot/Z_DEVOPS",
         "Where_to_run_the_build": "Slave-B-Staging01",
-        "RepoURL": "git@scgit:SC_OPS",
+        "RepoURL": "git@scgit:testing",
         "KeepTheFixtureWhenDone": "false",
         "PromoteOnSuccess": "false"
       },
@@ -91,8 +91,8 @@
 
       },
     "buildTrigger": {
-        "0":{"current":"Z_DEVOPS_(ArtifactoryPromotion), ",
-              "update":"Z_DEVOPS_(ArtifactoryPromotion), "}
+        "0":{"current":"Z_DEVOPS_(ArtifactoryPromotion)",
+              "update":"Z_DEVOPS_(ArtifactoryPromotion)"}
       },
     "buildBloker": {
 
@@ -106,7 +106,8 @@
         "targetRepos": "cd-passed-pl",
         "checkPipelineGreen": "true",
         "PromoteOnSuccess": "false",
-        "DevRootPath": "D:/gitroot/Z_DEVOPS"
+        "DevRootPath": "D:/gitroot/Z_DEVOPS",
+        "viewName": "/view/Z_DEVOPS"
       },
     "artifactory": {
 
@@ -161,8 +162,8 @@
 
       },
     "buildTrigger": {
-        "0":{"current":"Z_DEVOPS_(ArtifactoryPromotion), ",
-              "update":"Z_DEVOPS_(ArtifactoryPromotion), "}
+        "0":{"current":"Z_DEVOPS_(ArtifactoryPromotion)",
+              "update":"Z_DEVOPS_(ArtifactoryPromotion)"}
       },
     "buildBloker": {
 
@@ -176,7 +177,8 @@
         "targetRepos": "cd-passed-pl",
         "checkPipelineGreen": "true",
         "PromoteOnSuccess": "false",
-        "DevRootPath": "D:/gitroot/Z_DEVOPS"
+        "DevRootPath": "D:/gitroot/Z_DEVOPS",
+        "viewName": "/view/Z_DEVOPS"
       },
     "artifactory": {
 

@@ -37,11 +37,18 @@
           <description></description>
           <defaultValue>D:\gitroot\Z_DEVOPS</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>viewName</name>
+          <description>Change the viewName to your pipeline view. If it is in the folder remember to put the path
+For example: /job/WFM/view/WFM_11.2SP1</description>
+          <defaultValue>/view/Z_DEVOPS</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <canRoam>true</canRoam>
+  <assignedNode>master</assignedNode>
+  <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>true</blockBuildWhenUpstreamBuilding>
@@ -67,7 +74,7 @@ exit 1</command>
     <hudson.plugins.gradle.Gradle plugin="gradle@1.24">
       <description></description>
       <switches>-i</switches>
-      <tasks>aPT -PsourceRepos=$sourceRepos -PtargetRepos=$targetRepos -PletPromote=$letPromote</tasks>
+      <tasks>aPT -PsourceRepos=$sourceRepos -PtargetRepos=$targetRepos -PletPromote=$PromoteOnSuccess</tasks>
       <rootBuildScriptDir>${workspace}/ci_global/Scripts/ArtifactoryPromote</rootBuildScriptDir>
       <buildFile></buildFile>
       <gradleName>(Default)</gradleName>
@@ -89,6 +96,17 @@ exit 1</command>
         </hudson.plugins.build__timeout.operations.WriteDescriptionOperation>
       </operationList>
     </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+    <org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder plugin="versionnumber@1.4.1">
+      <versionNumberString>${MasterBuildVersion}</versionNumberString>
+      <projectStartDate>1969-12-31 05:00:00.0 UTC</projectStartDate>
+      <environmentVariableName>MasterBuildVersion</environmentVariableName>
+      <oBuildsToday>-1</oBuildsToday>
+      <oBuildsThisMonth>-1</oBuildsThisMonth>
+      <oBuildsThisYear>-1</oBuildsThisYear>
+      <oBuildsAllTime>-1</oBuildsAllTime>
+      <skipFailedBuilds>false</skipFailedBuilds>
+      <useAsBuildDisplayName>true</useAsBuildDisplayName>
+    </org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder>
     <EnvInjectBuildWrapper plugin="envinject@1.90">
       <info>
         <groovyScriptContent>import hudson.model.ListView
@@ -100,7 +118,7 @@ import hudson.model.Result;
 import hudson.model.AbstractBuild;
 
 view_name = &quot;${viewName}&quot;;
-release_version = &quot;${promoteVersion}&quot;;
+release_version = &quot;${MasterBuildVersion}&quot;;
 check_pipeline_green =&quot;${checkPipelineGreen}&quot; 
 
 println &quot;     ## view_name  &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;: &quot; + view_name ;

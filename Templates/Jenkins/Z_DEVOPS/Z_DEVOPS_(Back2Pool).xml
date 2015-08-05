@@ -202,10 +202,10 @@ ${TestEnvFolderPath} Environment was moved to ${DestPool}</defaultContent>
       <configs>
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
-            <hudson.plugins.parameterizedtrigger.NodeParameters/>
             <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
+            <hudson.plugins.parameterizedtrigger.NodeParameters/>
           </configs>
-          <projects>Z_DEVOPS_(ArtifactoryPromotion), </projects>
+          <projects>Z_DEVOPS_(ArtifactoryPromotion)</projects>
           <condition>SUCCESS</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
         </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>

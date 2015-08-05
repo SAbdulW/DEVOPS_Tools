@@ -1,7 +1,10 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description></description>
+  <description>If you want to have the puppet update the replacement with your current build then replace: &#xd;
+runPA -PcurrentVersion=[RELEASE]  &#xd;
+&#xd;
+with runPA -PcurrentVersion=$MasterBuildVersion  </description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.14">
@@ -84,7 +87,7 @@
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>origin/tmp</name>
+        <name>origin/ci_wfo_env</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
@@ -108,7 +111,7 @@
     <hudson.plugins.gradle.Gradle plugin="gradle@1.24">
       <description></description>
       <switches>-i</switches>
-      <tasks>runPA -PcurrentVersion=$MasterBuildVersion -PvmIP=$VmIp -PyamlFiles=${YamlFiles} -PdeployEarFile=${deployEarFile} -PchkApp=${CheckIfWFOLoginPageIsUp}</tasks>
+      <tasks>runPA -PcurrentVersion=[RELEASE] -PvmIP=$VmIp -PyamlFiles=${YamlFiles} -PdeployEarFile=${deployEarFile} -PchkApp=${CheckIfWFOLoginPageIsUp}</tasks>
       <rootBuildScriptDir>${workspace}\Scripts\GradleUtils\</rootBuildScriptDir>
       <buildFile></buildFile>
       <gradleName>(Default)</gradleName>

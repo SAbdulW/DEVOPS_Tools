@@ -41,7 +41,7 @@ Publish Git and Artifactory&#xd;
         <hudson.model.StringParameterDefinition>
           <name>RepoURL</name>
           <description></description>
-          <defaultValue>git@scgit:SC_OPS</defaultValue>
+          <defaultValue>git@scgit:testing</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>KeepTheFixtureWhenDone</name>
