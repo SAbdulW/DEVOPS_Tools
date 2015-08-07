@@ -1,4 +1,4 @@
-<com.tikal.jenkins.plugins.multijob.MultiJobProject plugin="jenkins-multijob-plugin@1.16">
+com.tikal.jenkins.plugins.multijob.MultiJobProject plugin="jenkins-multijob-plugin@1.16">
 <actions/>
 <description>Job for cloning a input view</description>
 <keepDependencies>false</keepDependencies>
@@ -16,14 +16,14 @@
 <description>
 Put the target viewName. Example, want to inject the fixture pipeline to the current view EM_11.2SP1 Then the value of viewName is: EM_11.2SP1 Z_DEVOPS_11.2SP1 If it is under folder, give the full path: /job/Z_DEVOPS/job/11.2SP1/view/Z_DEVOPS_11.2SP1
 </description>
-<defaultValue>EM_11.2SP1</defaultValue>
+<defaultValue/>
 </hudson.model.StringParameterDefinition>
 <hudson.model.StringParameterDefinition>
 <name>fullViewPath</name>
 <description>
 If you view URL is: http://atljenkinsstaging:8080/job/EM/view/EM_11.2SP1/ Then the fullViewPath: /job/EM
 </description>
-<defaultValue>/job/EM</defaultValue>
+<defaultValue/>
 </hudson.model.StringParameterDefinition>
 <hudson.model.StringParameterDefinition>
 <name>JenkinsURL_Push</name>
@@ -46,7 +46,7 @@ If you view URL is: http://atljenkinsstaging:8080/job/EM/view/EM_11.2SP1/ Then t
 Default would be empty, as it will take from the View. This field value will override the viewName, would mean, the job will do the pull and push the list of jobs here. Example: divide by , Z_DEVOPS (Commit Build),Z_DEVOPS_(AssignMachine),Z_DEVOPS_(Puppet),Z_DEVOPS_(Back2Pool),Z_DEVOPS_(RAFTests),Z_DEVOPS_(Back2Pool),Z_DEVOPS_(ArtifactoryPromotion)
 </description>
 <defaultValue>
-Z_DEVOPS (Commit Build),Z_DEVOPS_(AssignMachine),Z_DEVOPS_(Puppet),Z_DEVOPS_(Back2Pool),Z_DEVOPS_(RAFTests),Z_DEVOPS_(Back2Pool),Z_DEVOPS_(ArtifactoryPromotion)
+Z_DEVOPS_(AssignMachine),Z_DEVOPS_(Puppet),Z_DEVOPS_(Back2Pool),Z_DEVOPS_(RAFTests)
 </defaultValue>
 </hudson.model.TextParameterDefinition>
 <hudson.model.StringParameterDefinition>
