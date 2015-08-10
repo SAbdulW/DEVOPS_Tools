@@ -22,6 +22,7 @@ task artifactoryPurgingTask() <<{
     logger.quiet("\npurgingRepos: ${purgingRepos}")
     logger.quiet("\npurgingDateToKeeps: ${purgingDateToKeeps}")
     logger.quiet("\npurgingPathMatch: ${purgingPathMatch}")
+    logger.quiet("\nlastItemToKeep: ${topToKeep}")
     logger.quiet("ArtifactoryPurging: *                                                              *")
     logger.quiet("\nArtifactoryPurging: ****************************************************************************")
 
@@ -49,7 +50,7 @@ def artifactoryPurging (String repos, String dayToKeeps, String pathMatches){
             logger.quiet ("$pathMatch")
 
             List resultsList = artifactorySearch (reposList[i], dayToKeep.toInteger(), pathMatchesList[i])
-            deleteItems(resultsList)
+            deleteItems(resultsList, repoKey)
         }
     }
 }
@@ -129,24 +130,30 @@ def List artifactorySearch(String repoKey, int lastNumDays, String repoPath ){
     return resultsList
 }
 
-def deleteItems(List resultsList){
+def deleteItems(List resultsList, String repoKey){
     String strResult=""
     String itemURI = ""
 
+    File fDelete = new File ("$projectDir/${repoKey}_deleteList.log")
+    File fToBeDelete = new File ("$projectDir/${repoKey}_2bDeleteList.log")
+    File fExcluded = new File ("$projectDir/${repoKey}_excludedList.log")
+
+    fDelete.write "List of item DELETED: \nMatch:$purgingPathMatch \nExlude:$purgingExcluded \n"
+    fToBeDelete.write "List of item TO BE DELETED: \nMatch:$purgingPathMatch \nExlude:$purgingExcluded \n"
+    fExcluded.write "Excluding list: \nExlude item match:$purgingExcluded \n"
+    fExcluded << "And list top ${topToKeep} item to keep\n"
+
+    List latestList = getLatestArtifacts (resultsList, "$topToKeep".toInteger(), repoKey,fExcluded )
+//TODO : Uncomment it out
     resultsList.each { resultItem ->
         //itemURI =deleteItem (resultItem)
         String itemPath = resultItem."path";
 
-        if( (resultItem."name" != "maven-metadata.xml") && ((itemPath.contains("/15") || (itemPath.contains("/11"))))) {
-            itemURI = deleteItemFolder(resultItem)
+        if( (resultItem."name" != "maven-metadata.xml") && ((itemPath.contains("/15") || (itemPath.contains("/11")))) && !isInList(latestList,itemPath)) {
+            itemURI = deleteItemFolder(resultItem, fDelete, fToBeDelete, fExcluded)
             strResult = strResult + "\n${itemURI}"
         }
     }
-
-    logger.quiet("\nArtifactoryPurging: ****************************************************************************")
-    logger.quiet("ArtifactoryPurging: *                     DELETED ITEMS URI         *")
-    logger.quiet("\nArtifactoryPurging: ****************************************************************************")
-    logger.quiet("${strResult}")
 
 }
 def deleteItem(Object itemToDelete){
@@ -164,7 +171,7 @@ def deleteItem(Object itemToDelete){
     try {
         exec {
             if (!("${viewOnly}".toBoolean())) {
-                commandLine 'sh', '-c', sCmd
+                //commandLine 'sh', '-c', sCmd
                 logger.info("************ArtifactoryPurging: ${itemToDeleteURI} is DELETED")
             }else{
                 logger.info("************ArtifactoryPurging: ${itemToDeleteURI} is TO BE DELETED")
@@ -180,43 +187,150 @@ def deleteItem(Object itemToDelete){
     return itemToDeleteURI
 }
 
-def deleteItemFolder(Object itemToDelete){
+def deleteItemFolder(Object itemToDelete, File fDelete, File fToBeDeleted,  File fExcluded){
+
     String itemPath= itemToDelete."path"
     int lastIndex = itemPath.lastIndexOf("/")
     //String itemPathFolder = itemPath.substring(0,lastIndex)
     //To delete the whole folder
     String itemPathFolder = itemPath
     String itemFolderToDeleteURI = "${contextURL}" + "/" + itemToDelete."repo" + "/" +  itemPathFolder //+ "/" + itemToDelete."name"
-    logger.info("Deleting URI Folder...:  ${itemFolderToDeleteURI} ")
+    //logger.info("Deleting URI Folder...:  ${itemFolderToDeleteURI} ")
 
     itemFolderToDeleteURI=itemFolderToDeleteURI.replaceAll(" ", "%20" )
 
     String sCmd = ""
 
     sCmd = "curl -f -X DELETE -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"${itemFolderToDeleteURI}\" "
-    logger.info("ArtifactoryPurging: * Command to delete: ${sCmd}")
+    //logger.info("ArtifactoryPurging: * Command to delete: ${sCmd}")
 
     String rtnCode=""
     try {
-        exec {
+        if (!matchPurgingExcluded("${purgingExcluded}",itemFolderToDeleteURI,fExcluded)) {
             if (!("${viewOnly}".toBoolean())) {
-                commandLine 'sh', '-c', sCmd
-                logger.info("************ArtifactoryPurging: ${itemFolderToDeleteURI} is DELETED")
-            }else{
+                exec {
+                    commandLine 'sh', '-c', sCmd
+                    logger.info("************ArtifactoryPurging: ${itemFolderToDeleteURI} is DELETED")
+                    fDelete << "${itemFolderToDeleteURI}\n"
+                }
+            } else {
                 logger.info("************ArtifactoryPurging: ${itemFolderToDeleteURI} is TO BE DELETED")
+                fToBeDeleted << "${itemFolderToDeleteURI}\n"
             }
+        }else{
 
         }
     }
     catch (Exception e) {
         logger.info("************ArtifactoryPurging: ${itemFolderToDeleteURI} is FAILED deleted")
         logger.info ("ArtifactoryPurging: some " + e.toString())
+        //throw new GradleException ("${e}")
 
     }
     return itemFolderToDeleteURI
 }
 
+def boolean matchPurgingExcluded(String purgingExcluded, String uriToCheck, File fExcluded){
+    def purgingExcludedList= purgingExcluded.split(',')
+    boolean foundIt=false
+    purgingExcludedList.each { purgingExcludedItem ->
+        if (!foundIt){
+            if (uriToCheck.contains("${purgingExcludedItem}")){
+                foundIt=true
+                logger.info("************ArtifactoryPurging: ${uriToCheck} is EXCLUDED, match the ${purgingExcludedItem}")
+                fExcluded << "${uriToCheck} is EXCLUDED, match the ${purgingExcludedItem}\n"
+            }
+        }
+    }
 
+    return foundIt
+}
+
+
+def List getLatestArtifacts(List resultsList, int topElement, String repoKey, File fKeep){
+    def mapLastItems = [:]
+    def mapLastItemsKeep = [:]
+    def mapLastItemsGo = [:]
+
+    resultsList.each { resultItem ->
+        //itemURI =deleteItem (resultItem)
+        String itemPath = resultItem."path";
+
+        if( (resultItem."name" != "maven-metadata.xml") && ((itemPath.contains("/15") || (itemPath.contains("/11"))))) {
+            mapLastItems= putToTheMap(mapLastItems, itemPath)
+        }
+    }
+
+    mapLastItems.each { itemPathRoot, listItems ->
+        //List listToKeep = listItems.sort().take(topElement)
+        List listToKeep = listItems.reverse().take(topElement)
+
+       // List listToGo = listItems.sort().drop(topElement)
+        mapLastItemsKeep.put (itemPathRoot,listToKeep )
+       // mapLastItemsGo.put (itemPathRoot, listToGo)
+    }
+
+//    File fKeep = new File ("$projectDir/${repoKey}_keepList.log")
+    //File fGo = new File ("$projectDir/goList.log")
+
+    fKeep << "************************************************\n"
+    fKeep << "List top ${topElement} item to keep\n"
+    fKeep << "************************************************\n"
+    //fGo.write "List item to be consider original \n"
+
+    def rtnList = []
+
+    mapLastItemsKeep.each {  itemPathRoot, listItems ->
+        fKeep << "========================Item: ${itemPathRoot}\n"
+        listItems.each { item ->
+            fKeep << "${item}\n"
+            rtnList.add (item)
+        }
+    }
+
+//    logger.quiet("${mapLastItemsGo}")
+//    mapLastItemsGo.each {  itemPathRootGo, listGoItems ->
+//        logger.quiet("${itemPathRootGo}")
+//        logger.quiet("${listGoItems}")
+//
+//        listGoItems.each { itemGo ->
+//            fGo << "${itemGo}"
+//        }
+//    }
+    return rtnList
+}
+
+def putToTheMap (Object mapLastItems, String itemPath ){
+
+    int lastIndex = itemPath.lastIndexOf("/")
+    String itemPathRoot = itemPath.substring(0,lastIndex)
+    //logger.quiet ("$itemPathRoot:$itemPath")
+    List mapLastItem = []
+    mapLastItem = mapLastItems.get(itemPathRoot);
+
+    if (mapLastItem!=null){
+        mapLastItem.add(itemPath)
+        mapLastItems.put(itemPathRoot,mapLastItem)
+    }else{
+        List mapLastItemNew =[]
+        mapLastItemNew.add(itemPath)
+        mapLastItems.put(itemPathRoot,mapLastItemNew)
+    }
+
+    return mapLastItems
+}
+
+def isInList(Object listItems, String item){
+    boolean rtnValue = false;
+    listItems.each { listItem ->
+        if (!rtnValue && (listItem==item)) {
+            rtnValue=true
+        }
+    }
+
+    return rtnValue;
+
+}
 
 task wrapper(type: Wrapper) {
 	gradleVersion = supportedGradleVersion
