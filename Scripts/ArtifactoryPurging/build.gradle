@@ -257,7 +257,7 @@ def List getLatestArtifacts(List resultsList, int topElement, String repoKey, Fi
         String itemPath = resultItem."path";
 
         if( (resultItem."name" != "maven-metadata.xml") && ((itemPath.contains("/15") || (itemPath.contains("/11"))))) {
-            mapLastItems= putToTheMap(mapLastItems, itemPath)
+            mapLastItems= putToTheMap(mapLastItems, itemPath, repoKey)
         }
     }
 
@@ -300,17 +300,25 @@ def List getLatestArtifacts(List resultsList, int topElement, String repoKey, Fi
     return rtnList
 }
 
-def putToTheMap (Object mapLastItems, String itemPath ){
+def putToTheMap (Object mapLastItems, String itemPath, String repoKey ){
 
     int lastIndex = itemPath.lastIndexOf("/")
     String itemPathRoot = itemPath.substring(0,lastIndex)
-    //logger.quiet ("$itemPathRoot:$itemPath")
+
+    if (repoKey=="devops"){
+        lastIndex = itemPathRoot.lastIndexOf("/")
+        itemPathRoot = itemPathRoot.substring(0,lastIndex)
+    }
+
+    logger.quiet ("$itemPathRoot:$itemPath")
     List mapLastItem = []
     mapLastItem = mapLastItems.get(itemPathRoot);
 
     if (mapLastItem!=null){
-        mapLastItem.add(itemPath)
-        mapLastItems.put(itemPathRoot,mapLastItem)
+        if (!isInList(mapLastItem, itemPath)) {
+            mapLastItem.add(itemPath)
+            mapLastItems.put(itemPathRoot, mapLastItem)
+        }
     }else{
         List mapLastItemNew =[]
         mapLastItemNew.add(itemPath)
