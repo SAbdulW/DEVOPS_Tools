@@ -257,7 +257,7 @@ def restartRemoteService( String iVmIP, String iUser, String iPw, String service
 }
 
 def MultiRemoteService(String vmIP, String vmUser, String iPw, String iServices, iAction){
-    def String[]  = "${iServices}".split(',');
+    def String[]  services= "${iServices}".split(',');
     for (String service : services){
 		logger.quiet ("GradleUtils: Handling ${service}")
 		remoteService( vmIP, vmUser, vmPw, service , iAction)
