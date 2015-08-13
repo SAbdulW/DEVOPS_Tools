@@ -12,6 +12,7 @@
       <artifactId>Framework Integration Server</artifactId>
       <version2></version2>
       <scope>compile</scope>
+      <type>msi</type>
     </dependency>
   </dependencies>
 </project>
