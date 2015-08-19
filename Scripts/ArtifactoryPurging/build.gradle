@@ -21,8 +21,8 @@ task artifactoryPurgingTask() <<{
     logger.quiet("ArtifactoryPurging: *                     PURGING                                                *")
     logger.quiet("\npurgingRepos: ${purgingRepos}")
     logger.quiet("\npurgingDateToKeeps: ${purgingDateToKeeps}")
+    logger.quiet("\npurgingMinimumToKeep: ${purgingMinimumToKeep}")
     logger.quiet("\npurgingPathMatch: ${purgingPathMatch}")
-    logger.quiet("\nlastItemToKeep: ${topToKeep}")
     logger.quiet("ArtifactoryPurging: *                                                              *")
     logger.quiet("\nArtifactoryPurging: ****************************************************************************")
 
@@ -30,12 +30,13 @@ task artifactoryPurgingTask() <<{
     logger.quiet ("$purgingDateToKeeps")
     logger.quiet ("$purgingPathMatch")
 
-    artifactoryPurging ("$purgingRepos", "$purgingDateToKeeps", "$purgingPathMatch")
+    artifactoryPurging ("$purgingRepos", "$purgingDateToKeeps", "$purgingMinimumToKeep", "$purgingPathMatch")
 }
 
-def artifactoryPurging (String repos, String dayToKeeps, String pathMatches){
+def artifactoryPurging (String repos, String dayToKeeps, String minimumToKeeps, String pathMatches){
     def reposList= repos.split(',')
     def dayToKeepsList = dayToKeeps.split(',')
+    def minimumToKeepsList = minimumToKeeps.split(',')
     def pathMatchesList = pathMatches.split(',')
 
     if ((reposList.length != dayToKeepsList.length)||(reposList.length !=pathMatchesList.length)){
@@ -44,13 +45,15 @@ def artifactoryPurging (String repos, String dayToKeeps, String pathMatches){
         for (int i=0; i< reposList.length; i++){
             String repoKey = reposList[i]
             String dayToKeep = dayToKeepsList[i]
+            String minimumToKeep = minimumToKeepsList[i]
             String pathMatch = pathMatchesList[i]
             logger.quiet ("$repoKey")
             logger.quiet ("$dayToKeep")
+            logger.quiet ("$minimumToKeep")
             logger.quiet ("$pathMatch")
 
-            List resultsList = artifactorySearch (reposList[i], dayToKeep.toInteger(), pathMatchesList[i])
-            deleteItems(resultsList, repoKey)
+            List resultsList = artifactorySearch (repoKey, dayToKeep.toInteger(), pathMatch)
+            deleteItems(resultsList, repoKey, minimumToKeep)
         }
     }
 }
@@ -130,7 +133,7 @@ def List artifactorySearch(String repoKey, int lastNumDays, String repoPath ){
     return resultsList
 }
 
-def deleteItems(List resultsList, String repoKey){
+def deleteItems(List resultsList, String repoKey, String minimumToKeep){
     String strResult=""
     String itemURI = ""
 
@@ -141,10 +144,12 @@ def deleteItems(List resultsList, String repoKey){
     fDelete.write "List of item DELETED: \nMatch:$purgingPathMatch \nExlude:$purgingExcluded \n"
     fToBeDelete.write "List of item TO BE DELETED: \nMatch:$purgingPathMatch \nExlude:$purgingExcluded \n"
     fExcluded.write "Excluding list: \nExlude item match:$purgingExcluded \n"
-    fExcluded << "And list top ${topToKeep} item to keep\n"
 
-    List latestList = getLatestArtifacts (resultsList, "$topToKeep".toInteger(), repoKey,fExcluded )
-//TODO : Uncomment it out
+    // [Chau] this is incorrect because it get top of the list of artifacts OLDER than X day
+    // we want top of ALL artifact - don't care about date
+    //List latestList = getLatestArtifacts (resultsList, "$topToKeep".toInteger(), repoKey, fExcluded )
+    List latestList = getXLatestArtifacts("$minimumToKeep".toInteger(), repoKey, fExcluded )
+
     resultsList.each { resultItem ->
         //itemURI =deleteItem (resultItem)
         String itemPath = resultItem."path";
@@ -156,6 +161,7 @@ def deleteItems(List resultsList, String repoKey){
     }
 
 }
+
 def deleteItem(Object itemToDelete){
     String itemToDeleteURI = "${contextURL}" + "/" + itemToDelete."repo" + "/" +  itemToDelete."path" //+ "/" + itemToDelete."name"
     logger.info("Deleting URI...:  ${itemToDeleteURI} ")
@@ -268,6 +274,60 @@ def List getLatestArtifacts(List resultsList, int topElement, String repoKey, Fi
        // List listToGo = listItems.sort().drop(topElement)
         mapLastItemsKeep.put (itemPathRoot,listToKeep )
        // mapLastItemsGo.put (itemPathRoot, listToGo)
+    }
+
+//    File fKeep = new File ("$projectDir/${repoKey}_keepList.log")
+    //File fGo = new File ("$projectDir/goList.log")
+
+    fKeep << "************************************************\n"
+    fKeep << "List top ${topElement} item to keep\n"
+    fKeep << "************************************************\n"
+    //fGo.write "List item to be consider original \n"
+
+    def rtnList = []
+
+    mapLastItemsKeep.each {  itemPathRoot, listItems ->
+        fKeep << "========================Item: ${itemPathRoot}\n"
+        listItems.each { item ->
+            fKeep << "${item}\n"
+            rtnList.add (item)
+        }
+    }
+
+//    logger.quiet("${mapLastItemsGo}")
+//    mapLastItemsGo.each {  itemPathRootGo, listGoItems ->
+//        logger.quiet("${itemPathRootGo}")
+//        logger.quiet("${listGoItems}")
+//
+//        listGoItems.each { itemGo ->
+//            fGo << "${itemGo}"
+//        }
+//    }
+    return rtnList
+}
+
+def List getXLatestArtifacts(int topElement, String repoKey, File fKeep){
+    def mapLastItems = [:]
+    def mapLastItemsKeep = [:]
+    def mapLastItemsGo = [:]
+
+    List resultsList = artifactorySearch(repoKey, 0, "")
+    resultsList.each { resultItem ->
+        //itemURI =deleteItem (resultItem)
+        String itemPath = resultItem."path";
+
+        if( (resultItem."name" != "maven-metadata.xml") && ((itemPath.contains("/15") || (itemPath.contains("/11"))))) {
+            mapLastItems= putToTheMap(mapLastItems, itemPath, repoKey)
+        }
+    }
+
+    mapLastItems.each { itemPathRoot, listItems ->
+        //List listToKeep = listItems.sort().take(topElement)
+        List listToKeep = listItems.reverse().take(topElement)
+
+        // List listToGo = listItems.sort().drop(topElement)
+        mapLastItemsKeep.put (itemPathRoot,listToKeep )
+        // mapLastItemsGo.put (itemPathRoot, listToGo)
     }
 
 //    File fKeep = new File ("$projectDir/${repoKey}_keepList.log")
