@@ -67,12 +67,9 @@ task testPP() << {
     //renameYAML "\\\\atlpuppetmaster\\puppet_agent\\environments\\ci_wfo_env_test\\hieradata\\ci_wfo_env_test.yaml"
 
 }
-
-
 task runPuppetAgent(dependsOn: 'init') << {
     logger.quiet ("GradleUtils: Stop Watchdog service")
-//	remoteService( vmIP, vmUser, vmPw, watchdogService , "stop")
-	MultiRemoteService( vmIP, vmUser, vmPw, "${stopStartservices}" , "stop")
+	remoteService( vmIP, vmUser, vmPw, watchdogService , "stop")
 	logger.quiet ("GradleUtils: run the puppet agent")
     String pp_timestamp= Calendar.getInstance().getTimeInMillis();
     // Replace the yaml content with the new build number and create the yaml file
@@ -126,8 +123,7 @@ task runPuppetAgent(dependsOn: 'init') << {
         waitAppReady "$vmIP"
 
 
-	//remoteService( vmIP, vmUser, vmPw, watchdogService , "start")
-	MultiRemoteService( vmIP, vmUser, vmPw, "${stopStartservices}" , "start")
+	remoteService( vmIP, vmUser, vmPw, watchdogService , "start")
 
 }
 
@@ -256,14 +252,7 @@ def restartRemoteService( String iVmIP, String iUser, String iPw, String service
  remoteService( iVmIP, iUser, iPw, serviceName , "start")
 }
 
-def MultiRemoteService(String vmIP, String vmUser, String iPw, String iServices, String iAction){
-    def String[]  services= "${iServices}".split(',');
-    for (String service : services){
-		logger.quiet ("GradleUtils: Handling ${service}")
-		remoteService( vmIP, vmUser, vmPw, service , iAction)
-	}
 
-}
 
 def createYAML (String strReplaceWith, String sourcePathYAML, String destPathYAML) {
     // Open the
