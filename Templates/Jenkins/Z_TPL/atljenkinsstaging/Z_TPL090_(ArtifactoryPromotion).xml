@@ -1,0 +1,313 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>This one is used to promote a version from multiple repos, to multiples repos with multiple prefixes connected by ##</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty plugin="naginator@1.14">
+      <optOut>false</optOut>
+    </com.chikli.hudson.plugin.naginator.NaginatorOptOutProperty>
+    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.4.1">
+      <useBuildBlocker>false</useBuildBlocker>
+    </hudson.plugins.buildblocker.BuildBlockerProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>MasterBuildVersion</name>
+          <description>Version to promote</description>
+          <defaultValue>11.2.1.1</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>sourceRepos</name>
+          <description>List source of repos - For example, if your project produce the artifact to wfm-ci-snapshot (for normal artifacts) and ci-snapshot (msi) 
+Then the value should be: wfm-ci-snapshot,ci-snapshot</description>
+          <defaultValue>wfm-ci-snapshot,ci-snapshot</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>targetRepos</name>
+          <description>List of target repos - If you want to promote artifacts to wfm-ci-release (from wfm-ci-snapshot above for normal artifacts) and ci-release (from ci-snapshot for msi)
+The the value should be: wfm-ci-release,ci-release accordingly</description>
+          <defaultValue>wfm-ci-release,ci-release</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>teamGroupPrefixes</name>
+          <description>Use comma for seperating the list of prefixes for each set of repo, using ## to seperate the prefix in the that list
+This is helpful when you have the share repo and only want to promote your artifacts. It should have difference prefixes.
+Sometime, you can have msi (for example) published to one shared repo but in difference groupid, then you can do this by putting value like 
+com/verint/foundation,com/verint/sr/foundation##com/verint/sr/foundation2
+</description>
+          <defaultValue>com/verint/wfm,com/verint/wfm</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>artifactoryContextURL</name>
+          <description>the artifactory that the artifacts hosted</description>
+          <defaultValue>http://atlartifactory:8081/artifactory</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>DevRootPath</name>
+          <description></description>
+          <defaultValue>D:\gitroot\ArtifactoryPromotion\WFM11.2SP1\</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>viewName</name>
+          <description></description>
+          <defaultValue>/job/Z_DEVOPS/job/Z_Templates/view/Z_TPL</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>checkPipelineGreen</name>
+          <description>If you can&apos;t check the pipeline, uncheck this box, will get promote anytime</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.3.4">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>git@scgit:SC_DevKit</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>origin/artifactoryPromotion</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <gitTool>Default</gitTool>
+    <browser class="hudson.plugins.git.browser.KilnGit">
+      <url></url>
+    </browser>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>ATL-WFO-Slaves</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>true</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>true</blockBuildWhenUpstreamBuilding>
+  <jdk>(Default)</jdk>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <customWorkspace>${DevRootPath}</customWorkspace>
+  <builders>
+    <org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder plugin="conditional-buildstep@1.3.3">
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+      <runCondition class="org.jenkins_ci.plugins.run_condition.logic.Not" plugin="run-condition@1.0">
+        <condition class="org.jenkins_ci.plugins.run_condition.core.BooleanCondition">
+          <token>${isPipelineGreen}</token>
+        </condition>
+      </runCondition>
+      <conditionalbuilders>
+        <hudson.tasks.Shell>
+          <command>echo &quot;Pipeline is not green&quot;
+exit 1</command>
+        </hudson.tasks.Shell>
+      </conditionalbuilders>
+    </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>
+    <hudson.plugins.gradle.Gradle plugin="gradle@1.24">
+      <description></description>
+      <switches></switches>
+      <tasks>artifactoryPromote -PpromoteVersion=$MasterBuildVersion -PteamGroupPrefixes=$teamGroupPrefixes -PsourceRepos=$sourceRepos -PtargetRepos=$targetRepos -PcontextURL=$artifactoryContextURL</tasks>
+      <rootBuildScriptDir>${workspace}</rootBuildScriptDir>
+      <buildFile></buildFile>
+      <gradleName>(Default)</gradleName>
+      <useWrapper>true</useWrapper>
+      <makeExecutable>false</makeExecutable>
+      <fromRootBuildScriptDir>true</fromRootBuildScriptDir>
+      <useWorkspaceAsHome>true</useWorkspaceAsHome>
+    </hudson.plugins.gradle.Gradle>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.14.1">
+      <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
+        <timeoutMinutes>60</timeoutMinutes>
+      </strategy>
+      <operationList>
+        <hudson.plugins.build__timeout.operations.WriteDescriptionOperation>
+          <description>Build timed out (after {0} minutes). Marking the build as failed.</description>
+        </hudson.plugins.build__timeout.operations.WriteDescriptionOperation>
+        <hudson.plugins.build__timeout.operations.FailOperation/>
+      </operationList>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+    <org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder plugin="versionnumber@1.4.1">
+      <versionNumberString>${MasterBuildVersion}</versionNumberString>
+      <projectStartDate>1969-12-31 05:00:00.0 UTC</projectStartDate>
+      <environmentVariableName>MasterBuildVersion</environmentVariableName>
+      <oBuildsToday>-1</oBuildsToday>
+      <oBuildsThisMonth>-1</oBuildsThisMonth>
+      <oBuildsThisYear>-1</oBuildsThisYear>
+      <oBuildsAllTime>-1</oBuildsAllTime>
+      <skipFailedBuilds>false</skipFailedBuilds>
+      <useAsBuildDisplayName>true</useAsBuildDisplayName>
+    </org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder>
+    <EnvInjectBuildWrapper plugin="envinject@1.90">
+      <info>
+        <groovyScriptContent>import hudson.model.ListView
+import jenkins.model.*
+import hudson.model.Fingerprint.RangeSet;
+import hudson.model.Job;
+import hudson.model.Fingerprint;
+import hudson.model.Result;
+import hudson.model.AbstractBuild;
+
+view_name = &quot;${viewName}&quot;;
+release_version = &quot;${MasterBuildVersion}&quot;;
+check_pipeline_green =&quot;${checkPipelineGreen}&quot; 
+
+println &quot;     ## view_name  &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;: &quot; + view_name ;
+println &quot;     ## release_version &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;: &quot; + release_version ;
+println &quot;     ## check_pipeline_green &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;: &quot; + check_pipeline_green ;
+
+//vc = Jenkins.instance.getView(view_name).getOwner();
+//v = vc.getView(view_name);
+
+objRtn = getViewFromViewName(view_name)
+v = objRtn[0]
+
+def isGreen=&quot;Yes&quot;
+
+if (check_pipeline_green ==&quot;true&quot;)
+{
+  for(jobItem in v.getItems()) {
+    if (!isJobGreen(jobItem.getName(),release_version, jobItem )){
+  	isGreen=&quot;No&quot;
+        break;
+    }  
+  }
+}
+def map  =[isPipelineGreen:isGreen ] 
+
+return map
+
+def boolean isJobGreen (String sBuildName, String sReleaseVersion, Object jobItem){
+  
+  jobName = &quot;${sBuildName}&quot;
+  releaseVersion= &quot;${sReleaseVersion}&quot;
+
+  if (jobName.contains(&quot;_(ArtifactoryPromotion)&quot;) || jobName.contains(&quot;Z_TPL&quot;)){
+     println &quot;     ## Ignoring the job : $jobName &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;:&quot;
+     return true
+  }
+  
+//  def jobItem = jenkins.model.Jenkins.instance.getItem(jobName);
+ // def jobItem = v.getItem(jobName);
+  
+  def lastBuildNumber = jobItem.getLastBuild().getNumber()
+  def firstBuildNumber = jobItem.getFirstBuild().getNumber()
+  
+  def buildRange = &quot;${firstBuildNumber}-${lastBuildNumber}&quot;
+  
+  def range = RangeSet.fromString(buildRange, true);
+  
+  def isSuccess=true
+  def foundIt=false
+  
+  jobItem.getBuilds(range).each {
+    if ( it.getDisplayName().find(/${releaseVersion}.*/)) {
+      foundIt=true //already found so won&apos;t come to the else 	          
+      println &quot;     ## Getting Display &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;: &quot; + it.getDisplayName();
+      returnBuildNumber=it.getNumber()
+      AbstractBuild b = it
+      
+      if (!b.isBuilding()) {
+        Result r = b.getResult();
+        if (r == Result.SUCCESS) {          
+        	isSuccess=true  
+        }else{
+        	isSuccess=false
+        }
+      }            
+      
+    }else if (!foundIt)
+    {
+    	isSuccess=false
+    }
+  }
+  
+  println (&quot;               =========================&gt; isGreen?=&quot; + isSuccess + &quot; : $jobName &quot;)
+  
+  return isSuccess
+    
+}
+
+def getViewFromViewName(String view_name){
+  //First, check to see if there is a dash \ in the view_name, indicator of the folder
+  def viewNameFolders = []
+  def folderArray = []
+  def arrRtn = new Object [2]
+  
+  viewNameFolders = view_name.split(&quot;/view/&quot;)
+  def viewName = viewNameFolders[viewNameFolders.length-1]
+  println (&quot;viewName:$viewName&quot;)
+  
+  def folderNamesString = &quot;&quot;
+  def folderNamesRtn = &quot;&quot;
+  
+  println (&quot;folderString:&quot; + viewNameFolders[0])
+  def folderObj = Jenkins.instance
+  if ((viewNameFolders.length-1)&gt;0){
+    folderArray = viewNameFolders[0].split(&quot;/job/&quot;)
+    folderNamesRtn = viewNameFolders[0]
+    
+    //println (&quot;folderArray.length:&quot; + folderArray.length)
+  
+    for (i = 0; i &lt;folderArray.length; i++) {
+      //get the folderName
+      folderName = folderArray[i]
+      //println (&quot;folderName:$folderName&quot;)
+      if (folderName!=&quot;&quot;){
+          folderObj= getFolder(folderObj,folderName )
+          if (folderNamesString==&quot;&quot;) {
+              folderNamesString=folderName
+          }else{
+              folderNamesString=folderNamesString + folderName
+          }
+        
+      }
+    }
+  }
+  
+      
+  //get the viewName
+  def viewObj = folderObj.getView(viewName)
+  
+  println (&quot;viewObj:&quot; + viewObj.getViewName())
+  println (&quot;folderNamesString:$folderNamesString&quot;)
+  
+  arrRtn[0]=viewObj
+  arrRtn[1]=folderNamesRtn
+  return  arrRtn;
+	  
+}
+
+
+def getFolder(Object folderObject, String folderName){
+    def rtnObj = null
+    def boolean gotIt = false
+	vItemList = folderObject.getItems()
+	vItemList.each() { 
+      try {
+        if (!gotIt){
+            String sfolderName = it.getName();
+  //      	println (&quot;sfolderName:$sfolderName&quot;)
+	    vFolderList = it.getViews()
+       		if (folderName ==sfolderName) {      
+    //          println (&quot;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;sfolderName:$sfolderName&quot;)
+        	  rtnObj=it
+         		gotIt = true     
+        	}
+        }
+      }catch (Exception e) {
+        //println (&quot;Error - not a folder &quot; + it.toString()) 		 
+      }
+	}
+  
+    return rtnObj
+}</groovyScriptContent>
+        <loadFilesFromMaster>false</loadFilesFromMaster>
+      </info>
+    </EnvInjectBuildWrapper>
+  </buildWrappers>
+</project>
