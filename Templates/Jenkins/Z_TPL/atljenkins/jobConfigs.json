@@ -1,6 +1,6 @@
 { 
  "viewName": "/job/Z_DEVOPS/job/Z_TPL/view/Z_TPL", 
- "jobList": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL%20(Commit%20Build)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL100_(Back2Pool)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL010_(AssignMachine)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL020_(Puppet)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL032_(RAFTests)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL090_(ArtifactoryPromotion)/",
+ "jobList": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL%20(Commit%20Build)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL100_(Back2Pool)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL010_(AssignMachine)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL020_(Puppet)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL032_(RAFTests)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL090_(ArtifactoryPromotion)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL030_(RAFTests)/",
  "firstJobName": "Z_TPL (Commit Build)", 
  "jobs":{"Z_TPL (Commit Build)": {
     "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL%20(Commit%20Build)/",
@@ -131,6 +131,32 @@
         "DevRootPath": "D:/gitroot/ArtifactoryPromotion/WFM11.2SP1/",
         "viewName": "/job/Z_DEVOPS/job/Z_TPL/view/Z_TPL",
         "checkPipelineGreen": "true"
+      },
+    "artifactory": {
+
+      },
+    "buildTrigger": {
+
+      },
+    "buildBloker": {
+
+      }
+},
+"Z_TPL030_(RAFTests)": {
+    "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL030_(RAFTests)/",
+    "customWorkspace": "$DevRootPath",
+    "buildParams": {
+        "DevRootPath": "D:/gitroot/Z_TPL",
+        "ScriptLocation": "ci_global/IntegrationTests/RAF/Generic/workflows/BasicInt.script",
+        "EnvPramLocation": "ci_global/IntegrationTests/RAF/Generic/workflows/env.params",
+        "PrivateScriptLocation": "ci/IntegrationTests/RAF/workflows/Int.suite",
+        "PrivateEnvPramLocation": "ci/IntegrationTests/RAF/workflows/env.params",
+        "VmIp": "#10.156.16.125",
+        "TestMachineAdmin": "systemadmin",
+        "VmPw": "!veRinT$5",
+        "RafDir": "Regression Automation Framework",
+        "Test_Machine_Name": "2008base",
+        "PrivateRaf": "false"
       },
     "artifactory": {
 
