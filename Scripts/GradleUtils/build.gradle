@@ -117,13 +117,13 @@ task runPuppetAgent(dependsOn: 'init') << {
 		runDeployEar (vmIP, vmUser,  vmPw)
         remoteService (vmIP, vmUser,  vmPw, wfoService, "Start")
     }
+	remoteService( vmIP, vmUser, vmPw, watchdogService , "start")
 
 	//wait for the application ready
     if ("${chkApp}".toBoolean())
         waitAppReady "$vmIP"
 
 
-	remoteService( vmIP, vmUser, vmPw, watchdogService , "start")
 
 }
 
