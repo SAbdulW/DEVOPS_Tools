@@ -21,9 +21,9 @@ apply plugin: 'vebutu'
 ext.supportedGradleVersion = '2.3'
 
 allprojects {
-	apply plugin: 'idea'
-	group = groupID
-	version = currentVersion
+    apply plugin: 'idea'
+    group = groupID
+    version = currentVersion
 }
 
 repositories {
@@ -67,10 +67,13 @@ task testPP() << {
     //renameYAML "\\\\atlpuppetmaster\\puppet_agent\\environments\\ci_wfo_env_test\\hieradata\\ci_wfo_env_test.yaml"
 
 }
+
+
 task runPuppetAgent(dependsOn: 'init') << {
     logger.quiet ("GradleUtils: Stop Watchdog service")
-	remoteService( vmIP, vmUser, vmPw, watchdogService , "stop")
-	logger.quiet ("GradleUtils: run the puppet agent")
+//	remoteService( vmIP, vmUser, vmPw, watchdogService , "stop")
+    MultiRemoteService( vmIP, vmUser, vmPw, "${stopStartservices}" , "stop")
+    logger.quiet ("GradleUtils: run the puppet agent")
     String pp_timestamp= Calendar.getInstance().getTimeInMillis();
     // Replace the yaml content with the new build number and create the yaml file
     String certname="${environment}_${pp_timestamp}"
@@ -86,7 +89,7 @@ task runPuppetAgent(dependsOn: 'init') << {
     logger.quiet ("GradleUtils: ErrorCode - Base - ${errRtnErrorCode}")
 
 
-	for (String yamlSrcPath : yamlFiles){
+    for (String yamlSrcPath : yamlFiles){
         if ((errRtnErrorCode=="2") ||(errRtnErrorCode=="")) {
             logger.quiet ("GradleUtils: run the setting for Yaml = ${yamlSrcPath}")
             createYAML ("${currentVersion}", "${yamlSrcPath}", "${yamlDestPath}\\${certname}.yaml")
@@ -114,12 +117,13 @@ task runPuppetAgent(dependsOn: 'init') << {
     handlePuppetErrCode errRtnErrorCode
 
     if ("${deployEarFile}".toBoolean()){
-		runDeployEar (vmIP, vmUser,  vmPw)
-        remoteService (vmIP, vmUser,  vmPw, wfoService, "Start")
+        runDeployEar (vmIP, vmUser,  vmPw)
+        remoteService (vmIP, vmUser,  vmPw, wfoService, "start")
     }
-	remoteService( vmIP, vmUser, vmPw, watchdogService , "start")
+    //remoteService( vmIP, vmUser, vmPw, watchdogService , "start")
+    MultiRemoteService( vmIP, vmUser, vmPw, "${stopStartservices}" , "start")
 
-	//wait for the application ready
+    //wait for the application ready
     if ("${chkApp}".toBoolean())
         waitAppReady "$vmIP"
 
@@ -128,7 +132,7 @@ task runPuppetAgent(dependsOn: 'init') << {
 }
 
 task deployEar(dependsOn: 'init') << {
-	runDeployEar (vmIP, vmUser,  vmPw)
+    runDeployEar (vmIP, vmUser,  vmPw)
 }
 
 task restartWFO(dependsOn: 'init') << {
@@ -172,7 +176,7 @@ def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvir
             commandLine 'cmd', '/c', sPsExecCmd
         }
     }
-	catch (Exception e) {
+    catch (Exception e) {
         logger.quiet ("GradleUtils: some " + e.toString())
         rtnCode =  getRtnCode(e.toString())
     }
@@ -188,7 +192,7 @@ def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvir
 def runDeployEar ( String iVmIP, String iUser, String iPw) {
     String sCmd = ""
     // CommandLine to execute in the agent
-    sCmd = "%windir%\\system32\\cscript.exe c:\\impact360\\software\\WFODeployer\\DeployWfo.vbs WLSAdmin pumpkin1 true true" 
+    sCmd = "%windir%\\system32\\cscript.exe c:\\impact360\\software\\WFODeployer\\DeployWfo.vbs WLSAdmin pumpkin1 true true"
 
     String sPsExecCmd ="cmd /c ${projectDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
 
@@ -197,16 +201,16 @@ def runDeployEar ( String iVmIP, String iUser, String iPw) {
     String rtnCode=""
     try {
         exec {
-	       commandLine 'cmd', '/c', sPsExecCmd
+            commandLine 'cmd', '/c', sPsExecCmd
         }
     }
-	catch (Exception e) {
+    catch (Exception e) {
         logger.quiet ("GradleUtils: some " + e.toString())
         rtnCode =  getRtnCode(e.toString())
     }
 
     logger.quiet ("GEar Deployment: exitCode (${rtnCode})")
- 
+
     if (rtnCode!="" && rtnCode!="0" ) {
         logger.quiet ("GradleUtils: Failed with: exitCode (${rtnCode})")
         throw new GradleException("GradleUtils: Failed to deploy EAR: exitCode (${rtnCode})")
@@ -216,10 +220,10 @@ def runDeployEar ( String iVmIP, String iUser, String iPw) {
 
 def remoteService( String iVmIP, String iUser, String iPw,String iServiceName ,String iAction) {
 
-String sCmd = ""
+    String sCmd = ""
     sCmd = "net ${iAction} ${iServiceName}"
-	
-	String sPsExecCmd ="cmd /c ${projectDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+
+    String sPsExecCmd ="cmd /c ${projectDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
 
     logger.quiet ("GradleUtils: the command RemoteService: ${sPsExecCmd} ")
 
@@ -232,7 +236,7 @@ String sCmd = ""
 
     }
 
-	catch (Exception e) {
+    catch (Exception e) {
         logger.quiet ("GradleUtils: some " + e.toString())
         rtnCode =  getRtnCode(e.toString())
     }
@@ -248,11 +252,18 @@ String sCmd = ""
 }
 
 def restartRemoteService( String iVmIP, String iUser, String iPw, String serviceName) {
- remoteService( iVmIP, iUser, iPw, serviceName , "stop")
- remoteService( iVmIP, iUser, iPw, serviceName , "start")
+    remoteService( iVmIP, iUser, iPw, serviceName , "stop")
+    remoteService( iVmIP, iUser, iPw, serviceName , "start")
 }
 
+def MultiRemoteService(String vmIP, String vmUser, String iPw, String iServices, String iAction){
+    def String[]  services= "${iServices}".split(',');
+    for (String service : services){
+        logger.quiet ("GradleUtils: Handling ${service}")
+        remoteService( vmIP, vmUser, vmPw, service , iAction)
+    }
 
+}
 
 def createYAML (String strReplaceWith, String sourcePathYAML, String destPathYAML) {
     // Open the
@@ -308,8 +319,8 @@ def loadPuppetLog (String certName, String env  ){
         logger.quiet("GradleUtils: *  URL: ${logZipURL}  *")
         logger.quiet("\nGradleUtils: ****************************************************************************")
 
-    //    ant.get(src: logZipURL, dest:"${projectDir}" )
-    //    ant.unzip(src:"${projectDir}\\${certName}-15.1.0.1.zip" , dest: "${projectDir}\\PPLogs\\")
+        //    ant.get(src: logZipURL, dest:"${projectDir}" )
+        //    ant.unzip(src:"${projectDir}\\${certName}-15.1.0.1.zip" , dest: "${projectDir}\\PPLogs\\")
         //
     }else{
         rtnValue = false
@@ -575,10 +586,10 @@ def waitAppReady (String vmIP) {
 
     //waits up to 10 minutes (and checks every 500 milliseconds) for a web server on vmIP to serve up the specified URL.
     ant.waitfor (maxwait:"10", maxwaitunit:"minute", checkevery:"500", timeoutproperty:"web.timeout") {
-         http (url:"http://${vmIP}/wfo/control/signin")
+        http (url:"http://${vmIP}/wfo/control/signin")
     }
     ant.fail (message:"Can't display the WFO Login page, time out!", if:"web.timeout")
-	logger.quiet("-----Login: READY-----")
+    logger.quiet("-----Login: READY-----")
 }
 
 
@@ -613,7 +624,7 @@ def yamlValidation(String [] yamlFiles){
 }
 
 task wrapper(type: Wrapper) {
-	gradleVersion = supportedGradleVersion
+    gradleVersion = supportedGradleVersion
 }
 
 
