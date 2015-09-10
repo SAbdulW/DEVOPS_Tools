@@ -81,7 +81,9 @@
         "PromoteOnSuccess": "false",
         "YamlFiles": "../../../ci/puppet.yaml",
         "deployEarFile": "true",
-        "CheckIfWFOLoginPageIsUp ": "false"
+        "CheckIfWFOLoginPageIsUp ": "false",
+        "stopStartservices": "WatchDog,MinerTomcat",
+        "wfoService": "WFO_ProductionDomain_ProductionServer"
       },
     "artifactory": {
 

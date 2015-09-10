@@ -196,7 +196,7 @@ echo ================= done=================================&#xd;
       <reportTargets>
         <htmlpublisher.HtmlPublisherTarget>
           <reportName>HTML Report</reportName>
-          <reportDir>$ReportDir\curr</reportDir>
+          <reportDir>$WORKSPACE</reportDir>
           <reportFiles>report.html</reportFiles>
           <keepAll>true</keepAll>
           <allowMissing>true</allowMissing>

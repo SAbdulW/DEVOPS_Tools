@@ -72,6 +72,16 @@ with runPA -PcurrentVersion=$MasterBuildVersion  </description>
           <description>By checking this property the Puppet agent will verify that the WFO Login Page Is Up at the end of the process. It does not required if &quot;DeplyEarFile&quot; was already checked</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>stopStartservices</name>
+          <description></description>
+          <defaultValue>WatchDog,MinerTomcat</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>wfoService</name>
+          <description></description>
+          <defaultValue>WFO_ProductionDomain_ProductionServer</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <jenkins.plugins.slack.SlackNotifier_-SlackJobProperty plugin="slack@1.7">
@@ -119,7 +129,14 @@ with runPA -PcurrentVersion=$MasterBuildVersion  </description>
     <hudson.plugins.gradle.Gradle plugin="gradle@1.24">
       <description></description>
       <switches>-i</switches>
-      <tasks>runPA -PcurrentVersion=[RELEASE] -PvmIP=$VmIp -PyamlFiles=${YamlFiles} -PdeployEarFile=${deployEarFile} -PchkApp=${CheckIfWFOLoginPageIsUp}</tasks>
+      <tasks>runPA
+-PcurrentVersion=[RELEASE]
+-PvmIP=$VmIp
+-PyamlFiles=${YamlFiles}
+-PdeployEarFile=${deployEarFile}
+-PchkApp=${CheckIfWFOLoginPageIsUp}
+-PwfoService=${wfoService}
+-PstopStartservices=${stopStartservices}</tasks>
       <rootBuildScriptDir>${workspace}\Scripts\GradleUtils\</rootBuildScriptDir>
       <buildFile></buildFile>
       <gradleName>(Default)</gradleName>
