@@ -221,7 +221,7 @@ def runDeployEar ( String iVmIP, String iUser, String iPw) {
 def remoteService( String iVmIP, String iUser, String iPw,String iServiceName ,String iAction) {
 
     String sCmd = ""
-    sCmd = "net ${iAction} ${iServiceName}"
+    sCmd = "net ${iAction} \"${iServiceName}\""
 
     String sPsExecCmd ="cmd /c ${projectDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
 
