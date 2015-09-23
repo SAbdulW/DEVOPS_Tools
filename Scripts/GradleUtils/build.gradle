@@ -218,8 +218,43 @@ def runDeployEar ( String iVmIP, String iUser, String iPw) {
 }
 
 
+def remoteEnableService( String iVmIP, String iUser, String iPw,String iServiceName ) {
+    String sPsServiceChkCmd ="cmd /c ${projectDir}\\PAExec\\psservice.exe -accepteula  \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} config ${iServiceName} "
+    String sPsServiceCmd ="cmd /c ${projectDir}\\PAExec\\psservice.exe -accepteula  \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} setconfig ${iServiceName} auto "
+    try {
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine('cmd', '/c', sPsServiceChkCmd)
+            standardOutput = stdout;
+        }
+
+       if (stdout.toString().contains(": 2")) {
+           logger.quiet("The service is disabled, moving it to Auto")
+           try {
+               exec {
+                   commandLine('cmd', '/c', sPsServiceCmd)
+
+               }
+           }
+           catch(Exception e){
+                logger.quiet("Failed to configure ${iServiceName} ")
+           }
+       }
+    }
+
+
+
+    catch (Exception e) {
+        logger.quiet ("Gradle Utils: Failied to read service status " + e.toString())
+
+    }
+}
+
 def remoteService( String iVmIP, String iUser, String iPw,String iServiceName ,String iAction) {
 
+    if (iAction.toLowerCase().contains("start")){
+        remoteEnableService( iVmIP,  iUser,  iPw, iServiceName)}
+    }
     String sCmd = ""
     sCmd = "net ${iAction} \"${iServiceName}\""
 
@@ -237,6 +272,8 @@ def remoteService( String iVmIP, String iUser, String iPw,String iServiceName ,S
     }
 
     catch (Exception e) {
+        if ( e.toString().contains(("1058")))  //Service disabled
+
         logger.quiet ("GradleUtils: some " + e.toString())
         rtnCode =  getRtnCode(e.toString())
     }
