@@ -219,6 +219,7 @@ def runDeployEar ( String iVmIP, String iUser, String iPw) {
 
 
 def remoteEnableService( String iVmIP, String iUser, String iPw,String iServiceName ) {
+    logger.quiet("Checking if service is disabled")
     String sPsServiceChkCmd ="cmd /c ${projectDir}\\PAExec\\psservice.exe -accepteula  \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} config ${iServiceName} "
     String sPsServiceCmd ="cmd /c ${projectDir}\\PAExec\\psservice.exe -accepteula  \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} setconfig ${iServiceName} auto "
     try {
@@ -226,6 +227,7 @@ def remoteEnableService( String iVmIP, String iUser, String iPw,String iServiceN
         exec {
             commandLine('cmd', '/c', sPsServiceChkCmd)
             standardOutput = stdout;
+            logger.quiet(${stdout})
         }
 
        if (stdout.toString().contains(": 2")) {
