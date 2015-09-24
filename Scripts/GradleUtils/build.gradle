@@ -232,7 +232,7 @@ def remoteEnableService( String iVmIP, String iUser, String iPw,String iServiceN
         String out = stdout.toString()
         logger.quiet(out)
 logger.quiet("Chenking string")
-        if (out.contains(": 4")) {
+        if (out.contains("DISABLED")) {
            logger.quiet("The service is disabled, moving it to Auto")
            try {
                exec {
