@@ -220,8 +220,8 @@ def runDeployEar ( String iVmIP, String iUser, String iPw) {
 
 def remoteEnableService( String iVmIP, String iUser, String iPw,String iServiceName ) {
     logger.quiet("Checking if service is disabled")
-    String sPsServiceChkCmd ="cmd /c ${projectDir}\\PSTools\\psservice.exe -accepteula  \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} config ${iServiceName} "
-    String sPsServiceCmd ="cmd /c ${projectDir}\\PSTools\\psservice.exe -accepteula  \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} setconfig ${iServiceName} auto "
+    String sPsServiceChkCmd ="cmd /c ${projectDir}\\PSTools\\psservice.exe -accepteula  \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} config \"${iServiceName}\" "
+    String sPsServiceCmd ="cmd /c ${projectDir}\\PSTools\\psservice.exe -accepteula  \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} setconfig \"${iServiceName}\" auto "
     try {
         def stdout = new ByteArrayOutputStream()
         exec {
