@@ -227,7 +227,7 @@ def remoteEnableService( String iVmIP, String iUser, String iPw,String iServiceN
         exec {
             commandLine('cmd', '/c', sPsServiceChkCmd)
             standardOutput = stdout;
-            logger.quiet(${stdout})
+            logger.quiet(stdout.toString())
         }
 
        if (stdout.toString().contains(": 2")) {
