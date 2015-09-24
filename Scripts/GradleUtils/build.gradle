@@ -254,7 +254,7 @@ def remoteService( String iVmIP, String iUser, String iPw,String iServiceName ,S
 
     if (iAction.toLowerCase().contains("start")){
         remoteEnableService( iVmIP,  iUser,  iPw, iServiceName)}
-    }
+
     String sCmd = ""
     sCmd = "net ${iAction} \"${iServiceName}\""
 
@@ -282,9 +282,11 @@ def remoteService( String iVmIP, String iUser, String iPw,String iServiceName ,S
 
     if (rtnCode=="2"){
         logger.quiet ("GradleUtils: Exit code (2) keep going! ")
-    }else if (rtnCode!="" && rtnCode!="0"  ){
-        logger.quiet ("GradleUtils: Failed with: exitCode (${rtnCode})")
-        throw new GradleException("GradleUtils: remoteService: exitCode (${rtnCode})")
+    }else {
+        if (rtnCode != "" && rtnCode != "0") {
+            logger.quiet("GradleUtils: Failed with: exitCode (${rtnCode})")
+            throw new GradleException("GradleUtils: remoteService: exitCode (${rtnCode})")
+        }
     }
 }
 
