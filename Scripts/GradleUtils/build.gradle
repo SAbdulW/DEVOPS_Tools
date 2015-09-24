@@ -48,7 +48,7 @@ dependencies {
 
 // prepare environment, getting the tools
 task init() << {
-    ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("PSTools-")}, dest: "${projectDir}\\Pstools\\") { patternset { include(name:"PsExec.exe")}}
+    ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("PSTools-")}, dest: "${projectDir}\\Pstools\\")
     ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("paexec")}, dest: "${projectDir}\\PAExec\\")
 }
 
