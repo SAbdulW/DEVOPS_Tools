@@ -48,7 +48,7 @@ dependencies {
 
 // prepare environment, getting the tools
 task init() << {
-    ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("PSTools-")}, dest: "${projectDir}\\Pstools\\") { patternset { include(name:"PsExec.exe")}}
+    ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("PSTools-")}, dest: "${projectDir}\\Pstools\\")
     ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("paexec")}, dest: "${projectDir}\\PAExec\\")
 }
 
@@ -209,7 +209,7 @@ def runDeployEar ( String iVmIP, String iUser, String iPw) {
         rtnCode =  getRtnCode(e.toString())
     }
 
-    logger.quiet ("GEar Deployment: exitCode (${rtnCode})")
+    logger.quiet ("Ear Deployment: exitCode (${rtnCode})")
 
     if (rtnCode!="" && rtnCode!="0" ) {
         logger.quiet ("GradleUtils: Failed with: exitCode (${rtnCode})")
@@ -218,7 +218,44 @@ def runDeployEar ( String iVmIP, String iUser, String iPw) {
 }
 
 
+def remoteEnableService( String iVmIP, String iUser, String iPw,String iServiceName ) {
+    logger.quiet("Checking if service is disabled")
+    String sPsServiceChkCmd ="cmd /c ${projectDir}\\PSTools\\psservice.exe -accepteula  \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} config \"${iServiceName}\" "
+    String sPsServiceCmd ="cmd /c ${projectDir}\\PSTools\\psservice.exe -accepteula  \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} setconfig \"${iServiceName}\" auto "
+    try {
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine('cmd', '/c', sPsServiceChkCmd)
+            standardOutput = stdout
+
+        }
+        String out = stdout.toString()
+        if (out.indexOf("DISABLED")>0) {
+           logger.quiet("The service is disabled, moving it to Auto")
+           try {
+               exec {
+                   commandLine('cmd', '/c', sPsServiceCmd)
+
+               }
+           }
+           catch(Exception e){
+                logger.quiet("Failed to configure ${iServiceName} ")
+           }
+       }
+    }
+
+
+
+    catch (Exception e) {
+        logger.quiet ("Gradle Utils: Failied to read service status " + e.toString())
+
+    }
+}
+
 def remoteService( String iVmIP, String iUser, String iPw,String iServiceName ,String iAction) {
+
+    if (iAction.toLowerCase().contains("start")){
+        remoteEnableService( iVmIP,  iUser,  iPw, iServiceName)}
 
     String sCmd = ""
     sCmd = "net ${iAction} \"${iServiceName}\""
@@ -237,6 +274,8 @@ def remoteService( String iVmIP, String iUser, String iPw,String iServiceName ,S
     }
 
     catch (Exception e) {
+        if ( e.toString().contains(("1058")))  //Service disabled
+
         logger.quiet ("GradleUtils: some " + e.toString())
         rtnCode =  getRtnCode(e.toString())
     }
@@ -245,9 +284,11 @@ def remoteService( String iVmIP, String iUser, String iPw,String iServiceName ,S
 
     if (rtnCode=="2"){
         logger.quiet ("GradleUtils: Exit code (2) keep going! ")
-    }else if (rtnCode!="" && rtnCode!="0"  ){
-        logger.quiet ("GradleUtils: Failed with: exitCode (${rtnCode})")
-        throw new GradleException("GradleUtils: remoteService: exitCode (${rtnCode})")
+    }else {
+        if (rtnCode != "" && rtnCode != "0") {
+            logger.quiet("GradleUtils: Failed with: exitCode (${rtnCode})")
+            throw new GradleException("GradleUtils: remoteService: exitCode (${rtnCode})")
+        }
     }
 }
 
