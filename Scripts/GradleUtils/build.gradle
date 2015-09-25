@@ -209,7 +209,7 @@ def runDeployEar ( String iVmIP, String iUser, String iPw) {
         rtnCode =  getRtnCode(e.toString())
     }
 
-    logger.quiet ("GEar Deployment: exitCode (${rtnCode})")
+    logger.quiet ("Ear Deployment: exitCode (${rtnCode})")
 
     if (rtnCode!="" && rtnCode!="0" ) {
         logger.quiet ("GradleUtils: Failed with: exitCode (${rtnCode})")
@@ -230,9 +230,6 @@ def remoteEnableService( String iVmIP, String iUser, String iPw,String iServiceN
 
         }
         String out = stdout.toString()
-
-        logger.quiet('Out=' + out)
-logger.quiet("Chenking string location = " + out.indexOf("DISABLED"))
         if (out.indexOf("DISABLED")>0) {
            logger.quiet("The service is disabled, moving it to Auto")
            try {
