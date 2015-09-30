@@ -48,8 +48,8 @@ dependencies {
 
 // prepare environment, getting the tools
 task init() << {
-    ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("PSTools-")}, dest: "${projectDir}\\Pstools\\")
-    ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("paexec")}, dest: "${projectDir}\\PAExec\\")
+    ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("PSTools-")}, dest: "${libDir}\\Pstools\\")
+    ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("paexec")}, dest: "${libDir}\\PAExec\\")
 }
 
 task testPP() << {
@@ -161,9 +161,9 @@ def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvir
     sCmd = "\"C:\\Program Files\\Puppet Labs\\Puppet\\bin\\puppet.bat\" agent --test --server=${iPuppetServer} --certname=${iCertName} --environment=${iEnvironment} --debug --detailed-exitcodes"
 
     //Create the psexec command
-    // String sPsExecCmd ="cmd /c ${projectDir}\\Pstools\\PsExec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
-    //String sPsExecCmd ="cmd /c ${projectDir}\\Pstools\\PsExec.exe -accepteula -i \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
-    String sPsExecCmd ="cmd /c ${projectDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    // String sPsExecCmd ="cmd /c ${libDir}\\Pstools\\PsExec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    //String sPsExecCmd ="cmd /c ${libDir}\\Pstools\\PsExec.exe -accepteula -i \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    String sPsExecCmd ="cmd /c ${libDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
 
     logger.quiet ("GradleUtils: the command: ${sPsExecCmd} ")
 
@@ -191,7 +191,7 @@ def runDeployEar ( String iVmIP, String iUser, String iPw) {
     // CommandLine to execute in the agent
     sCmd = "%windir%\\system32\\cscript.exe c:\\impact360\\software\\WFODeployer\\DeployWfo.vbs WLSAdmin pumpkin1 true true"
 
-    String sPsExecCmd ="cmd /c ${projectDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    String sPsExecCmd ="cmd /c ${libDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
 
     logger.quiet ("GradleUtils: the command: ${sPsExecCmd} ")
 
@@ -217,8 +217,8 @@ def runDeployEar ( String iVmIP, String iUser, String iPw) {
 
 def remoteEnableService( String iVmIP, String iUser, String iPw,String iServiceName ) {
     logger.quiet("Checking if service is disabled")
-    String sPsServiceChkCmd ="cmd /c ${projectDir}\\PSTools\\psservice.exe -accepteula  \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} config \"${iServiceName}\" "
-    String sPsServiceCmd ="cmd /c ${projectDir}\\PSTools\\psservice.exe -accepteula  \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} setconfig \"${iServiceName}\" auto "
+    String sPsServiceChkCmd ="cmd /c ${libDir}\\PSTools\\psservice.exe -accepteula  \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} config \"${iServiceName}\" "
+    String sPsServiceCmd ="cmd /c ${libDir}\\PSTools\\psservice.exe -accepteula  \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} setconfig \"${iServiceName}\" auto "
     try {
         def stdout = new ByteArrayOutputStream()
         exec {
@@ -257,7 +257,7 @@ def remoteService( String iVmIP, String iUser, String iPw,String iServiceName ,S
     String sCmd = ""
     sCmd = "net ${iAction} \"${iServiceName}\""
 
-    String sPsExecCmd ="cmd /c ${projectDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    String sPsExecCmd ="cmd /c ${libDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
 
     logger.quiet ("GradleUtils: the command RemoteService: ${sPsExecCmd} ")
 
