@@ -44,18 +44,15 @@ configurations {
 dependencies {
     envConfig 'com.microsoft.technet.sysinternals:PSTools:2.11@zip'
     envConfig 'com.poweradmin:paexec:1.26@zip'
-    envConfig 'haxx.se:curl:7.44.0@zip'
 }
 
 // prepare environment, getting the tools
 task init() << {
     ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("PSTools-")}, dest: "${projectDir}\\Pstools\\")
     ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("paexec")}, dest: "${projectDir}\\PAExec\\")
-    ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("curl")}, dest: "${projectDir}\\CURL\\")
 }
 
 task testPP() << {
-
     loadPuppetLog ("ci_wfo_env_1438279679740", "ci_wfo_env" )
     //loadPuppetLog ("ci_wfo_env_test", "ci_wfo_env_test")
     def String[] yamlFiles = "${yamlFiles}".split(',');
@@ -67,9 +64,7 @@ task testPP() << {
     //getVersionInstalledFromSVIXML (sviXMLObj, "Coaching Reporting")
 
     //renameYAML "\\\\atlpuppetmaster\\puppet_agent\\environments\\ci_wfo_env_test\\hieradata\\ci_wfo_env_test.yaml"
-
 }
-
 
 task runPuppetAgent(dependsOn: 'init') << {
     logger.quiet ("GradleUtils: Stop Watchdog service")
