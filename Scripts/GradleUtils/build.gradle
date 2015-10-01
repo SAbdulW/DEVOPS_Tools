@@ -245,12 +245,12 @@ def remoteService(String iVmIP, String iUser, String iPw, String iServiceName, S
 
     logger.quiet ("GradleUtils: the command RemoteService: ${sPsExecCmd}")
 
-    String rtnCode=""
+    String rtnCode = ""
 
     try {
         exec {
-            //commandLine('cmd', '/c', sPsExecCmd)
-            commandLine 'cmd', '/c', "${libDir}\\PAExec\\paexec.exe", "-accepteula", "\\\\${iVmIP}", "-u", "${iVmIP}\\${iUser}", "-p", "${iPw}", "-h", "${sCmd}"
+            commandLine('cmd', '/c', sPsExecCmd)
+            //commandLine 'cmd', '/c', "${libDir}\\PAExec\\paexec.exe", "-accepteula", "\\\\${iVmIP}", "-u", "${iVmIP}\\${iUser}", "-p", "${iPw}", "-h", "${sCmd}"
         }
     }
     catch (Exception e) {
