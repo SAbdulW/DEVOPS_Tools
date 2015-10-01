@@ -170,7 +170,8 @@ def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvir
     String rtnCode=""
     try {
         exec {
-            commandLine 'cmd', '/c', sPsExecCmd
+            //commandLine 'cmd', '/c', sPsExecCmd
+			commandLine 'cmd', '/c', "${libDir}\\PAExec\\paexec.exe", "-accepteula", "\\\\${iVmIP}", "-u", "${iVmIP}\\${iUser}", "-p", "${iPw}", "-h", "${sCmd}"
         }
     }
     catch (Exception e) {
