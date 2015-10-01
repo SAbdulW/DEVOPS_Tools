@@ -53,11 +53,11 @@ task init() << {
 }
 
 task testPP() << {
-    loadPuppetLog ("ci_wfo_env_1438279679740", "ci_wfo_env" )
+    loadPuppetLog ("ci_wfo_env_1438279679740", "ci_wfo_env")
     //loadPuppetLog ("ci_wfo_env_test", "ci_wfo_env_test")
     def String[] yamlFiles = "${yamlFiles}".split(',');
     yamlValidation (yamlFiles)
-    extractInstalledVersion (yamlFiles, new File("${projectDir}\\PPLogs\\registryExport.json") )
+    extractInstalledVersion (yamlFiles, new File("${projectDir}\\PPLogs\\registryExport.json"))
 
     //def sviXMLObj = loadXMLObject (new File ("${projectDir}\\PPLogs\\ServerVersionInformation.xml"))
 
@@ -68,8 +68,8 @@ task testPP() << {
 
 task runPuppetAgent(dependsOn: 'init') << {
     logger.quiet ("GradleUtils: Stop Watchdog service")
-//	remoteService( vmIP, vmUser, vmPw, watchdogService , "stop")
-    MultiRemoteService( vmIP, vmUser, vmPw, "${stopStartservices}" , "stop")
+    //remoteService(vmIP, vmUser, vmPw, watchdogService, "stop")
+    MultiRemoteService(vmIP, vmUser, vmPw, "${stopStartservices}", "stop")
     logger.quiet ("GradleUtils: run the puppet agent")
     String pp_timestamp= Calendar.getInstance().getTimeInMillis();
     // Replace the yaml content with the new build number and create the yaml file
@@ -81,16 +81,15 @@ task runPuppetAgent(dependsOn: 'init') << {
     yamlValidation (yamlFiles)
 
     String errRtnErrorCode=""
-    errRtnErrorCode=runPuppetAgentCommand("$puppetServer", "$certname","$environment_base","$vmIP","$vmUser","$vmPw")
+    errRtnErrorCode=runPuppetAgentCommand("$puppetServer", "$certname", "$environment_base", "$vmIP", "$vmUser", "$vmPw")
 
     logger.quiet ("GradleUtils: ErrorCode - Base - ${errRtnErrorCode}")
 
-
-    for (String yamlSrcPath : yamlFiles){
+    for (String yamlSrcPath : yamlFiles) {
         if ((errRtnErrorCode=="2") ||(errRtnErrorCode=="")) {
             logger.quiet ("GradleUtils: run the setting for Yaml = ${yamlSrcPath}")
             createYAML ("${currentVersion}", "${yamlSrcPath}", "${yamlDestPath}\\${certname}.yaml")
-            errRtnErrorCode=runPuppetAgentCommand("$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw")
+            errRtnErrorCode=runPuppetAgentCommand("$puppetServer", "$certname", "$environment", "$vmIP", "$vmUser", "$vmPw")
             logger.quiet ("GradleUtils: ErrorCode - ${yamlSrcPath} - ${errRtnErrorCode}")
         }
     }
@@ -104,41 +103,37 @@ task runPuppetAgent(dependsOn: 'init') << {
     //Run by the very end for gradle tasks:
     // - publish logs
     renameYAML "${yamlDestPath}\\${certname}.yaml"
-    runPuppetAgentCommand "$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw"
+    runPuppetAgentCommand "$puppetServer", "$certname", "$environment", "$vmIP", "$vmUser", "$vmPw"
 
-
-    if (loadPuppetLog( "$certname","$environment"))
+    if (loadPuppetLog("$certname", "$environment"))
         extractInstalledVersion(yamlFiles, new File("${projectDir}\\PPLogs\\registryExport.json"))
 
     //Now publish the error
     handlePuppetErrCode errRtnErrorCode
 
-    if ("${deployEarFile}".toBoolean()){
-        runDeployEar (vmIP, vmUser,  vmPw)
-        remoteService (vmIP, vmUser,  vmPw, wfoService, "start")
+    if ("${deployEarFile}".toBoolean()) {
+        runDeployEar (vmIP, vmUser, vmPw)
+        remoteService (vmIP, vmUser, vmPw, wfoService, "start")
     }
-    //remoteService( vmIP, vmUser, vmPw, watchdogService , "start")
-    MultiRemoteService( vmIP, vmUser, vmPw, "${stopStartservices}" , "start")
+    //remoteService(vmIP, vmUser, vmPw, watchdogService, "start")
+    MultiRemoteService(vmIP, vmUser, vmPw, "${stopStartservices}", "start")
 
     //wait for the application ready
     if ("${chkApp}".toBoolean())
         waitAppReady "$vmIP"
-
-
-
 }
 
 task deployEar(dependsOn: 'init') << {
-    runDeployEar (vmIP, vmUser,  vmPw)
+    runDeployEar (vmIP, vmUser, vmPw)
 }
 
 task restartWFO(dependsOn: 'init') << {
-    restartRemoteService (vmIP, vmUser,  vmPw,wfoService)
+    restartRemoteService (vmIP, vmUser, vmPw,wfoService)
 }
 
 // Handle the error return
-def handlePuppetErrCode (String errCode){
-    if ((errCode=="2") ||(errCode=="")){
+def handlePuppetErrCode (String errCode) {
+    if ((errCode=="2") ||(errCode=="")) {
         //do nothing
     } else if (errCode=="4") {
         throw new GradleException("GradleUtils: there were FAILURES during the transaction: exitCode (${errCode})")
@@ -153,70 +148,64 @@ def handlePuppetErrCode (String errCode){
     }
 }
 
-
 // Get list of repositories from Artifactory, write the list into a file
 def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvironment, String iVmIP, String iUser, String iPw) {
     String sCmd = ""
     // CommandLine to execute in the agent
     sCmd = "\"C:\\Program Files\\Puppet Labs\\Puppet\\bin\\puppet.bat\" agent --test --server=${iPuppetServer} --certname=${iCertName} --environment=${iEnvironment} --debug --detailed-exitcodes"
 
-    //Create the psexec command
-    // String sPsExecCmd ="cmd /c ${libDir}\\Pstools\\PsExec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
-    //String sPsExecCmd ="cmd /c ${libDir}\\Pstools\\PsExec.exe -accepteula -i \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    // Create the psexec command
     String sPsExecCmd ="cmd /c ${libDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
 
-    logger.quiet ("GradleUtils: the command: ${sPsExecCmd} ")
+    logger.quiet ("GradleUtils: the command: ${sPsExecCmd}")
 
-    String rtnCode=""
+    String rtnCode = ""
     try {
         exec {
             //commandLine 'cmd', '/c', sPsExecCmd
-			commandLine 'cmd', '/c', "${libDir}\\PAExec\\paexec.exe", "-accepteula", "\\\\${iVmIP}", "-u", "${iVmIP}\\${iUser}", "-p", "${iPw}", "-h", "${sCmd}"
+            commandLine 'cmd', '/c', "${libDir}\\PAExec\\paexec.exe", "-accepteula", "\\\\${iVmIP}", "-u", "${iVmIP}\\${iUser}", "-p", "${iPw}", "-h", "${sCmd}"
         }
     }
     catch (Exception e) {
         logger.quiet ("GradleUtils: some " + e.toString())
-        rtnCode =  getRtnCode(e.toString())
+        rtnCode = getRtnCode(e.toString())
     }
 
     logger.quiet ("GradleUtils: there were changes during the transaction: exitCode (${rtnCode})")
-    //rtnCode = result.getExitValue()
+
     return rtnCode
-    // executeOnCMDFile sPsExecCmd
-    //executeAsIs sPsExecCmd
-    //ppCommandFile.delete()
 }
 
-def runDeployEar ( String iVmIP, String iUser, String iPw) {
+def runDeployEar (String iVmIP, String iUser, String iPw) {
     String sCmd = ""
     // CommandLine to execute in the agent
     sCmd = "%windir%\\system32\\cscript.exe c:\\impact360\\software\\WFODeployer\\DeployWfo.vbs WLSAdmin pumpkin1 true true"
 
     String sPsExecCmd ="cmd /c ${libDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
 
-    logger.quiet ("GradleUtils: the command: ${sPsExecCmd} ")
+    logger.quiet ("GradleUtils: the command: ${sPsExecCmd}")
 
-    String rtnCode=""
+    String rtnCode = ""
     try {
         exec {
-            commandLine 'cmd', '/c', sPsExecCmd
+            //commandLine 'cmd', '/c', sPsExecCmd
+            commandLine 'cmd', '/c', "${libDir}\\PAExec\\paexec.exe", "-accepteula", "\\\\${iVmIP}", "-u", "${iVmIP}\\${iUser}", "-p", "${iPw}", "-h", "${sCmd}"
         }
     }
     catch (Exception e) {
         logger.quiet ("GradleUtils: some " + e.toString())
-        rtnCode =  getRtnCode(e.toString())
+        rtnCode = getRtnCode(e.toString())
     }
 
     logger.quiet ("Ear Deployment: exitCode (${rtnCode})")
 
-    if (rtnCode!="" && rtnCode!="0" ) {
+    if (rtnCode!="" && rtnCode!="0") {
         logger.quiet ("GradleUtils: Failed with: exitCode (${rtnCode})")
         throw new GradleException("GradleUtils: Failed to deploy EAR: exitCode (${rtnCode})")
     }
 }
 
-
-def remoteEnableService( String iVmIP, String iUser, String iPw,String iServiceName ) {
+def remoteEnableService(String iVmIP, String iUser, String iPw, String iServiceName) {
     logger.quiet("Checking if service is disabled")
     String sPsServiceChkCmd ="cmd /c ${libDir}\\PSTools\\psservice.exe -accepteula  \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} config \"${iServiceName}\" "
     String sPsServiceCmd ="cmd /c ${libDir}\\PSTools\\psservice.exe -accepteula  \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} setconfig \"${iServiceName}\" auto "
@@ -225,64 +214,56 @@ def remoteEnableService( String iVmIP, String iUser, String iPw,String iServiceN
         exec {
             commandLine('cmd', '/c', sPsServiceChkCmd)
             standardOutput = stdout
-
         }
         String out = stdout.toString()
         if (out.indexOf("DISABLED")>0) {
-           logger.quiet("The service is disabled, moving it to Auto")
-           try {
-               exec {
-                   commandLine('cmd', '/c', sPsServiceCmd)
-
-               }
-           }
-           catch(Exception e){
-                logger.quiet("Failed to configure ${iServiceName} ")
-           }
-       }
+            logger.quiet("The service is disabled, moving it to Auto")
+            try {
+                exec {
+                    commandLine('cmd', '/c', sPsServiceCmd)
+                }
+            }
+            catch(Exception e) {
+                logger.quiet("Failed to configure ${iServiceName}")
+            }
+        }
     }
-
-
-
     catch (Exception e) {
         logger.quiet ("Gradle Utils: Failied to read service status " + e.toString())
-
     }
 }
 
-def remoteService( String iVmIP, String iUser, String iPw,String iServiceName ,String iAction) {
-
-    if (iAction.toLowerCase().contains("start")){
-        remoteEnableService( iVmIP,  iUser,  iPw, iServiceName)}
+def remoteService(String iVmIP, String iUser, String iPw, String iServiceName, String iAction) {
+    if (iAction.toLowerCase().contains("start")) {
+        remoteEnableService(iVmIP, iUser, iPw, iServiceName)
+    }
 
     String sCmd = ""
     sCmd = "net ${iAction} \"${iServiceName}\""
 
-    String sPsExecCmd ="cmd /c ${libDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    String sPsExecCmd = "cmd /c ${libDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
 
-    logger.quiet ("GradleUtils: the command RemoteService: ${sPsExecCmd} ")
+    logger.quiet ("GradleUtils: the command RemoteService: ${sPsExecCmd}")
 
     String rtnCode=""
 
     try {
         exec {
-            commandLine('cmd', '/c', sPsExecCmd)
+            //commandLine('cmd', '/c', sPsExecCmd)
+            commandLine 'cmd', '/c', "${libDir}\\PAExec\\paexec.exe", "-accepteula", "\\\\${iVmIP}", "-u", "${iVmIP}\\${iUser}", "-p", "${iPw}", "-h", "${sCmd}"
         }
-
     }
-
     catch (Exception e) {
-        if ( e.toString().contains(("1058")))  //Service disabled
-
-        logger.quiet ("GradleUtils: some " + e.toString())
-        rtnCode =  getRtnCode(e.toString())
+        if (e.toString().contains(("1058")))  //Service disabled
+            logger.quiet ("GradleUtils: some " + e.toString())
+        rtnCode = getRtnCode(e.toString())
     }
 
     logger.quiet ("RemoteService: exitCode (${rtnCode})")
 
-    if (rtnCode=="2"){
+    if (rtnCode=="2") {
         logger.quiet ("GradleUtils: Exit code (2) keep going! ")
-    }else {
+    } else {
         if (rtnCode != "" && rtnCode != "0") {
             logger.quiet("GradleUtils: Failed with: exitCode (${rtnCode})")
             throw new GradleException("GradleUtils: remoteService: exitCode (${rtnCode})")
@@ -290,24 +271,23 @@ def remoteService( String iVmIP, String iUser, String iPw,String iServiceName ,S
     }
 }
 
-def restartRemoteService( String iVmIP, String iUser, String iPw, String serviceName) {
-    remoteService( iVmIP, iUser, iPw, serviceName , "stop")
-    remoteService( iVmIP, iUser, iPw, serviceName , "start")
+def restartRemoteService(String iVmIP, String iUser, String iPw, String serviceName) {
+    remoteService(iVmIP, iUser, iPw, serviceName, "stop")
+    remoteService(iVmIP, iUser, iPw, serviceName, "start")
 }
 
-def MultiRemoteService(String vmIP, String vmUser, String iPw, String iServices, String iAction){
+def MultiRemoteService(String vmIP, String vmUser, String iPw, String iServices, String iAction) {
     def String[]  services= "${iServices}".split(',');
-    for (String service : services){
+    for (String service : services) {
         logger.quiet ("GradleUtils: Handling ${service}")
-        remoteService( vmIP, vmUser, vmPw, service , iAction)
+        remoteService(vmIP, vmUser, vmPw, service, iAction)
     }
-
 }
 
 def createYAML (String strReplaceWith, String sourcePathYAML, String destPathYAML) {
     // Open the
     File sourceFile = new File (sourcePathYAML);
-    File destFile =  new File (destPathYAML);
+    File destFile = new File (destPathYAML);
     String srcFilePath = sourceFile.getCanonicalPath()
     String destFilePath = destFile.getCanonicalPath()
 
@@ -316,26 +296,25 @@ def createYAML (String strReplaceWith, String sourcePathYAML, String destPathYAM
     logger.quiet ("GradleUtils: sourceContent YAML at ${srcFilePath}\n${sourceContent}")
 
     if (sourceContent.indexOf("{MasterBuildVersion}")>0) {
-        sourceContent=sourceContent.replaceAll("[\${}]","HT")
+        sourceContent=sourceContent.replaceAll("[\${}]", "HT")
 
-        sourceContent=sourceContent.replaceAll("HTHTMasterBuildVersionHT",strReplaceWith)
+        sourceContent=sourceContent.replaceAll("HTHTMasterBuildVersionHT", strReplaceWith)
     }
 
     logger.quiet ("GradleUtils: updatedContent YAML at ${destFilePath} \n${sourceContent}")
-    destFile.write(sourceContent,"UTF-8")
+    destFile.write(sourceContent, "UTF-8")
 }
 
 def renameYAML (String destPathYAML) {
     // Open the
 
-    File destFile =  new File (destPathYAML);
+    File destFile = new File (destPathYAML);
 
     String destFilePath = destFile.getCanonicalPath()
     destFile.renameTo(new File ("${destFilePath}.bak"))
 }
 
-def loadPuppetLog (String certName, String env  ){
-
+def loadPuppetLog (String certName, String env ) {
     String logZipURL="${artifactory_contextUrl}/devops/com/verint/puppet/logs/${env}/${certName}/15.1.0.1/${certName}-15.1.0.1.zip"
     boolean rtnValue = true
     if (waitArtifactReady(logZipURL)) {
@@ -358,21 +337,20 @@ def loadPuppetLog (String certName, String env  ){
         logger.quiet("GradleUtils: *  URL: ${logZipURL}  *")
         logger.quiet("\nGradleUtils: ****************************************************************************")
 
-        //    ant.get(src: logZipURL, dest:"${projectDir}" )
-        //    ant.unzip(src:"${projectDir}\\${certName}-15.1.0.1.zip" , dest: "${projectDir}\\PPLogs\\")
+        //    ant.get(src: logZipURL, dest:"${projectDir}")
+        //    ant.unzip(src:"${projectDir}\\${certName}-15.1.0.1.zip", dest: "${projectDir}\\PPLogs\\")
         //
-    }else{
+    } else {
         rtnValue = false
     }
-    return  rtnValue
+    return rtnValue
 }
 
 import org.yaml.snakeyaml.Yaml
 import groovy.json.JsonSlurper
 import groovy.util.XmlSlurper
 
-def extractInstalledVersion (String [] yamlFiles, File jsRegistry){
-
+def extractInstalledVersion (String [] yamlFiles, File jsRegistry) {
     //load json object
     def jsRegistryObj = loadJsonObject (jsRegistry)
     def installedVersionsFile = new File ("${projectDir}\\PPLogs\\installedVersions.json")
@@ -409,13 +387,13 @@ def extractInstalledVersion (String [] yamlFiles, File jsRegistry){
             wfoComponentsMap.each { wfoComponent ->
                 wfoComponent.each { it ->
                     logger.quiet("${it}")
-                    String [] prop =    "${it}".split("=")
+                    String [] prop = "${it}".split("=")
                     if (prop[0]=="ComponentName") {
                         componentName = prop[1]
-                        installedVersion = getVersionInstalledFromRegistryJson (jsRegistryObj,prop[1] )
+                        installedVersion = getVersionInstalledFromRegistryJson (jsRegistryObj,prop[1])
 
                         if (installedVersion=="") {
-                            installedVersion = getVersionInstalledFromSVIXML (sviXMLObj,prop[1] )
+                            installedVersion = getVersionInstalledFromSVIXML (sviXMLObj,prop[1])
                         }
                     }
                     if (prop[0]=="ComponentGAV") {
@@ -434,7 +412,6 @@ def extractInstalledVersion (String [] yamlFiles, File jsRegistry){
             if (componentGAV!="")
                 componentGAV = componentGAV.substring(0, componentGAV.lastIndexOf(":"))+ ":" + "${installedVersion}"
 
-
             if (installedVersionsContent=="") {
                 installedVersionsContent ="  \"${componentName}\": {\n" +
                         "    \"ComponentName\": \"${componentName}\",\n" +
@@ -442,7 +419,7 @@ def extractInstalledVersion (String [] yamlFiles, File jsRegistry){
                         "    \"ComponentGAV\": \"${componentGAV}\",\n" +
                         "    \"ComponentPC\": \"${componentPC}\"\n" +
                         "  }"
-            }else{
+            } else {
                 installedVersionsContent =installedVersionsContent +",\n  \"${componentName}\": {\n" +
                         "    \"ComponentName\": \"${componentName}\",\n" +
                         "    \"InstalledVersion\": \"${installedVersion}\",\n" +
@@ -450,7 +427,6 @@ def extractInstalledVersion (String [] yamlFiles, File jsRegistry){
                         "    \"ComponentPC\": \"${componentPC}\"\n" +
                         "  }"
             }
-
         }
     }
 
@@ -463,7 +439,7 @@ def extractInstalledVersion (String [] yamlFiles, File jsRegistry){
     logger.quiet("GradleUtils: ..\\PPLogs\\installedVersions.json *****************\n")
 }
 
-def getVersionInstalledFromRegistryJson (Object jsonObject, String componentName){
+def getVersionInstalledFromRegistryJson (Object jsonObject, String componentName) {
     def found = false;
     String rtnVersion = ""
     jsonObject.each { registryItem ->
@@ -471,14 +447,14 @@ def getVersionInstalledFromRegistryJson (Object jsonObject, String componentName
         def registryItemValue = registryItem.getValue()
         String regComponentName =registryItemValue."ComponentName"
         if ((regComponentName == componentName) && !found) {
-            rtnVersion =  registryItemValue."InstalledVersion"
+            rtnVersion = registryItemValue."InstalledVersion"
             found = true
         }
     }
-    return      rtnVersion
+    return rtnVersion
 }
 
-def getVersionInstalledFromSVIXML (Object xmlObject, String componentName){
+def getVersionInstalledFromSVIXML (Object xmlObject, String componentName) {
     def found = false;
     String rtnVersion = ""
 
@@ -487,7 +463,7 @@ def getVersionInstalledFromSVIXML (Object xmlObject, String componentName){
         //logger.quiet("name:" + xmlItem.@name + " version:" + xmlItem.@version)
         if ((xmlItem.@name == componentName) && !found) {
             logger.quiet("name:" + xmlItem.@name + " version:" + xmlItem.@version)
-            rtnVersion =  xmlItem.@version
+            rtnVersion = xmlItem.@version
             found = true
         }
     }
@@ -501,14 +477,14 @@ def loadJsonObject(File jsonFile) {
 }
 
 def loadXMLObject(File xmlFile) {
-
     def rtnXML = null
 
     //logger.quiet (xmlFile.text)
     try {
         //rtnXML = new XmlSlurper().parseText(xmlFile.text)
         rtnXML = new XmlParser().parseText(xmlFile.text)
-    }catch (Exception e){
+    }
+    catch (Exception e) {
         logger.quiet("\nGradleUtils: XML doesn't exist or wrong format :" + xmlFile.getAbsolutePath())
         logger.quiet("${e}")
         rtnXML = null
@@ -518,22 +494,22 @@ def loadXMLObject(File xmlFile) {
 
 
 def getRtnCode (String strException) {
-    int lastIndex =   strException.lastIndexOf("exit value")
+    int lastIndex = strException.lastIndexOf("exit value")
     String strReturn=""
     if (lastIndex>0) {
-        strReturn =   strException.substring(lastIndex+ "exit value".length()+1)
+        strReturn = strException.substring(lastIndex+ "exit value".length()+1)
         //logger.quiet ("GradleUtils: strReturn=->${strReturn}<-")
     }
     return strReturn;
 }
 
 def executeOnCMDFile(String command) {
-    File temp = File.createTempFile("cish",".bat");
+    File temp = File.createTempFile("cish", ".bat");
     temp.write(command)
     //println "             *************Temp command: ******:" + temp.getAbsolutePath()
 
     String filePath = temp.getAbsolutePath()
-    //filePath = filePath.replaceAll("\\\\","/")
+    //filePath = filePath.replaceAll("\\\\", "/")
     println "             *************Temp command: ******:" + filePath
 
     executeOnCMD filePath
@@ -552,18 +528,18 @@ def executeOnCMD (String command, File workingDir) {
             .redirectErrorStream(true)
             .start()
     process.inputStream.eachLine {println it}
-    //With the paexec , no need to waitFor
+    //With the paexec, no need to waitFor
     //process.waitFor();
     //return process.exitValue()
 }
 
 def executeOnShellFile(String command) {
-    File temp = File.createTempFile("cish",".sh");
+    File temp = File.createTempFile("cish", ".sh");
     temp.write(command)
     //println "             *************Temp command: ******:" + temp.getAbsolutePath()
 
     String filePath = temp.getAbsolutePath()
-    //filePath = filePath.replaceAll("\\\\","/")
+    //filePath = filePath.replaceAll("\\\\", "/")
     println "             *************Temp command: ******:" + filePath
 
     executeOnShell filePath
@@ -631,7 +607,6 @@ def waitAppReady (String vmIP) {
     logger.quiet("-----Login: READY-----")
 }
 
-
 def waitArtifactReady (String aURL) {
     logger.quiet ("-----Waiting for aURL available ${aURL} : -----")
     boolean rtnSuccess = true
@@ -641,21 +616,23 @@ def waitArtifactReady (String aURL) {
     }
     try {
         ant.fail (message:"Can't find", if:"web.timeout")
-    }catch (Exception e){
+    }
+    catch (Exception e) {
         rtnSuccess = false
     }
 
-    return    rtnSuccess
+    return rtnSuccess
 }
 
-def yamlValidation(String [] yamlFiles){
+def yamlValidation(String [] yamlFiles) {
     yamlFiles.each { yamlFile ->
         def yaml = new Yaml()
         def doc = new File(yamlFile).text
         try {
             def map = (Map) yaml.load(doc)
             logger.quiet ("GradleUtils: YAML (${yamlFile}) PASSED validation")
-        }catch (Exception e){
+        }
+        catch (Exception e) {
             logger.quiet ("GradleUtils: Invalid YAML (${yamlFile})")
             throw new GradleException("GradleUtils:  (${e})")
         }
