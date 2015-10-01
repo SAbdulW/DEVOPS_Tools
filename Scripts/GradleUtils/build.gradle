@@ -71,16 +71,16 @@ task runPuppetAgent(dependsOn: 'init') << {
     //remoteService(vmIP, vmUser, vmPw, watchdogService, "stop")
     MultiRemoteService(vmIP, vmUser, vmPw, "${stopStartservices}", "stop")
     logger.quiet ("GradleUtils: run the puppet agent")
-    String pp_timestamp= Calendar.getInstance().getTimeInMillis();
+    String pp_timestamp = Calendar.getInstance().getTimeInMillis();
     // Replace the yaml content with the new build number and create the yaml file
-    String certname="${environment}_${pp_timestamp}"
+    String certname = "${environment}_${pp_timestamp}"
     logger.quiet ("GradleUtils: certname:${certname}")
     logger.quiet ("GradleUtils: run the initial set up on base environment with certname:${certname}")
 
     def String[] yamlFiles = "${yamlFiles}".split(',');
     yamlValidation (yamlFiles)
 
-    String errRtnErrorCode=""
+    String errRtnErrorCode = ""
     errRtnErrorCode=runPuppetAgentCommand("$puppetServer", "$certname", "$environment_base", "$vmIP", "$vmUser", "$vmPw")
 
     logger.quiet ("GradleUtils: ErrorCode - Base - ${errRtnErrorCode}")
@@ -155,7 +155,7 @@ def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvir
     sCmd = "\"C:\\Program Files\\Puppet Labs\\Puppet\\bin\\puppet.bat\" agent --test --server=${iPuppetServer} --certname=${iCertName} --environment=${iEnvironment} --debug --detailed-exitcodes"
 
     // Create the psexec command
-    String sPsExecCmd ="cmd /c ${libDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    String sPsExecCmd = "cmd /c ${libDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
 
     logger.quiet ("GradleUtils: the command: ${sPsExecCmd}")
 
@@ -181,15 +181,15 @@ def runDeployEar (String iVmIP, String iUser, String iPw) {
     // CommandLine to execute in the agent
     sCmd = "%windir%\\system32\\cscript.exe c:\\impact360\\software\\WFODeployer\\DeployWfo.vbs WLSAdmin pumpkin1 true true"
 
-    String sPsExecCmd ="cmd /c ${libDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    String sPsExecCmd = "cmd /c ${libDir}\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
 
     logger.quiet ("GradleUtils: the command: ${sPsExecCmd}")
 
     String rtnCode = ""
     try {
         exec {
-            //commandLine 'cmd', '/c', sPsExecCmd
-            commandLine 'cmd', '/c', "${libDir}\\PAExec\\paexec.exe", "-accepteula", "\\\\${iVmIP}", "-u", "${iVmIP}\\${iUser}", "-p", "${iPw}", "-h", "${sCmd}"
+            commandLine 'cmd', '/c', sPsExecCmd
+            //commandLine 'cmd', '/c', "${libDir}\\PAExec\\paexec.exe", "-accepteula", "\\\\${iVmIP}", "-u", "${iVmIP}\\${iUser}", "-p", "${iPw}", "-h", "${sCmd}"
         }
     }
     catch (Exception e) {
@@ -207,8 +207,8 @@ def runDeployEar (String iVmIP, String iUser, String iPw) {
 
 def remoteEnableService(String iVmIP, String iUser, String iPw, String iServiceName) {
     logger.quiet("Checking if service is disabled")
-    String sPsServiceChkCmd ="cmd /c ${libDir}\\PSTools\\psservice.exe -accepteula  \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} config \"${iServiceName}\" "
-    String sPsServiceCmd ="cmd /c ${libDir}\\PSTools\\psservice.exe -accepteula  \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} setconfig \"${iServiceName}\" auto "
+    String sPsServiceChkCmd = "cmd /c ${libDir}\\PSTools\\psservice.exe -accepteula  \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} config \"${iServiceName}\" "
+    String sPsServiceCmd = "cmd /c ${libDir}\\PSTools\\psservice.exe -accepteula  \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} setconfig \"${iServiceName}\" auto "
     try {
         def stdout = new ByteArrayOutputStream()
         exec {
@@ -315,7 +315,7 @@ def renameYAML (String destPathYAML) {
 }
 
 def loadPuppetLog (String certName, String env ) {
-    String logZipURL="${artifactory_contextUrl}/devops/com/verint/puppet/logs/${env}/${certName}/15.1.0.1/${certName}-15.1.0.1.zip"
+    String logZipURL = "${artifactory_contextUrl}/devops/com/verint/puppet/logs/${env}/${certName}/15.1.0.1/${certName}-15.1.0.1.zip"
     boolean rtnValue = true
     if (waitArtifactReady(logZipURL)) {
         configurations {
@@ -379,8 +379,8 @@ def extractInstalledVersion (String [] yamlFiles, File jsRegistry) {
         data."wfoComponents".each { wfoComponents ->
             //logger.quiet(wfoComponents)
             Map<Object> wfoComponentsMap = (Map<Object>) wfoComponents
-            String componentName =""
-            String installedVersion=""
+            String componentName = ""
+            String installedVersion = ""
             String componentGAV = ""
             String componentPC = "false"
 
@@ -402,7 +402,6 @@ def extractInstalledVersion (String [] yamlFiles, File jsRegistry) {
                     if (prop[0]=="ComponentPC") {
                         componentPC = prop[1]
                     }
-
                 }
             }
 
@@ -495,7 +494,7 @@ def loadXMLObject(File xmlFile) {
 
 def getRtnCode (String strException) {
     int lastIndex = strException.lastIndexOf("exit value")
-    String strReturn=""
+    String strReturn = ""
     if (lastIndex>0) {
         strReturn = strException.substring(lastIndex+ "exit value".length()+1)
         //logger.quiet ("GradleUtils: strReturn=->${strReturn}<-")
