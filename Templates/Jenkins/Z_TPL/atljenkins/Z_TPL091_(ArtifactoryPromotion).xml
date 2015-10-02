@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>This one is used to promote a version from multiple repos, to multiples repos with multiple prefixes connected by ##</description>
+  <description>This job is used for fixture promote. The artifacts is always got promoted from the source to target repo.</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.4.1">
@@ -10,59 +10,59 @@
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
-          <name>MasterBuildVersion</name>
-          <description>Version to promote</description>
-          <defaultValue>11.2.1.1</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
           <name>sourceRepos</name>
-          <description>List source of repos - For example, if your project produce the artifact to wfm-ci-snapshot (for normal artifacts) and ci-snapshot (msi) 
-Then the value should be: wfm-ci-snapshot,ci-snapshot</description>
-          <defaultValue>wfm-ci-snapshot,ci-snapshot</defaultValue>
+          <description></description>
+          <defaultValue>ci-release</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>targetRepos</name>
-          <description>List of target repos - If you want to promote artifacts to wfm-ci-release (from wfm-ci-snapshot above for normal artifacts) and ci-release (from ci-snapshot for msi)
-The the value should be: wfm-ci-release,ci-release accordingly</description>
-          <defaultValue>wfm-ci-release,ci-release</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>teamGroupPrefixes</name>
-          <description>Use comma for seperating the list of prefixes for each set of repo, using ## to seperate the prefix in the that list
-This is helpful when you have the share repo and only want to promote your artifacts. It should have difference prefixes.
-Sometime, you can have msi (for example) published to one shared repo but in difference groupid, then you can do this by putting value like 
-com/verint/foundation,com/verint/sr/foundation##com/verint/sr/foundation2
-</description>
-          <defaultValue>com/verint/wfm,com/verint/wfm</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>artifactoryContextURL</name>
-          <description>the artifactory that the artifacts hosted</description>
-          <defaultValue>http://atlartifactory:8081/artifactory</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>DevRootPath</name>
           <description></description>
-          <defaultValue>D:\gitroot\ArtifactoryPromotion\WFM11.2SP1\</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>viewName</name>
-          <description></description>
-          <defaultValue>/job/Z_DEVOPS/job/Z_TPL/view/Z_TPL</defaultValue>
+          <defaultValue>ci-release-temp</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>checkPipelineGreen</name>
-          <description>If you can&apos;t check the pipeline, uncheck this box, will get promote anytime</description>
+          <description>If you can&apos;t check the pipeline, uncheck this box, the pipeline is always considered green</description>
           <defaultValue>true</defaultValue>
         </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>PromoteOnSuccess</name>
+          <description>Condition met, want to promote?</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>DevRootPath</name>
+          <description>Location of ARtifactoryPromote : it is getting from DEVOPS_TOOLS</description>
+          <defaultValue>D:\gitroot\Z_TPL</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>viewName</name>
+          <description>Change the viewName to your pipeline view. If it is in the folder remember to put the path
+For example: /job/FTW/job/WFM/view/WFM_11.2SP1</description>
+          <defaultValue>/job/FTW/view/FTW</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
+    <jenkins.plugins.slack.SlackNotifier_-SlackJobProperty plugin="slack@1.7">
+      <teamDomain></teamDomain>
+      <token></token>
+      <room></room>
+      <startNotification>false</startNotification>
+      <notifySuccess>false</notifySuccess>
+      <notifyAborted>false</notifyAborted>
+      <notifyNotBuilt>false</notifyNotBuilt>
+      <notifyUnstable>false</notifyUnstable>
+      <notifyFailure>false</notifyFailure>
+      <notifyBackToNormal>false</notifyBackToNormal>
+      <notifyRepeatedFailure>false</notifyRepeatedFailure>
+      <includeTestSummary>false</includeTestSummary>
+      <showCommitList>false</showCommitList>
+    </jenkins.plugins.slack.SlackNotifier_-SlackJobProperty>
   </properties>
   <scm class="hudson.plugins.git.GitSCM" plugin="git@2.3.4">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>git@scgit:SC_DevKit</url>
+        <url>git@atlgit:DEVOPS_Tools</url>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
@@ -71,22 +71,18 @@ com/verint/foundation,com/verint/sr/foundation##com/verint/sr/foundation2
       </hudson.plugins.git.BranchSpec>
     </branches>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
-    <gitTool>Default</gitTool>
-    <browser class="hudson.plugins.git.browser.KilnGit">
-      <url></url>
-    </browser>
     <submoduleCfg class="list"/>
     <extensions/>
   </scm>
   <assignedNode>ATL-WFO-Slaves</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
-  <blockBuildWhenDownstreamBuilding>true</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>true</blockBuildWhenUpstreamBuilding>
   <jdk>(Default)</jdk>
   <triggers/>
   <concurrentBuild>true</concurrentBuild>
-  <customWorkspace>${DevRootPath}</customWorkspace>
+  <customWorkspace>${DevRootPath}\ArtifactoryPromotion</customWorkspace>
   <builders>
     <org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder plugin="conditional-buildstep@1.3.3">
       <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
@@ -104,9 +100,9 @@ exit 1</command>
     </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>
     <hudson.plugins.gradle.Gradle plugin="gradle@1.24">
       <description></description>
-      <switches></switches>
-      <tasks>artifactoryPromote -PpromoteVersion=$MasterBuildVersion -PteamGroupPrefixes=$teamGroupPrefixes -PsourceRepos=$sourceRepos -PtargetRepos=$targetRepos -PcontextURL=$artifactoryContextURL</tasks>
-      <rootBuildScriptDir>${workspace}</rootBuildScriptDir>
+      <switches>-i</switches>
+      <tasks>aPT -PsourceRepos=$sourceRepos -PtargetRepos=$targetRepos -PletPromote=$PromoteOnSuccess</tasks>
+      <rootBuildScriptDir></rootBuildScriptDir>
       <buildFile></buildFile>
       <gradleName>(Default)</gradleName>
       <useWrapper>true</useWrapper>
@@ -125,7 +121,6 @@ exit 1</command>
         <hudson.plugins.build__timeout.operations.WriteDescriptionOperation>
           <description>Build timed out (after {0} minutes). Marking the build as failed.</description>
         </hudson.plugins.build__timeout.operations.WriteDescriptionOperation>
-        <hudson.plugins.build__timeout.operations.FailOperation/>
       </operationList>
     </hudson.plugins.build__timeout.BuildTimeoutWrapper>
     <org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder plugin="versionnumber@1.4.1">
@@ -183,7 +178,7 @@ def boolean isJobGreen (String sBuildName, String sReleaseVersion, Object jobIte
   jobName = &quot;${sBuildName}&quot;
   releaseVersion= &quot;${sReleaseVersion}&quot;
 
-  if (jobName.contains(&quot;_(ArtifactoryPromotion)&quot;) || jobName.contains(&quot;Z_TPL&quot;)){
+ if (jobName.contains(&quot;_(ArtifactoryPromotion)&quot;) || jobName.contains(&quot;Z_TPL&quot;)){
      println &quot;     ## Ignoring the job : $jobName &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;:&quot;
      return true
   }

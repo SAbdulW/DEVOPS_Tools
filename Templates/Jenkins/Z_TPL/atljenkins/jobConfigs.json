@@ -1,9 +1,9 @@
 { 
  "viewName": "/job/Z_DEVOPS/job/Z_TPL/view/Z_TPL", 
- "jobList": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL%20(Commit%20Build)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL100_(Back2Pool)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL010_(AssignMachine)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL020_(Puppet)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL032_(RAFTests)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL090_(ArtifactoryPromotion)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL030_(RAFTests)/",
- "firstJobName": "Z_TPL (Commit Build)", 
- "jobs":{"Z_TPL (Commit Build)": {
-    "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL%20(Commit%20Build)/",
+ "jobList": "/job/Z_DEVOPS/job/Z_TPL/job/Z_Test_(Commit%20Build)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL100_(Back2Pool)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL010_(AssignMachine)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL020_(Puppet)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL032_(RAFTests)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL090_(ArtifactoryPromotion)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL091_(ArtifactoryPromotion)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL030_(RAFTests)-%20To%20be%20deleted/",
+ "firstJobName": "Z_Test_(Commit Build)", 
+ "jobs":{"Z_Test_(Commit Build)": {
+    "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_Test_(Commit%20Build)/",
     "customWorkspace": "${DevRootPath}",
     "buildParams": {
         "Branch": "dev",
@@ -13,15 +13,9 @@
         "KeepTheFixtureWhenDone": "false",
         "PromoteOnSuccess": "false"
       },
-    "artifactory": {
-
-      },
     "buildTrigger": {
         "0":{"current":"Z_TPL100_(Back2Pool)",
               "update":"Z_TPL100_(Back2Pool)"}
-      },
-    "buildBloker": {
-
       }
 },
 "Z_TPL100_(Back2Pool)": {
@@ -31,18 +25,10 @@
         "TestEnvFolderPath": "Automation/CI/11.2SP1Latest-Greatst",
         "PendingFolderPath": "Automation/CI/11.2SP1Latest-Running",
         "Snapshot": "Base",
-        "Test_Machine_Name": "",
         "ProvisioningRoot": "",
-        "KeepTheFixtureWhenDone": "false",
-        "ParkingPool": ""
-      },
-    "artifactory": {
-
+        "KeepTheFixtureWhenDone": "false"
       },
     "buildTrigger": {
-
-      },
-    "buildBloker": {
 
       }
 },
@@ -56,13 +42,7 @@
         "DevRootPath": "D:/gitroot/Z_TPL",
         "RetryTime": "6m"
       },
-    "artifactory": {
-
-      },
     "buildTrigger": {
-
-      },
-    "buildBloker": {
 
       }
 },
@@ -81,17 +61,11 @@
         "PromoteOnSuccess": "false",
         "YamlFiles": "../../../ci/puppet.yaml",
         "deployEarFile": "true",
-        "CheckIfWFOLoginPageIsUp ": "false",
+        "CheckIfWFOLoginPageIsUp ": "true",
         "stopStartservices": "WatchDog,MinerTomcat",
         "wfoService": "WFO_ProductionDomain_ProductionServer"
       },
-    "artifactory": {
-
-      },
     "buildTrigger": {
-
-      },
-    "buildBloker": {
 
       }
 },
@@ -109,15 +83,10 @@
         "ConfigBranch": "origin/Generic",
         "SourceScriptFolder": "$WORKSPACE/DEVOPS_Configs/IntegrationTests/RAF/Generic/*",
         "RafScriptsVersion": "11.2.1.0",
-        "RafProductsVersion": "11.2.1.1"
-      },
-    "artifactory": {
-
+        "RafProductsVersion": "11.2.1.1",
+        "ScriptLocator": "workflows/BasicInt.script"
       },
     "buildTrigger": {
-
-      },
-    "buildBloker": {
 
       }
 },
@@ -134,18 +103,27 @@
         "viewName": "/job/Z_DEVOPS/job/Z_TPL/view/Z_TPL",
         "checkPipelineGreen": "true"
       },
-    "artifactory": {
-
-      },
     "buildTrigger": {
-
-      },
-    "buildBloker": {
 
       }
 },
-"Z_TPL030_(RAFTests)": {
-    "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL030_(RAFTests)/",
+"Z_TPL091_(ArtifactoryPromotion)": {
+    "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL091_(ArtifactoryPromotion)/",
+    "customWorkspace": "${DevRootPath}/ArtifactoryPromotion",
+    "buildParams": {
+        "sourceRepos": "ci-release",
+        "targetRepos": "ci-release-temp",
+        "checkPipelineGreen": "true",
+        "PromoteOnSuccess": "false",
+        "DevRootPath": "D:/gitroot/Z_TPL",
+        "viewName": "/job/FTW/view/FTW"
+      },
+    "buildTrigger": {
+
+      }
+},
+"Z_TPL030_(RAFTests)- To be deleted": {
+    "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL030_(RAFTests)-%20To%20be%20deleted/",
     "customWorkspace": "$DevRootPath",
     "buildParams": {
         "DevRootPath": "D:/gitroot/Z_TPL",
@@ -160,13 +138,7 @@
         "Test_Machine_Name": "2008base",
         "PrivateRaf": "false"
       },
-    "artifactory": {
-
-      },
     "buildTrigger": {
-
-      },
-    "buildBloker": {
 
       }
 }

@@ -70,7 +70,7 @@ with runPA -PcurrentVersion=$MasterBuildVersion  </description>
         <hudson.model.BooleanParameterDefinition>
           <name>CheckIfWFOLoginPageIsUp </name>
           <description>By checking this property the Puppet agent will verify that the WFO Login Page Is Up at the end of the process. It does not required if &quot;DeplyEarFile&quot; was already checked</description>
-          <defaultValue>false</defaultValue>
+          <defaultValue>true</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>stopStartservices</name>
@@ -116,7 +116,7 @@ with runPA -PcurrentVersion=$MasterBuildVersion  </description>
     <submoduleCfg class="list"/>
     <extensions/>
   </scm>
-  <assignedNode>Slave-B-Staging01</assignedNode>
+  <assignedNode>ATL-FTW-Slaves</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -135,8 +135,8 @@ with runPA -PcurrentVersion=$MasterBuildVersion  </description>
 -PyamlFiles=${YamlFiles}
 -PdeployEarFile=${deployEarFile}
 -PchkApp=${CheckIfWFOLoginPageIsUp}
--PwfoService=${wfoService}
--PstopStartservices=${stopStartservices}</tasks>
+-PwfoService=&quot;${wfoService}&quot;
+-PstopStartservices=&quot;${stopStartservices}&quot;</tasks>
       <rootBuildScriptDir>${workspace}\Scripts\GradleUtils\</rootBuildScriptDir>
       <buildFile></buildFile>
       <gradleName>(Default)</gradleName>

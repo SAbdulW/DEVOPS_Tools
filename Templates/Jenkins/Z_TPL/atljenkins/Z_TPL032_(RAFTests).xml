@@ -70,6 +70,11 @@
           <description></description>
           <defaultValue>11.2.1.1</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ScriptLocator</name>
+          <description></description>
+          <defaultValue>workflows\BasicInt.script</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <jenkins.plugins.slack.SlackNotifier_-SlackJobProperty plugin="slack@1.7">
@@ -182,10 +187,10 @@ xcopy /S /E /Y &quot;%SourceScriptFolder%&quot; &quot;%RafInstallDir%&quot;</com
       </conditionalbuilders>
     </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>
     <hudson.tasks.BatchFile>
-      <command>echo &quot;%RafInstallDir%\rafcli.exe&quot; &quot;%ScriptLocation%&quot; &quot;%DefaultRafParams%&quot; &quot;%RafParams%&quot;&#xd;
+      <command>echo &quot;%RafInstallDir%\rafcli.exe&quot; &quot;%ScriptLocation%&quot; %DefaultRafParams% %RafParams%&#xd;
 echo ==========&#xd;
 &#xd;
-&quot;%RafInstallDir%\rafcli.exe&quot; &quot;%ScriptLocation%&quot; &quot;%DefaultRafParams%&quot; &quot;%RafParams%&quot;&#xd;
+&quot;%RafInstallDir%\rafcli.exe&quot; &quot;%ScriptLocation%&quot; %DefaultRafParams% %RafParams%&#xd;
 &#xd;
 echo ================= done=================================&#xd;
 </command>
@@ -230,15 +235,15 @@ echo ================= done=================================&#xd;
     </org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder>
     <EnvInjectBuildWrapper plugin="envinject@1.90">
       <info>
-        <propertiesContent>DefaultRafParams=--param WorkflowsLib:&quot;$WORKSPACE\raf\Regression Automation Framework\workflows\lib&quot; --param InstallDir:&quot;$WORKSPACE\raf\Regression Automation Framework\&quot; --param ServerNameApp:$VmIp --param ServerNameConsolidate:$VmIp --param WinDomain:$VmIp --param ReportDir:$WORKSPACE\reports --param ReportsCentralDirectory:&quot;$WORKSPACE\reports&quot;
+        <propertiesContent>DefaultRafParams=--param WorkflowsLib:&quot;$WORKSPACE\raf\Regression Automation Framework\workflows\lib&quot; --param InstallDir:&quot;$WORKSPACE\raf\Regression Automation Framework&quot; --param ServerNameApp:$VmIp --param ServerNameConsolidate:$VmIp --param WinDomain:$VmIp --param ReportDir:$WORKSPACE\reports --param ReportsCentralDirectory:&quot;$WORKSPACE\reports&quot;
 
-DefaultRafParamsBK=--param WorkflowsLib:&quot;$WORKSPACE\raf\Regression Automation Framework\workflows&quot; --param InstallDir:&quot;$WORKSPACE\raf\Regression Automation Framework\&quot; --param ServerNameApp:$VmIp --param ServerNameConsolidate:$DnsName --param WinDomain:$DnsName --param ReportDir:$WORKSPACE\reports --param ReportsCentralDirectory:&quot;$WORKSPACE\reports&quot;
+DefaultRafParamsBK=--param WorkflowsLib:&quot;$WORKSPACE\raf\Regression Automation Framework\workflows&quot; --param InstallDir:&quot;$WORKSPACE\raf\Regression Automation Framework&quot; --param ServerNameApp:$VmIp --param ServerNameConsolidate:$DnsName --param WinDomain:$DnsName --param ReportDir:$WORKSPACE\reports --param ReportsCentralDirectory:&quot;$WORKSPACE\reports&quot;
 
 RafInstallDir=$WORKSPACE\raf\Regression Automation Framework\
 
 SourceScriptFolder=$SourceScriptFolder
 
-ScriptLocation=$WORKSPACE\raf\Regression Automation Framework\workflows\BasicInt.script
+ScriptLocation=$WORKSPACE\raf\Regression Automation Framework\$ScriptLocator
 
 ReportDir=$WORKSPACE\reports
 RafParams=$RafParams</propertiesContent>
