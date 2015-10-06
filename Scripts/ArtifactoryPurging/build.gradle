@@ -1,6 +1,5 @@
 import groovy.json.JsonSlurper
 
-
 ext.supportedGradleVersion = '2.3'
 
 allprojects {
@@ -9,110 +8,171 @@ allprojects {
 	version = currentVersion
 }
 
-// Get list of repositories from Artifactory, write the list into a file
 task artifactoryPurgingTask() <<{
-
-   // artifactorySearch ("ci-release", 1)
-    //List resultsList = artifactorySearch ("devops", 1, "com/verint/puppet/logs")
-    //List resultsList = artifactorySearch ("ci-snapshot", 1, "com/verint")
-    //deleteItems(resultsList)
-
-    logger.quiet("\nArtifactoryPurging: ****************************************************************************")
-    logger.quiet("ArtifactoryPurging: *                     PURGING                                                *")
-    logger.quiet("\npurgingRepos: ${purgingRepos}")
-    logger.quiet("\npurgingDateToKeeps: ${purgingDateToKeeps}")
-    logger.quiet("\npurgingMinimumToKeep: ${purgingMinimumToKeep}")
-    logger.quiet("\npurgingPathMatch: ${purgingPathMatch}")
-    logger.quiet("ArtifactoryPurging: *                                                              *")
-    logger.quiet("\nArtifactoryPurging: ****************************************************************************")
-
-    logger.quiet ("$purgingRepos")
-    logger.quiet ("$purgingDateToKeeps")
-    logger.quiet ("$purgingPathMatch")
+    logger.quiet("ArtifactoryPurging: ****************************************************************************")
+    logger.quiet("purgingRepos:             ${purgingRepos}")
+    logger.quiet("purgingDateToKeeps:       ${purgingDateToKeeps}")
+    logger.quiet("purgingMinimumToKeep:     ${purgingMinimumToKeep}")
+    logger.quiet("purgingPathMatch:         ${purgingPathMatch}")
+    logger.quiet("viewOnly:                 ${viewOnly}")
+    logger.quiet("ArtifactoryPurging: ****************************************************************************")
 
     artifactoryPurging ("$purgingRepos", "$purgingDateToKeeps", "$purgingMinimumToKeep", "$purgingPathMatch")
 }
 
-task artifactorySearchingTask() <<{
-
-    logger.quiet("\nArtifactoryPurging: ****************************************************************************")
-    logger.quiet("ArtifactoryPurging: *                     SEARCHING                                                *")
-    logger.quiet("\npurgingRepos: ${purgingRepos}")
-    logger.quiet("\npurgingDateToKeeps: ${purgingDateToKeeps}")
-    logger.quiet("\npurgingMinimumToKeep: ${purgingMinimumToKeep}")
-    logger.quiet("\npurgingPathMatch: ${purgingPathMatch}")
-    logger.quiet("ArtifactoryPurging: *                                                              *")
-    logger.quiet("\nArtifactoryPurging: ****************************************************************************")
-
-    logger.quiet ("$purgingRepos")
-    logger.quiet ("$purgingDateToKeeps")
-    logger.quiet ("$purgingPathMatch")
-
-    artifactorySearching ("$purgingRepos", "$purgingDateToKeeps", "$purgingMinimumToKeep", "$purgingPathMatch")
-}
-
 def artifactoryPurging (String repos, String dayToKeeps, String minimumToKeeps, String pathMatches){
-    def reposList= repos.split(',')
+    def reposList = repos.split(',')
     def dayToKeepsList = dayToKeeps.split(',')
     def minimumToKeepsList = minimumToKeeps.split(',')
     def pathMatchesList = pathMatches.split(',')
 
     if ((reposList.length != dayToKeepsList.length)||(reposList.length !=pathMatchesList.length)){
-        logger.quiet ("         ### ERROR: Wrong configuration, mismatch two lists of repos")
-    }else{
-        for (int i=0; i< reposList.length; i++){
-            String repoKey = reposList[i]
-            String dayToKeep = dayToKeepsList[i]
-            String minimumToKeep = minimumToKeepsList[i]
-            String pathMatch = pathMatchesList[i]
-            logger.quiet ("$repoKey")
-            logger.quiet ("$dayToKeep")
-            logger.quiet ("$minimumToKeep")
-            logger.quiet ("$pathMatch")
-
-            List resultsList = artifactorySearch (repoKey, dayToKeep.toInteger(), pathMatch)
-            deleteItems(resultsList, repoKey, minimumToKeep)
-        }
+        logger.quiet ("### ERROR: Wrong configuration, mismatch two lists of repos")
     }
-}
-
-def artifactorySearching (String repos, String dayToKeeps, String minimumToKeeps, String pathMatches){
-    def reposList= repos.split(',')
-    def dayToKeepsList = dayToKeeps.split(',')
-    def minimumToKeepsList = minimumToKeeps.split(',')
-    def pathMatchesList = pathMatches.split(',')
-
-    if ((reposList.length != dayToKeepsList.length)||(reposList.length !=pathMatchesList.length)){
-        logger.quiet ("         ### ERROR: Wrong configuration, mismatch two lists of repos")
-    }else{
+    else{
         for (int i=0; i< reposList.length; i++){
             String repoKey = reposList[i]
             String dayToKeep = dayToKeepsList[i]
             String minimumToKeep = minimumToKeepsList[i]
             String pathMatch = pathMatchesList[i]
-            logger.quiet ("$repoKey")
-            logger.quiet ("$dayToKeep")
-            logger.quiet ("$minimumToKeep")
-            logger.quiet ("$pathMatch")
+            logger.quiet("Processing repo [$repoKey] with [$dayToKeep] days to keep and minimum of [$minimumToKeep] versions of any artifact to keep and only purge partifacts have path match [$pathMatch]\r\n")
 
-            List resultsList = artifactorySearch (repoKey, dayToKeep.toInteger(), pathMatch)
+            File fFullL = new File ("$projectDir/${repoKey}_FullList.log")
+            File fDelete = new File ("$projectDir/${repoKey}_DeleteList.log")
+            File fExclude = new File ("$projectDir/${repoKey}_ExcludeList.log")
+            File fDoNotPurge = new File ("$projectDir/${repoKey}_DoNotPurgeList.log")
+            fFullL.setText("ALL ARTIFACTS OLDER THAN $dayToKeep DAYS\r\n")
+            fExclude.setText("THESE ARTIFACTS HAVE BEEN EXCLUDED FROM PURGING\r\n")
+            fDoNotPurge.setText("THESE ARTIFACTS HAVE 'DO NOT PURGE' PROPERTY SET AND HAVE NOT BEEN PURGED\r\n")
+            if ("${viewOnly}".toBoolean()) {
+                fDelete.setText("THIS IS JUST A DRY RUN. NO REAL PURGING HAPPENING\r\n")
+            }
+            else{
+                fDelete.setText("THESE ARTIFACTS HAVE BEEN PURGED\r\n")
+            }
 
-            resultsList.each { resultItem ->
-                if(!isPurgable(resultItem)){
-                    logger.quiet("Artifact: $resultItem.name - PATH: $resultItem.path : DO NOT PURGE")
+            // get list of top latest versions of an artifact to keep
+            List topLatestPathList = getXNumberLatestArtifacts("$minimumToKeep".toInteger(), repoKey, fExclude)
+
+
+            // get list of all artifacts marked as do not purge
+            List doNotPurgeList = getArtifactsTaggedAsDoNotPurge(repoKey, pathMatch)
+            List doNotPurgePathList = []
+            doNotPurgeList.each { item ->
+                doNotPurgePathList.add(item.path)
+                fDoNotPurge << item.path + "\r\n"
+            }
+
+
+            // get all artifacts OLDER than configured days
+            List candidateList = getArtifactsOlderThanXDays (repoKey, pathMatch, dayToKeep.toInteger())
+            candidateList.each { item ->
+                fFullL << item.path + "\r\n"
+
+                // check if it should really be purged
+                logger.quiet("Checking artifact before purge: $item.path")
+                if(doNotPurgePathList.any{it == item.path}){
+                    logger.quiet("    > It is in DO NOT PURGE list - let it go")
+                }
+                else if (topLatestPathList.any{it == item.path}){
+                    logger.quiet("    > It is in TOP MINIMUM TO KEEP list - let it go")
+                }
+                else if (isMatchPurgingExcluded("${purgingExcluded}", item.path)){
+                    logger.quiet("    > It is in EXCLUDED PATH list - let it go")
+                }
+                else if ("${viewOnly}".toBoolean()) {
+                    logger.quiet("    > DRY-RUN DELETING: $item.path")
+                    fDelete << item.path + "\r\n"
+                }
+                else{
+                    logger.quiet("    > DELETING: $item.path")
+                    deleteAnArtifactVersion(item, repoKey)
+                    fDelete << item.path + "\r\n"
                 }
             }
+
+
         }
     }
+}
+
+def List getArtifactsOlderThanXDays(String repo, String pathMatch, int x){
+    def selectedDate = new Date() - x
+    String selectedDateString = selectedDate.format("yyyy-MM-dd hh:mm:ss")
+    selectedDateString = selectedDateString.replaceAll(" ","T")
+    String notMatch="maven-metadata.xml"
+
+    String aqlQuery =
+            "items.find" +
+                    "(" +
+                    "    {" +
+                    "        \"repo\":{\"\$eq\":\"${repo}\"}" +
+                    "        ,\"created\":{\"\$lt\":\"${selectedDateString}\"}" +
+                    "        ,\"updated\":{\"\$lt\":\"${selectedDateString}\"}" +
+                    "        ,\"path\":{\"\$match\":\"${pathMatch}*\"}" +
+                    "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" +
+                    "    }"  +
+                    ").include(\"name\", \"path\")"
+
+    List resultsList  = search(aqlQuery)
+    return resultsList
+}
+
+def List getArtifactsTaggedAsDoNotPurge(String repo, String pathMatch){
+    String aqlQuery =
+            "items.find" +
+                    "(" +
+                    "    {" +
+                    "        \"repo\":{\"\$eq\":\"${repo}\"}" +
+                    "        ,\"@DONOTPURGE\":{\"\$match\":\"*\"}" +
+                    "    }"  +
+                    ").include(\"name\", \"path\")"
+
+    List resultsList  = search(aqlQuery)
+    return resultsList
+}
+
+def List getXNumberLatestArtifacts(int topElement, String repoKey, File fKeep){
+    def mapLastItems = [:]
+    def mapLastItemsKeep = [:]
+
+    List resultsList = getArtifactsOlderThanXDays(repoKey, "*", 0)
+    resultsList.each { resultItem ->
+        String itemPath = resultItem."path";
+        mapLastItems= putToTheMap(mapLastItems, itemPath, repoKey)
+    }
+
+    mapLastItems.each { itemPathRoot, listItems ->
+        List listToKeep = listItems.reverse().take(topElement)
+        mapLastItemsKeep.put (itemPathRoot,listToKeep )
+    }
+
+    def rtnList = []
+    mapLastItemsKeep.each {  itemPathRoot, listItems ->
+        fKeep << "========================Item: ${itemPathRoot}\n"
+        listItems.each { item ->
+            fKeep << "${item}\r\n"
+            rtnList.add (item)
+        }
+    }
+
+    return rtnList
+}
+
+def List search(String aql ){
+    logger.quiet("Artifactory query: $aql")
+
+    def String resultsJsonText = executeAQL(aql)
+    def resultsJson = new JsonSlurper().parseText(resultsJsonText)
+
+    List resultsList  = resultsJson.results
+    File searchResultFile = new File ("searchResult.json")
+    searchResultFile.text = "${resultsJsonText}"
+
+    return resultsList
 }
 
 def String executeAQL(String query){
-    logger.quiet("\nArtifactoryPurging: ****************************************************************************")
-    logger.quiet("ArtifactoryPurging: *                     Execute AQL :                                          *")
-    logger.quiet("\n${query}")
-    logger.quiet("ArtifactoryPurging: *                                                              *")
-    logger.quiet("\nArtifactoryPurging: ****************************************************************************")
-
     String filePath =""
     File tempArtifactsList = File.createTempFile("aqlResult",".result");
     filePath = tempArtifactsList.getAbsolutePath()
@@ -124,12 +184,9 @@ def String executeAQL(String query){
 
     aqlQueryFile.text = "${query}"
 
-    String sCmd = ""
+    String sCmd = "curl -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$contextURL/api/search/aql\" -T\"${aqlQueryFilePath}\"  -o \"$filePath\""
+    logger.quiet("Execute AQL: ${sCmd}")
 
-    sCmd = "curl -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$contextURL/api/search/aql\" -T\"${aqlQueryFilePath}\"  -o \"$filePath\""
-    logger.quiet("ArtifactoryPurging: * Command to execute: ${sCmd}")
-
-    String rtnCode=""
     try {
         exec {
             commandLine 'sh', '-c', sCmd
@@ -140,266 +197,44 @@ def String executeAQL(String query){
 
     }
 
-    //executeOnShellFile sCmd
-
     //def inputJSON = new JsonSlurper().parseText(tempArtifactsList.text)
     String rtnText = tempArtifactsList.text
     tempArtifactsList.delete()
     aqlQueryFile.delete()
-    //return inputJSON
+
     return rtnText
 }
 
-def List artifactorySearch(String repoKey, int lastNumDays, String repoPath ){
-    logger.quiet("\nArtifactoryPurging: ****************************************************************************")
-    logger.quiet("ArtifactoryPurging: *                     Search artifact from repo: ${repoKey}         *")
-    logger.quiet("\nArtifactoryPurging: ****************************************************************************")
-    def selectedDate = new Date() -lastNumDays
-    String selectedDateString = selectedDate.format("yyyy-MM-dd hh:mm:ss")
-    selectedDateString = selectedDateString.replaceAll(" ","T")
-    //String selectedDateString = selectedDate.format("yyyy-MM-dd")
-    //String selectedDateString = "2015-07-28T00:00:00.000-00:00"
-    logger.quiet("ArtifactoryPurging: *                     Selected Date : ${selectedDateString}*")
-    String notMatch="maven-metadata.xml"
-    String aqlQuery= "items.find(\n" +
-            "    {\n" +
-            "        \"repo\":{\"\$eq\":\"${repoKey}\"}\n" +
-            "        ,\"created\":{\"\$lt\":\"${selectedDateString}\"}" +
-            "        ,\"path\":{\"\$match\":\"${repoPath}*\"}" +
-            "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" +
-            "    }\n" +
-            ").include(\"property.*\")"
-
-    def String resultsJsonText=executeAQL(aqlQuery)
-    def resultsJson = new JsonSlurper().parseText(resultsJsonText)
-
-    List resultsList  = resultsJson.results
-    //logger.quiet("Result:\n" + resultsList)
-    File searchResultFile = new File ("searchResult.json")
-    searchResultFile.text = "${resultsJsonText}"
-
-    return resultsList
-}
-
-def deleteItems(List resultsList, String repoKey, String minimumToKeep){
-    File fDelete = new File ("$projectDir/${repoKey}_DeleteList.log")
-    File fExclude = new File ("$projectDir/${repoKey}_ExcludeList.log")
-    File fDoNotPurge = new File ("$projectDir/${repoKey}_DoNotPurgeList.log")
-
-    if ("${viewOnly}".toBoolean()) {
-        fDelete << "THIS IS JUST A DRY RUN. NO REAL PURGING HAPPENING\r\n"
-    }
-
-    // [Chau] this is incorrect because it get top of the list of artifacts OLDER than X day
-    // we want top of ALL artifact - don't care about date
-    //List latestList = getLatestArtifacts (resultsList, "$topToKeep".toInteger(), repoKey, fExcluded )
-    List latestList = getXLatestArtifacts("$minimumToKeep".toInteger(), repoKey, fExclude )
-
-    resultsList.each { resultItem ->
-        String itemPath = resultItem."path";
-        if ( !isPurgable(resultItem)) {
-            fDoNotPurge << "$resultItem.path\r\n"
-        }
-        else if ( (resultItem."name" != "maven-metadata.xml") && ((itemPath.contains("/15") || (itemPath.contains("/11")))) && !isInList(latestList,itemPath)) {
-            deleteItemFolder(resultItem, fDelete, fExclude)
-        }
-    }
-
-}
-
-def deleteItem(Object itemToDelete){
-    String itemToDeleteURI = "${contextURL}" + "/" + itemToDelete."repo" + "/" +  itemToDelete."path" //+ "/" + itemToDelete."name"
-    logger.info("Deleting URI...:  ${itemToDeleteURI} ")
-
-    itemToDeleteURI=itemToDeleteURI.replaceAll(" ", "%20" )
-
-    String sCmd = ""
-
-    sCmd = "curl -f -X DELETE -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"${itemToDeleteURI}\" "
-    logger.info("ArtifactoryPurging: * Command to delete: ${sCmd}")
-
-    String rtnCode=""
-    try {
-        exec {
-            if (!("${viewOnly}".toBoolean())) {
-                //commandLine 'sh', '-c', sCmd
-                logger.info("************ArtifactoryPurging: ${itemToDeleteURI} is DELETED")
-            }else{
-                logger.info("************ArtifactoryPurging: ${itemToDeleteURI} is TO BE DELETED")
-            }
-
-        }
-    }
-    catch (Exception e) {
-        logger.info("************ArtifactoryPurging: ${itemToDeleteURI} is FAILED deleted")
-        logger.info ("ArtifactoryPurging: some " + e.toString())
-
-    }
-    return itemToDeleteURI
-}
-
-def deleteItemFolder(Object itemToDelete, File fDelete, File fExclude){
-    String itemPath= itemToDelete."path"
-    int lastIndex = itemPath.lastIndexOf("/")
-
+def deleteAnArtifactVersion(Object itemToDelete, String repoKey){
     //To delete the whole folder
-    String itemPathFolder = itemPath
-    String itemFolderToDeleteURI = "${contextURL}" + "/" + itemToDelete."repo" + "/" +  itemPathFolder //+ "/" + itemToDelete."name"
-
+    String itemFolderToDeleteURI = "${contextURL}" + "/" + repoKey + "/" +  itemToDelete.path
     itemFolderToDeleteURI = itemFolderToDeleteURI.replaceAll(" ", "%20" )
 
-    String sCmd = ""
-    sCmd = "curl -f -X DELETE -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"${itemFolderToDeleteURI}\" "
-    //logger.info("ArtifactoryPurging: * Command to delete: ${sCmd}")
+    String sCmd = "curl -f -X DELETE -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"${itemFolderToDeleteURI}\" "
 
-    String rtnCode=""
     try {
-        if (!matchPurgingExcluded("${purgingExcluded}", itemFolderToDeleteURI, fExclude)) {
-            if (!("${viewOnly}".toBoolean())) {
-                exec {
-                    logger.info("DELETING: ${itemFolderToDeleteURI}")
-                    commandLine 'sh', '-c', sCmd
-                    fDelete << "${itemFolderToDeleteURI}\r\n"
-                }
-            } else {
-                logger.info("FAKE DELETING: ${itemFolderToDeleteURI}")
-                fDelete << "${itemFolderToDeleteURI}\r\n"
-            }
-        }else{
-
+        exec {
+            commandLine 'sh', '-c', sCmd
         }
     }
     catch (Exception e) {
-        logger.info("************ArtifactoryPurging: ${itemFolderToDeleteURI} is FAILED deleted")
-        logger.info ("ArtifactoryPurging: some " + e.toString())
-        //throw new GradleException ("${e}")
-
+        logger.quiet("FAILED DELETING: ${itemFolderToDeleteURI}")
+        logger.quiet ("    > Reason: " + e.toString())
     }
-    return itemFolderToDeleteURI
 }
 
-def boolean matchPurgingExcluded(String purgingExcluded, String uriToCheck, File fExcluded){
+def boolean isMatchPurgingExcluded(String purgingExcluded, String uriToCheck){
     def purgingExcludedList= purgingExcluded.split(',')
     boolean foundIt=false
     purgingExcludedList.each { purgingExcludedItem ->
         if (!foundIt){
             if (uriToCheck.contains("${purgingExcludedItem}")){
                 foundIt = true
-                logger.info("EXCLUDING: ${uriToCheck} - because matched the ${purgingExcludedItem}")
-                fExcluded << "\"EXCLUDING: ${uriToCheck} - because matched the ${purgingExcludedItem}\"\r\n"
             }
         }
     }
 
     return foundIt
-}
-
-
-def List getLatestArtifacts(List resultsList, int topElement, String repoKey, File fKeep){
-    def mapLastItems = [:]
-    def mapLastItemsKeep = [:]
-    def mapLastItemsGo = [:]
-
-    resultsList.each { resultItem ->
-        //itemURI =deleteItem (resultItem)
-        String itemPath = resultItem."path";
-
-        if( (resultItem."name" != "maven-metadata.xml") && ((itemPath.contains("/15") || (itemPath.contains("/11"))))) {
-            mapLastItems= putToTheMap(mapLastItems, itemPath, repoKey)
-        }
-    }
-
-    mapLastItems.each { itemPathRoot, listItems ->
-        //List listToKeep = listItems.sort().take(topElement)
-        List listToKeep = listItems.reverse().take(topElement)
-
-       // List listToGo = listItems.sort().drop(topElement)
-        mapLastItemsKeep.put (itemPathRoot,listToKeep )
-       // mapLastItemsGo.put (itemPathRoot, listToGo)
-    }
-
-//    File fKeep = new File ("$projectDir/${repoKey}_keepList.log")
-    //File fGo = new File ("$projectDir/goList.log")
-
-    fKeep << "************************************************\n"
-    fKeep << "List top ${topElement} item to keep\n"
-    fKeep << "************************************************\n"
-    //fGo.write "List item to be consider original \n"
-
-    def rtnList = []
-
-    mapLastItemsKeep.each {  itemPathRoot, listItems ->
-        fKeep << "========================Item: ${itemPathRoot}\n"
-        listItems.each { item ->
-            fKeep << "${item}\n"
-            rtnList.add (item)
-        }
-    }
-
-//    logger.quiet("${mapLastItemsGo}")
-//    mapLastItemsGo.each {  itemPathRootGo, listGoItems ->
-//        logger.quiet("${itemPathRootGo}")
-//        logger.quiet("${listGoItems}")
-//
-//        listGoItems.each { itemGo ->
-//            fGo << "${itemGo}"
-//        }
-//    }
-    return rtnList
-}
-
-def List getXLatestArtifacts(int topElement, String repoKey, File fKeep){
-    def mapLastItems = [:]
-    def mapLastItemsKeep = [:]
-    def mapLastItemsGo = [:]
-
-    List resultsList = artifactorySearch(repoKey, 0, "")
-    resultsList.each { resultItem ->
-        //itemURI =deleteItem (resultItem)
-        String itemPath = resultItem."path";
-
-        if( (resultItem."name" != "maven-metadata.xml") && ((itemPath.contains("/15") || (itemPath.contains("/11"))))) {
-            mapLastItems= putToTheMap(mapLastItems, itemPath, repoKey)
-        }
-    }
-
-    mapLastItems.each { itemPathRoot, listItems ->
-        //List listToKeep = listItems.sort().take(topElement)
-        List listToKeep = listItems.reverse().take(topElement)
-
-        // List listToGo = listItems.sort().drop(topElement)
-        mapLastItemsKeep.put (itemPathRoot,listToKeep )
-        // mapLastItemsGo.put (itemPathRoot, listToGo)
-    }
-
-//    File fKeep = new File ("$projectDir/${repoKey}_keepList.log")
-    //File fGo = new File ("$projectDir/goList.log")
-
-    fKeep << "************************************************\r\n"
-    fKeep << "List top ${topElement} item to keep\r\n"
-    fKeep << "************************************************\r\n"
-    //fGo.write "List item to be consider original \n"
-
-    def rtnList = []
-
-    mapLastItemsKeep.each {  itemPathRoot, listItems ->
-        fKeep << "========================Item: ${itemPathRoot}\n"
-        listItems.each { item ->
-            fKeep << "${item}\r\n"
-            rtnList.add (item)
-        }
-    }
-
-//    logger.quiet("${mapLastItemsGo}")
-//    mapLastItemsGo.each {  itemPathRootGo, listGoItems ->
-//        logger.quiet("${itemPathRootGo}")
-//        logger.quiet("${listGoItems}")
-//
-//        listGoItems.each { itemGo ->
-//            fGo << "${itemGo}"
-//        }
-//    }
-    return rtnList
 }
 
 def putToTheMap (Object mapLastItems, String itemPath, String repoKey ){
@@ -412,12 +247,12 @@ def putToTheMap (Object mapLastItems, String itemPath, String repoKey ){
         itemPathRoot = itemPathRoot.substring(0,lastIndex)
     }
 
-    logger.quiet ("$itemPathRoot:$itemPath")
+    //logger.quiet ("$itemPathRoot:$itemPath")
     List mapLastItem = []
     mapLastItem = mapLastItems.get(itemPathRoot);
 
     if (mapLastItem!=null){
-        if (!isInList(mapLastItem, itemPath)) {
+        if (!mapLastItem.any {it == itemPath}) {
             mapLastItem.add(itemPath)
             mapLastItems.put(itemPathRoot, mapLastItem)
         }
@@ -428,33 +263,6 @@ def putToTheMap (Object mapLastItems, String itemPath, String repoKey ){
     }
 
     return mapLastItems
-}
-
-def isInList(Object listItems, String item){
-    boolean rtnValue = false;
-    listItems.each { listItem ->
-        if (!rtnValue && (listItem==item)) {
-            rtnValue=true
-        }
-    }
-
-    return rtnValue;
-
-}
-
-def isPurgable(Object artifact){
-    boolean rtnValue = true;
-    List props = artifact.properties;
-    props.each { prop ->
-        String key = prop.key
-        String value = prop.value
-        if( "DONOTPURGE".equalsIgnoreCase(key)){
-            rtnValue = false
-            logger.quiet("ARTIFACT: $artifact.name" + " - PATH: $artifact.path: has DO NOT PURGE turned on")
-        }
-    }
-
-    return rtnValue;
 }
 
 task wrapper(type: Wrapper) {
