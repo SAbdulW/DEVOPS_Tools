@@ -1,6 +1,6 @@
 { 
  "viewName": "/job/Z_DEVOPS/job/Z_TPL/view/Z_TPL", 
- "jobList": "/job/Z_DEVOPS/job/Z_TPL/job/Z_Test_(Commit%20Build)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL100_(Back2Pool)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL010_(AssignMachine)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL020_(Puppet)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL032_(RAFTests)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL090_(ArtifactoryPromotion)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL091_(ArtifactoryPromotion)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL030_(RAFTests)-%20To%20be%20deleted/",
+ "jobList": "/job/Z_DEVOPS/job/Z_TPL/job/Z_Test_(Commit%20Build)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL010_(AssignMachine)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL020_(Puppet)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL032_(RAFTests)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL090_(ArtifactoryPromotion)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL091_(ArtifactoryPromotion)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL080_(RemoteCall)/",
  "firstJobName": "Z_Test_(Commit Build)", 
  "jobs":{"Z_Test_(Commit Build)": {
     "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_Test_(Commit%20Build)/",
@@ -14,21 +14,6 @@
         "PromoteOnSuccess": "false"
       },
     "buildTrigger": {
-        "0":{"current":"Z_TPL100_(Back2Pool)",
-              "update":"Z_TPL100_(Back2Pool)"}
-      }
-},
-"Z_TPL100_(Back2Pool)": {
-    "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL100_(Back2Pool)/",
-    "customWorkspace": "",
-    "buildParams": {
-        "TestEnvFolderPath": "Automation/CI/11.2SP1Latest-Greatst",
-        "PendingFolderPath": "Automation/CI/11.2SP1Latest-Running",
-        "Snapshot": "Base",
-        "ProvisioningRoot": "",
-        "KeepTheFixtureWhenDone": "false"
-      },
-    "buildTrigger": {
 
       }
 },
@@ -39,8 +24,14 @@
         "ProvisioningRoot": "Fixture/11.2.1.x/Green",
         "PendingPoolFolder": "Pending",
         "RunningPoolFolder": "Running",
+        "ParkingPoolFolder": "Parking",
         "DevRootPath": "D:/gitroot/Z_TPL",
-        "RetryTime": "6m"
+        "RetryTime": "6m",
+        "LeaseTime": "1",
+        "PeriodicTime": "2",
+        "KeepTheFixtureWhenDone": "false",
+        "Assign_Config_Branch": "origin/WFO_POC",
+        "Assign_Config_Folder": "AssignMachine"
       },
     "buildTrigger": {
 
@@ -83,8 +74,8 @@
         "ConfigBranch": "origin/Generic",
         "SourceScriptFolder": "$WORKSPACE/DEVOPS_Configs/IntegrationTests/RAF/Generic/*",
         "RafScriptsVersion": "11.2.1.0",
-        "RafProductsVersion": "11.2.1.1",
-        "ScriptLocator": "workflows/BasicInt.script"
+        "RafProductsVersion": "11.2.1.4",
+        "ScriptLocator": "raf/Regression Automation Framework/workflows/BasicInt.script"
       },
     "buildTrigger": {
 
@@ -116,27 +107,25 @@
         "checkPipelineGreen": "true",
         "PromoteOnSuccess": "false",
         "DevRootPath": "D:/gitroot/Z_TPL",
-        "viewName": "/job/FTW/view/FTW"
+        "viewName": "/job/FTW/view/FTW",
+        "installedVersionFiles": "../ci_global/Scripts/GradleUtils/PPLogs/installedVersions.json"
       },
     "buildTrigger": {
 
       }
 },
-"Z_TPL030_(RAFTests)- To be deleted": {
-    "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL030_(RAFTests)-%20To%20be%20deleted/",
-    "customWorkspace": "$DevRootPath",
+"Z_TPL080_(RemoteCall)": {
+    "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL080_(RemoteCall)/",
+    "customWorkspace": "/etc/vebutu/jkws/${envID}",
     "buildParams": {
-        "DevRootPath": "D:/gitroot/Z_TPL",
-        "ScriptLocation": "ci_global/IntegrationTests/RAF/Generic/workflows/BasicInt.script",
-        "EnvPramLocation": "ci_global/IntegrationTests/RAF/Generic/workflows/env.params",
-        "PrivateScriptLocation": "ci/IntegrationTests/RAF/workflows/Int.suite",
-        "PrivateEnvPramLocation": "ci/IntegrationTests/RAF/workflows/env.params",
-        "VmIp": "#10.156.16.125",
-        "TestMachineAdmin": "systemadmin",
+        "MasterBuildVersion": "15.1.1",
+        "VmIp": "10.156.6.53",
         "VmPw": "!veRinT$5",
-        "RafDir": "Regression Automation Framework",
-        "Test_Machine_Name": "2008base",
-        "PrivateRaf": "false"
+        "VmUser": "systemadmin",
+        "artifactoryContextURL": "http://atlartifactory:8081/artifactory",
+        "envID": "base01",
+        "playbook": "playbook.yaml",
+        "playbookAsIs": "playbookAsIs.yaml"
       },
     "buildTrigger": {
 

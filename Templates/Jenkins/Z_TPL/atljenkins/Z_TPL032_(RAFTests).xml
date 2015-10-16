@@ -4,7 +4,7 @@
   <description></description>
   <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>-1</daysToKeep>
-    <numToKeep>10</numToKeep>
+    <numToKeep>50</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
@@ -32,7 +32,7 @@
         </com.wangyin.parameter.WHideParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>RafParams</name>
-          <description></description>
+          <description>Optional: Additional parameters to be add on-top of  the default   =&gt; ( DefaultRafParams=--param WorkflowsLib:&quot;$WORKSPACE\raf\Regression Automation Framework\workflows\lib&quot; --param )InstallDir:&quot;$WORKSPACE\raf\Regression Automation Framework&quot; --param ServerNameApp:$VmIp --param ServerNameConsolidate:$VmIp --param WinDomain:$VmIp --param ReportDir:$WORKSPACE\reports --param ReportsCentralDirectory:&quot;$WORKSPACE\reports&quot; --param ReportFolderFormat:curr</description>
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -62,18 +62,18 @@
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>RafScriptsVersion</name>
-          <description></description>
+          <description>Optional:    The script version located in the following GAV: group: &apos;com.verint.automation&apos;, name: &apos;TestsScripts&apos;, version: &quot;${rafScriptsVersion}&quot; in ATLArtifactory , automation-release</description>
           <defaultValue>11.2.1.0</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>RafProductsVersion</name>
-          <description></description>
-          <defaultValue>11.2.1.1</defaultValue>
+          <description>Optional:    The RAF products version located in the following GAV: group: &apos;com.verint.automation&apos;, name: &apos;raf_products&apos;, version: &quot;${rafProductsVersion}&quot; in ATLArtifactory , automation-release</description>
+          <defaultValue>11.2.1.4</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>ScriptLocator</name>
-          <description></description>
-          <defaultValue>workflows\BasicInt.script</defaultValue>
+          <description>The name of the RAF script \suite that init the RAF</description>
+          <defaultValue>raf\Regression Automation Framework\workflows\BasicInt.script</defaultValue>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
@@ -154,6 +154,15 @@ echo SourceScriptFolder=$SourceScriptFolder
 echo ScriptLocation=$ScriptLocation
 echo RafParams=$RafParams</command>
     </hudson.tasks.Shell>
+    <hudson.tasks.BatchFile>
+      <command>#rm -rfv &quot;%WORKSPACE%reports\curr&quot;&#xd;
+rd /S /Q &quot;%WORKSPACE%\reports\curr&quot;&#xd;
+rd /S /Q &quot;%WORKSPACE%\raf&quot;&#xd;
+cmd  /c taskkill /F /FI &quot;IMAGENAME eq  werFault.exe*&quot;&#xd;
+cmd  /c taskkill /F /FI &quot;IMAGENAME eq  raf*&quot;&#xd;
+&#xd;
+exit 0</command>
+    </hudson.tasks.BatchFile>
     <hudson.plugins.gradle.Gradle plugin="gradle@1.24">
       <description></description>
       <switches>-i -Prafdir=&quot;${workspace}/raf&quot; --refresh-dependencies -PrafScriptsVersion=${RafScriptsVersion} -PrafProductsVersion=${RafProductsVersion} </switches>
@@ -166,10 +175,6 @@ echo RafParams=$RafParams</command>
       <fromRootBuildScriptDir>true</fromRootBuildScriptDir>
       <useWorkspaceAsHome>true</useWorkspaceAsHome>
     </hudson.plugins.gradle.Gradle>
-    <hudson.tasks.Shell>
-      <command>rm -rfv &quot;$ReportDir\curr&quot;
-exit 0</command>
-    </hudson.tasks.Shell>
     <org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder plugin="conditional-buildstep@1.3.3">
       <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
       <runCondition class="org.jenkins_ci.plugins.run_condition.logic.Not" plugin="run-condition@1.0">
@@ -187,13 +192,13 @@ xcopy /S /E /Y &quot;%SourceScriptFolder%&quot; &quot;%RafInstallDir%&quot;</com
       </conditionalbuilders>
     </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>
     <hudson.tasks.BatchFile>
-      <command>echo &quot;%RafInstallDir%\rafcli.exe&quot; &quot;%ScriptLocation%&quot; %DefaultRafParams% %RafParams%&#xd;
-echo ==========&#xd;
+      <command>#rm -rfv &quot;%WORKSPACE%reports\curr&quot;&#xd;
+rd /S /Q &quot;%WORKSPACE%\reports\curr&quot;&#xd;
+rd /S /Q &quot;%WORKSPACE%\raf&quot;&#xd;
+cmd  /c taskkill /F /FI &quot;IMAGENAME eq  werFault.exe*&quot;&#xd;
+cmd  /c taskkill /F /FI &quot;IMAGENAME eq  raf*&quot;&#xd;
 &#xd;
-&quot;%RafInstallDir%\rafcli.exe&quot; &quot;%ScriptLocation%&quot; %DefaultRafParams% %RafParams%&#xd;
-&#xd;
-echo ================= done=================================&#xd;
-</command>
+exit 0</command>
     </hudson.tasks.BatchFile>
   </builders>
   <publishers>
@@ -201,7 +206,7 @@ echo ================= done=================================&#xd;
       <reportTargets>
         <htmlpublisher.HtmlPublisherTarget>
           <reportName>HTML Report</reportName>
-          <reportDir>$WORKSPACE</reportDir>
+          <reportDir>$WORKSPACE\reports\curr</reportDir>
           <reportFiles>report.html</reportFiles>
           <keepAll>true</keepAll>
           <allowMissing>true</allowMissing>
@@ -235,15 +240,15 @@ echo ================= done=================================&#xd;
     </org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder>
     <EnvInjectBuildWrapper plugin="envinject@1.90">
       <info>
-        <propertiesContent>DefaultRafParams=--param WorkflowsLib:&quot;$WORKSPACE\raf\Regression Automation Framework\workflows\lib&quot; --param InstallDir:&quot;$WORKSPACE\raf\Regression Automation Framework&quot; --param ServerNameApp:$VmIp --param ServerNameConsolidate:$VmIp --param WinDomain:$VmIp --param ReportDir:$WORKSPACE\reports --param ReportsCentralDirectory:&quot;$WORKSPACE\reports&quot;
+        <propertiesContent>DefaultRafParams=--param WorkflowsLib:&quot;$WORKSPACE\raf\Regression Automation Framework\workflows\lib&quot; --param InstallDir:&quot;$WORKSPACE\raf\Regression Automation Framework&quot; --param ServerNameApp:$VmIp --param ServerNameConsolidate:$VmIp --param WinDomain:$VmIp --param ReportDir:$WORKSPACE\reports --param ReportsCentralDirectory:&quot;$WORKSPACE\reports&quot; --param ReportFolderFormat:curr
 
-DefaultRafParamsBK=--param WorkflowsLib:&quot;$WORKSPACE\raf\Regression Automation Framework\workflows&quot; --param InstallDir:&quot;$WORKSPACE\raf\Regression Automation Framework&quot; --param ServerNameApp:$VmIp --param ServerNameConsolidate:$DnsName --param WinDomain:$DnsName --param ReportDir:$WORKSPACE\reports --param ReportsCentralDirectory:&quot;$WORKSPACE\reports&quot;
+
 
 RafInstallDir=$WORKSPACE\raf\Regression Automation Framework\
 
 SourceScriptFolder=$SourceScriptFolder
 
-ScriptLocation=$WORKSPACE\raf\Regression Automation Framework\$ScriptLocator
+ScriptLocation=$WORKSPACE\$ScriptLocator
 
 ReportDir=$WORKSPACE\reports
 RafParams=$RafParams</propertiesContent>

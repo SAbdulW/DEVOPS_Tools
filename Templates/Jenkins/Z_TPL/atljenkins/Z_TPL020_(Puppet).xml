@@ -59,7 +59,8 @@ with runPA -PcurrentVersion=$MasterBuildVersion  </description>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>YamlFiles</name>
-          <description>The YAML file define the MSI/s GAV in Artifactory to be used on the target test machine. Each one of thos MSI&apos;s will be uninstalled (if exists) and reinstalled with the version in the Yaml file. MSI&apos;s in one Yaml file will be installed in random order. Order of installation could be defined by using different files. Multi[ple pathes can be added in this property split with &quot;,&quot;. Ex. &quot;..\\..\\..\\ci\\wfo-wl.yaml,..\\..\\..\\ci\\wfo-db.yaml,..\\..\\..\\ci\\wfo-core.yaml&quot;</description>
+          <description>The YAML file define the MSI/s GAV in Artifactory to be used on the target test machine. Each one of those MSI&apos;s will be uninstalled (if exists) and reinstalled with the version in the Yaml file. MSI&apos;s in one Yaml file will be installed in random order. Order of installation could be defined by using different files.
+Multiple paths can be added in this property split with &quot;,&quot;. Ex. &quot;..\\..\\..\\ci\\wfo-wl.yaml,..\\..\\..\\ci\\wfo-db.yaml,..\\..\\..\\ci\\wfo-core.yaml&quot;</description>
           <defaultValue>..\\..\\..\\ci\\puppet.yaml</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>

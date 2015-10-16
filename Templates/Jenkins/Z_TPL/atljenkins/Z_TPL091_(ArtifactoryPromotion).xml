@@ -40,6 +40,11 @@
 For example: /job/FTW/job/WFM/view/WFM_11.2SP1</description>
           <defaultValue>/job/FTW/view/FTW</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>installedVersionFiles</name>
+          <description></description>
+          <defaultValue>..\\ci_global\\Scripts\\GradleUtils\\PPLogs\\installedVersions.json</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <jenkins.plugins.slack.SlackNotifier_-SlackJobProperty plugin="slack@1.7">
@@ -101,7 +106,7 @@ exit 1</command>
     <hudson.plugins.gradle.Gradle plugin="gradle@1.24">
       <description></description>
       <switches>-i</switches>
-      <tasks>aPT -PsourceRepos=$sourceRepos -PtargetRepos=$targetRepos -PletPromote=$PromoteOnSuccess</tasks>
+      <tasks>aPT -PsourceRepos=$sourceRepos -PtargetRepos=$targetRepos -PletPromote=$PromoteOnSuccess -PinstalledVersionFiles=$installedVersionFiles</tasks>
       <rootBuildScriptDir></rootBuildScriptDir>
       <buildFile></buildFile>
       <gradleName>(Default)</gradleName>
