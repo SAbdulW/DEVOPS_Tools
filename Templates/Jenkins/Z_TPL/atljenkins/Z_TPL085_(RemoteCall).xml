@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>This one is used to perform the operations to the remote machine. All operations is at one</description>
+  <description>This one is used to perform the operations to the remote machine through paexec and perfrom from a window machine</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.4.1">
@@ -12,7 +12,7 @@
         <hudson.model.StringParameterDefinition>
           <name>MasterBuildVersion</name>
           <description></description>
-          <defaultValue>15.1.1</defaultValue>
+          <defaultValue>15.1.1.1</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>VmIp</name>
@@ -35,19 +35,17 @@
           <defaultValue>http://atlartifactory:8081/artifactory</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>envID</name>
-          <description>This should be unique as system will clean and generate the new environment. Could put the team name like: EM, WFM</description>
-          <defaultValue>base01</defaultValue>
+          <name>paexecCmd</name>
+          <description>Example: 
+ipconfig
+
+</description>
+          <defaultValue>ipconfig</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>playbook</name>
-          <description>Name of the playbook file</description>
-          <defaultValue>playbook.yaml</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>playbookAsIs</name>
-          <description>Name of custom playbook that would like to run as is as Ansible playbook</description>
-          <defaultValue>playbookAsIs.yaml</defaultValue>
+          <name>runTasks</name>
+          <description>default run tasks that will be passed to gradle</description>
+          <defaultValue>runPaExecCmd</defaultValue>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
@@ -83,7 +81,7 @@
     <submoduleCfg class="list"/>
     <extensions/>
   </scm>
-  <assignedNode>ATL-Docker-Slaves</assignedNode>
+  <assignedNode>ATL-WFO-Slaves</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>true</blockBuildWhenDownstreamBuilding>
@@ -91,72 +89,32 @@
   <jdk>(Default)</jdk>
   <triggers/>
   <concurrentBuild>true</concurrentBuild>
-  <customWorkspace>/etc/vebutu/jkws/${envID}</customWorkspace>
+  <customWorkspace>D:\gitroot\Z_TPL\Z_TPL085</customWorkspace>
   <builders>
     <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder plugin="conditional-buildstep@1.3.3">
       <condition class="org.jenkins_ci.plugins.run_condition.core.AlwaysRun" plugin="run-condition@1.0"/>
-      <buildStep class="hudson.tasks.Shell">
-        <command>echo ssh git@atlgit
-chmod -R 0777 .
-ls -l
-</command>
+      <buildStep class="hudson.tasks.BatchFile">
+        <command>echo value:%paexecCmd%&#xd;
+echo %paexecCmd%&gt;paexecmdfile.inf&#xd;
+&#xd;
+type paexecmdfile.inf</command>
       </buildStep>
       <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
     </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
-    <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder plugin="conditional-buildstep@1.3.3">
-      <condition class="org.jenkins_ci.plugins.run_condition.core.AlwaysRun" plugin="run-condition@1.0"/>
-      <buildStep class="hudson.plugins.parameterizedtrigger.TriggerBuilder" plugin="parameterized-trigger@2.25">
-        <configs>
-          <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
-            <configs>
-              <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-                <properties>VmIp=$VmIp
-VmPw=$VmPw
-VmUser=$VmUser
-MasterBuildVersion=$MasterBuildVersion
-runTasks=runWAE</properties>
-              </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-            </configs>
-            <projects>Z_TPL085_(RemoteCall)</projects>
-            <condition>ALWAYS</condition>
-            <triggerWithNoParameters>false</triggerWithNoParameters>
-            <block>
-              <buildStepFailureThreshold>
-                <name>UNSTABLE</name>
-                <ordinal>1</ordinal>
-                <color>YELLOW</color>
-                <completeBuild>true</completeBuild>
-              </buildStepFailureThreshold>
-              <unstableThreshold>
-                <name>UNSTABLE</name>
-                <ordinal>1</ordinal>
-                <color>YELLOW</color>
-                <completeBuild>true</completeBuild>
-              </unstableThreshold>
-              <failureThreshold>
-                <name>UNSTABLE</name>
-                <ordinal>1</ordinal>
-                <color>YELLOW</color>
-                <completeBuild>true</completeBuild>
-              </failureThreshold>
-            </block>
-            <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
-          </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
-        </configs>
-      </buildStep>
-      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
-    </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
+    <EnvInjectBuilder plugin="envinject@1.90">
+      <info>
+        <propertiesContent>paexecCmd=ipconfig</propertiesContent>
+      </info>
+    </EnvInjectBuilder>
     <hudson.plugins.gradle.Gradle plugin="gradle@1.24">
       <description></description>
       <switches>-i</switches>
-      <tasks>runPlaybook
+      <tasks>$runTasks
 -PcontextURL=$artifactoryContextURL
--PenvId=$envID
 -PVmIp=$VmIp
 -PVmPw=$VmPw
 -PVmUser=$VmUser
--PplaybookFile=$playbook
--PplaybookAsIsFile=$playbookAsIs
+-PPaExecCmdFile=&quot;paexecmdfile.inf&quot;
 </tasks>
       <rootBuildScriptDir>${workspace}</rootBuildScriptDir>
       <buildFile></buildFile>

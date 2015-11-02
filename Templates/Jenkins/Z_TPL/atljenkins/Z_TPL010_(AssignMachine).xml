@@ -38,7 +38,7 @@
         <hudson.model.StringParameterDefinition>
           <name>DevRootPath</name>
           <description></description>
-          <defaultValue>D:\gitroot\Z_TPL</defaultValue>
+          <defaultValue>${WORKSPACE}</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>RetryTime</name>
@@ -104,7 +104,7 @@
     <submoduleCfg class="list"/>
     <extensions>
       <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
-        <relativeTargetDir>${WORKSPACE}\${Assign_Config_Folder}</relativeTargetDir>
+        <relativeTargetDir>${Assign_Config_Folder}</relativeTargetDir>
       </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
     </extensions>
   </scm>
@@ -209,6 +209,7 @@ echo PendingFolderName=%ProvisioningRoot%/%PendingPoolFolder%/%LAST_FOLDER%&gt;&
 echo RunningFolderPath=%ProvisioningRoot%/%RunningPoolFolder%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
 echo VmFolderName=%LAST_FOLDER%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
 echo TestEnvFolderPath=%DestPool%/%LAST_FOLDER% &gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
+&#xd;
 TYPE &quot;%WORKSPACE%\assign.prop&quot;</command>
     </hudson.tasks.BatchFile>
     <EnvInjectBuilder plugin="envinject@1.90">
@@ -228,7 +229,6 @@ TYPE &quot;%WORKSPACE%\assign.prop&quot;</command>
     <hudson.tasks.BatchFile>
       <command>echo VmPath=%TestEnvFolderPath%/%FIRST_VM%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
 echo VmName=%FIRST_VM%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
-&#xd;
 &#xd;
 TYPE &quot;%WORKSPACE%\assign.prop&quot;</command>
     </hudson.tasks.BatchFile>
@@ -251,8 +251,9 @@ TYPE &quot;%WORKSPACE%\assign.prop&quot;</command>
     <hudson.tasks.BatchFile>
       <command>echo VmIp=%VM_IP%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
 echo MasterBuildVersion=%MasterBuildVersion%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
-echo VmName=%VmName%&#xd;
+echo AssignConfigFolder=%Assign_Config_Folder%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
 &#xd;
+echo VmName=%VmName%&#xd;
 echo VmIp=%VM_IP%&#xd;
 echo VmName=%FIRST_VM%&#xd;
 &#xd;
@@ -276,10 +277,6 @@ xcopy /y curl.exe \\%VM_IP%\C$\</command>
     <hudson.tasks.BatchFile>
       <command>//@echo off&#xd;
 &#xd;
-rem For /f &quot;tokens=2-4 delims=/ &quot; %%a in (&apos;date /t&apos;) do (set mydate=%%c%%a%%b)&#xd;
-rem For /f &quot;tokens=1-2 delims=/:&quot; %%a in (&apos;time /t&apos;) do (set mytime=%%a%%b)&#xd;
-rem For /f &quot;tokens=1-2 delims=/:&quot; %%a in (&quot;%TIME%&quot;) do (set mytime=%%a%%b)&#xd;
-rem echo %mydate%_%mytime%_%JOB_NAME%_%BUILD_NUMBER%&#xd;
 &#xd;
 rem ----- GET date &amp; time -----&#xd;
 for /F &quot;usebackq tokens=1,2 delims==&quot; %%i in (`wmic os get LocalDateTime /VALUE 2^&gt;NUL`) do if &apos;.%%i.&apos;==&apos;.LocalDateTime.&apos; set ldt=%%j&#xd;

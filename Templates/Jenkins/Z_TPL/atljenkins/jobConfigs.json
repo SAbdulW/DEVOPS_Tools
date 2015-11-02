@@ -1,6 +1,6 @@
 { 
  "viewName": "/job/Z_DEVOPS/job/Z_TPL/view/Z_TPL", 
- "jobList": "/job/Z_DEVOPS/job/Z_TPL/job/Z_Test_(Commit%20Build)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL010_(AssignMachine)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL020_(Puppet)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL032_(RAFTests)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL090_(ArtifactoryPromotion)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL091_(ArtifactoryPromotion)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL080_(RemoteCall)/",
+ "jobList": "/job/Z_DEVOPS/job/Z_TPL/job/Z_Test_(Commit%20Build)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL010_(AssignMachine)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL020_(Puppet)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL032_(RAFTests)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL090_(ArtifactoryPromotion)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL091_(ArtifactoryPromotion)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL080_(RemoteCall)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL085_(RemoteCall)/",
  "firstJobName": "Z_Test_(Commit Build)", 
  "jobs":{"Z_Test_(Commit Build)": {
     "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_Test_(Commit%20Build)/",
@@ -11,7 +11,8 @@
         "Where_to_run_the_build": "ATL-WFO-Slaves",
         "RepoURL": "git@scgit:testing",
         "KeepTheFixtureWhenDone": "false",
-        "PromoteOnSuccess": "false"
+        "PromoteOnSuccess": "false",
+        "envID": "base02"
       },
     "buildTrigger": {
 
@@ -25,7 +26,7 @@
         "PendingPoolFolder": "Pending",
         "RunningPoolFolder": "Running",
         "ParkingPoolFolder": "Parking",
-        "DevRootPath": "D:/gitroot/Z_TPL",
+        "DevRootPath": "${WORKSPACE}",
         "RetryTime": "6m",
         "LeaseTime": "1",
         "PeriodicTime": "2",
@@ -67,15 +68,15 @@
         "DevRootPath": "D:/gitroot/Z_DEVOPS",
         "VmIp": "#10.156.16.125",
         "DnsName": "ATLCONW12GL001",
-        "RafParams": "",
         "ToolsRepo": "DEVOPS_Tools",
         "ToolsBranch": "origin/ci_wfo_env",
         "ConfigRepo": "DEVOPS_Configs",
         "ConfigBranch": "origin/Generic",
-        "SourceScriptFolder": "$WORKSPACE/DEVOPS_Configs/IntegrationTests/RAF/Generic/*",
+        "SourceScriptFolder": "DEVOPS_Configs/IntegrationTests/RAF/Generic/*",
+        "ScriptLocator": "raf/Regression Automation Framework/workflows/BasicInt.script",
+        "RafParams": "",
         "RafScriptsVersion": "11.2.1.0",
-        "RafProductsVersion": "11.2.1.4",
-        "ScriptLocator": "raf/Regression Automation Framework/workflows/BasicInt.script"
+        "RafProductsVersion": "11.2.1.4"
       },
     "buildTrigger": {
 
@@ -83,7 +84,7 @@
 },
 "Z_TPL090_(ArtifactoryPromotion)": {
     "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL090_(ArtifactoryPromotion)/",
-    "customWorkspace": "${DevRootPath}",
+    "customWorkspace": "${DevRootPath}/ArtifactoryPromotion90",
     "buildParams": {
         "MasterBuildVersion": "11.2.1.1",
         "sourceRepos": "wfm-ci-snapshot,ci-snapshot",
@@ -92,7 +93,9 @@
         "artifactoryContextURL": "http://atlartifactory:8081/artifactory",
         "DevRootPath": "D:/gitroot/ArtifactoryPromotion/WFM11.2SP1/",
         "viewName": "/job/Z_DEVOPS/job/Z_TPL/view/Z_TPL",
-        "checkPipelineGreen": "true"
+        "checkPipelineGreen": "true",
+        "WhereToRun": "ATL-WFO-Slaves",
+        "JobsToIgnore": "Z_TPL090,Flow_TPL"
       },
     "buildTrigger": {
 
@@ -100,7 +103,7 @@
 },
 "Z_TPL091_(ArtifactoryPromotion)": {
     "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL091_(ArtifactoryPromotion)/",
-    "customWorkspace": "${DevRootPath}/ArtifactoryPromotion",
+    "customWorkspace": "${DevRootPath}/ArtifactoryPromotion91",
     "buildParams": {
         "sourceRepos": "ci-release",
         "targetRepos": "ci-release-temp",
@@ -108,7 +111,9 @@
         "PromoteOnSuccess": "false",
         "DevRootPath": "D:/gitroot/Z_TPL",
         "viewName": "/job/FTW/view/FTW",
-        "installedVersionFiles": "../ci_global/Scripts/GradleUtils/PPLogs/installedVersions.json"
+        "installedVersionFiles": "../ci_global/Scripts/GradleUtils/PPLogs/installedVersions.json",
+        "WhereToRun": "ATL-WFO-Slaves",
+        "JobsToIgnore": "Z_TPL091,Flow_TPL"
       },
     "buildTrigger": {
 
@@ -126,6 +131,22 @@
         "envID": "base01",
         "playbook": "playbook.yaml",
         "playbookAsIs": "playbookAsIs.yaml"
+      },
+    "buildTrigger": {
+
+      }
+},
+"Z_TPL085_(RemoteCall)": {
+    "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL085_(RemoteCall)/",
+    "customWorkspace": "D:/gitroot/Z_TPL/Z_TPL085",
+    "buildParams": {
+        "MasterBuildVersion": "15.1.1.1",
+        "VmIp": "10.156.6.53",
+        "VmPw": "!veRinT$5",
+        "VmUser": "systemadmin",
+        "artifactoryContextURL": "http://atlartifactory:8081/artifactory",
+        "paexecCmd": "ipconfig",
+        "runTasks": "runPaExecCmd"
       },
     "buildTrigger": {
 

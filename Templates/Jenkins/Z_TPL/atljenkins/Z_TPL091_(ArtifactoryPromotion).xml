@@ -45,6 +45,19 @@ For example: /job/FTW/job/WFM/view/WFM_11.2SP1</description>
           <description></description>
           <defaultValue>..\\ci_global\\Scripts\\GradleUtils\\PPLogs\\installedVersions.json</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition plugin="nodelabelparameter@1.5.1">
+          <name>WhereToRun</name>
+          <description></description>
+          <defaultValue>ATL-WFO-Slaves</defaultValue>
+          <allNodesMatchingLabel>false</allNodesMatchingLabel>
+          <triggerIfResult>allCases</triggerIfResult>
+          <nodeEligibility class="org.jvnet.jenkins.plugins.nodelabelparameter.node.AllNodeEligibility"/>
+        </org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>JobsToIgnore</name>
+          <description>Put the Jobs that you want to ignore. You can put partial string of the Job name. To put multiple strings, put a comma inbetween</description>
+          <defaultValue>Z_TPL091,Flow_TPL</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <jenkins.plugins.slack.SlackNotifier_-SlackJobProperty plugin="slack@1.7">
@@ -79,15 +92,14 @@ For example: /job/FTW/job/WFM/view/WFM_11.2SP1</description>
     <submoduleCfg class="list"/>
     <extensions/>
   </scm>
-  <assignedNode>ATL-WFO-Slaves</assignedNode>
-  <canRoam>false</canRoam>
+  <canRoam>true</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>true</blockBuildWhenUpstreamBuilding>
   <jdk>(Default)</jdk>
   <triggers/>
   <concurrentBuild>true</concurrentBuild>
-  <customWorkspace>${DevRootPath}\ArtifactoryPromotion</customWorkspace>
+  <customWorkspace>${DevRootPath}\ArtifactoryPromotion91</customWorkspace>
   <builders>
     <org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder plugin="conditional-buildstep@1.3.3">
       <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
@@ -141,168 +153,445 @@ exit 1</command>
     </org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder>
     <EnvInjectBuildWrapper plugin="envinject@1.90">
       <info>
-        <groovyScriptContent>import hudson.model.ListView
-import jenkins.model.*
-import hudson.model.Fingerprint.RangeSet;
-import hudson.model.Job;
-import hudson.model.Fingerprint;
-import hudson.model.Result;
-import hudson.model.AbstractBuild;
+        <groovyScriptContent>    /**
+     * Created by RTrachma on 10/27/2015.
+     */
 
-view_name = &quot;${viewName}&quot;;
-release_version = &quot;${MasterBuildVersion}&quot;;
-check_pipeline_green =&quot;${checkPipelineGreen}&quot; 
 
-println &quot;     ## view_name  &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;: &quot; + view_name ;
-println &quot;     ## release_version &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;: &quot; + release_version ;
-println &quot;     ## check_pipeline_green &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;: &quot; + check_pipeline_green ;
 
-//vc = Jenkins.instance.getView(view_name).getOwner();
-//v = vc.getView(view_name);
+    import hudson.model.AbstractBuild;
+    import hudson.model.AbstractProject;
 
-objRtn = getViewFromViewName(view_name)
-v = objRtn[0]
+    import groovy.transform.Field
+    import hudson.model.Action
+    import hudson.model.Cause
+    import hudson.model.Hudson
+    import hudson.model.Result;
+    import hudson.model.Run;
 
-def isGreen=&quot;Yes&quot;
+    import hudson.model.Cause.UpstreamCause
 
-if (check_pipeline_green ==&quot;true&quot;)
-{
-  for(jobItem in v.getItems()) {
-    if (!isJobGreen(jobItem.getName(),release_version, jobItem )){
-  	isGreen=&quot;No&quot;
-        break;
-    }  
-  }
-}
-def map  =[isPipelineGreen:isGreen ] 
+    import java.lang.reflect.Array;
 
-return map
+    /**
+     * @author Ron.Keidar
+     *
+     */
 
-def boolean isJobGreen (String sBuildName, String sReleaseVersion, Object jobItem){
-  
-  jobName = &quot;${sBuildName}&quot;
-  releaseVersion= &quot;${sReleaseVersion}&quot;
-
- if (jobName.contains(&quot;_(ArtifactoryPromotion)&quot;) || jobName.contains(&quot;Z_TPL&quot;)){
-     println &quot;     ## Ignoring the job : $jobName &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;:&quot;
-     return true
-  }
-  
-//  def jobItem = jenkins.model.Jenkins.instance.getItem(jobName);
- // def jobItem = v.getItem(jobName);
-  
-  def lastBuildNumber = jobItem.getLastBuild().getNumber()
-  def firstBuildNumber = jobItem.getFirstBuild().getNumber()
-  
-  def buildRange = &quot;${firstBuildNumber}-${lastBuildNumber}&quot;
-  
-  def range = RangeSet.fromString(buildRange, true);
-  
-  def isSuccess=true
-  def foundIt=false
-  
-  jobItem.getBuilds(range).each {
-    if ( it.getDisplayName().find(/${releaseVersion}.*/)) {
-      foundIt=true //already found so won&apos;t come to the else 	          
-      println &quot;     ## Getting Display &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;: &quot; + it.getDisplayName();
-      returnBuildNumber=it.getNumber()
-      AbstractBuild b = it
-      
-      if (!b.isBuilding()) {
-        Result r = b.getResult();
-        if (r == Result.SUCCESS) {          
-        	isSuccess=true  
-        }else{
-        	isSuccess=false
-        }
-      }            
-      
-    }else if (!foundIt)
-    {
-    	isSuccess=false
+    enum JobStatus {
+        PENDING, BUILDING, ABORTED,UNSTABLE,FAILURE,SUCCESS,NOT_BUILT
     }
-  }
-  
-  println (&quot;               =========================&gt; isGreen?=&quot; + isSuccess + &quot; : $jobName &quot;)
-  
-  return isSuccess
-    
-}
-
-def getViewFromViewName(String view_name){
-  //First, check to see if there is a dash \ in the view_name, indicator of the folder
-  def viewNameFolders = []
-  def folderArray = []
-  def arrRtn = new Object [2]
-  
-  viewNameFolders = view_name.split(&quot;/view/&quot;)
-  def viewName = viewNameFolders[viewNameFolders.length-1]
-  println (&quot;viewName:$viewName&quot;)
-  
-  def folderNamesString = &quot;&quot;
-  def folderNamesRtn = &quot;&quot;
-  
-  println (&quot;folderString:&quot; + viewNameFolders[0])
-  def folderObj = Jenkins.instance
-  if ((viewNameFolders.length-1)&gt;0){
-    folderArray = viewNameFolders[0].split(&quot;/job/&quot;)
-    folderNamesRtn = viewNameFolders[0]
-    
-    //println (&quot;folderArray.length:&quot; + folderArray.length)
-  
-    for (i = 0; i &lt;folderArray.length; i++) {
-      //get the folderName
-      folderName = folderArray[i]
-      //println (&quot;folderName:$folderName&quot;)
-      if (folderName!=&quot;&quot;){
-          folderObj= getFolder(folderObj,folderName )
-          if (folderNamesString==&quot;&quot;) {
-              folderNamesString=folderName
-          }else{
-              folderNamesString=folderNamesString + folderName
-          }
-        
-      }
-    }
-  }
-  
-      
-  //get the viewName
-  def viewObj = folderObj.getView(viewName)
-  
-  println (&quot;viewObj:&quot; + viewObj.getViewName())
-  println (&quot;folderNamesString:$folderNamesString&quot;)
-  
-  arrRtn[0]=viewObj
-  arrRtn[1]=folderNamesRtn
-  return  arrRtn;
-	  
-}
 
 
-def getFolder(Object folderObject, String folderName){
-    def rtnObj = null
-    def boolean gotIt = false
-	vItemList = folderObject.getItems()
-	vItemList.each() { 
-      try {
-        if (!gotIt){
-            String sfolderName = it.getName();
-  //      	println (&quot;sfolderName:$sfolderName&quot;)
-	    vFolderList = it.getViews()
-       		if (folderName ==sfolderName) {      
-    //          println (&quot;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;sfolderName:$sfolderName&quot;)
-        	  rtnObj=it
-         		gotIt = true     
-        	}
+    int buildNumber
+    instance = Hudson.getInstance()
+
+    String projectName //=&apos;z6&apos;
+    def List&lt;String&gt; jobsToIgnoreArr
+    def String jobsToIgnore
+    /*Job is holding all the jobs in the pipeline*/
+    //LinkedHashMap jobs
+    println &apos;==================== START ==========================&apos;
+    jobs=[:]
+    projectName = &quot;${JOB_NAME}&quot;;
+    buildNumber = Integer.parseInt(&quot;${BUILD_NUMBER}&quot;)
+    jobsToIgnore = &quot;${JobsToIgnore}&quot;.toString()
+    jobsToIgnoreArr = jobsToIgnore.split(&apos;,&apos;)
+    println jobsToIgnoreArr.size()
+    isCompleted = isBuildComplete(projectName,buildNumber,jobsToIgnoreArr)
+
+
+    map = CheckJobsStatus()
+println(map)
+    return map
+
+    def  CheckJobsStatus( ){
+        map=[:]
+        def isPipeLineGreen=true
+        jobs.each {key,value  -&gt;
+            JobBuild jb = value
+            println(&quot;Checking status of - &quot; + key + &quot;Build status ${jb.buildStatus}  isPipelineJob= ${jb.isPipelineJob}  jobToIgnore=${jb.jobToIgnore}&quot; )
+
+        //    println jb.isPipelineJob
+            if (jb.isPipelineJob  ) {
+              // println  (jb.jobToIgnore + &quot;    isPipeLineGreen= ${isPipeLineGreen}&quot;)
+                println(&quot;1 - &quot; + key + &quot;Build status ${jb.buildStatus}  isPipelineJob= ${jb.isPipelineJob}  jobToIgnore=${jb.jobToIgnore}&quot; )
+                    if (jb.jobToIgnore == false) {
+                try {
+                    println &quot;${key} Build status ${jb.buildStatus} &quot;+ &quot;    isPipeLineGreen=${isPipeLineGreen}&quot;
+                }
+                catch(Exception ex) {println(  &quot;Build status is not available&quot;)}
+                //map.put(jb.key, jb.buildStatus)
+                if ( jb.buildStatus==null | jb.buildStatus != JobStatus.SUCCESS) {
+                    println &quot;Status failed !!!! ${key} Build status ${jb.buildStatus} &quot;
+                    isPipeLineGreen = false
+
+                }
+            }
+            }
         }
-      }catch (Exception e) {
-        //println (&quot;Error - not a folder &quot; + it.toString()) 		 
-      }
-	}
-  
-    return rtnObj
-}</groovyScriptContent>
+        map.put(&quot;isPipelineGreen&quot;,isPipeLineGreen)
+        return map
+    }
+
+    def  IsThisJobInTheIgnoreList(String projectName ,  jobsToIgnoreArr){
+
+        println &apos;jobsToIgnoreArr = &apos; + jobsToIgnoreArr
+        if (jobsToIgnoreArr==[] ){
+            println &quot;No ignore jobs&quot;
+            return false
+        }
+        result=false
+        jobsToIgnoreArr.each{
+            println &apos;Checking if \&quot;&apos; + projectName + &quot;\&quot; contains --&quot; + it + &apos;--&apos;
+            if (( it   != &quot;&quot; )) {
+
+                if (projectName.contains(it)) {
+                    println projectName + &quot;will be ignored based on request = &quot; + it
+                    result = true
+                }
+            }
+        }
+        return result
+
+    }
+    def boolean isBuildComplete(String projectName,int buildNumber,jobsToIgnoreArr){
+        try {
+            println(&apos;Checking if build is complete&apos;)
+            key = updateJobMetadata(projectName, buildNumber,jobsToIgnoreArr,true)
+
+            rootKey = getUpstreamJobs(key,jobsToIgnoreArr)
+            println(&apos;Rootkey = &apos; + rootKey)
+            getDownStreamJobs(rootKey,jobsToIgnoreArr)
+        }
+        catch (Exception ex)
+        {
+            println ex.message
+            println &apos;Wait for the next pull, this job is still running&apos;
+            println ex.message
+            return false
+        }
+        return true
+    }
+
+
+
+
+
+
+
+    def String getUpstreamJobs(String key,jobsToIgnoreArr){
+        println &apos;in getUpstreamJobs&apos;
+        JobBuild jb = jobs.get(key)
+        println &apos;check parent now&apos;
+        jb.parent= getParent(jb,jobsToIgnoreArr)
+        println jb.parent  + &apos; was found as the parent of &apos; + key
+        jb.isPipelineJob=true
+        jobs.put(jb.key,jb)
+
+        if (jb.parent== key)  {
+            //   println(&quot;Project ${key} does not have any parent &quot;)
+            return key
+        }
+
+        return getUpstreamJobs(jb.parent,jobsToIgnoreArr)
+
+    }
+
+    def String setChilds(String key) {
+
+        return key
+
+
+    }
+
+    def String  updateJobMetadata(  String fullName, int buildNumber, List&lt;String&gt; jobsToIgnoreArr){
+
+        return updateJobMetadata(   fullName,  buildNumber, jobsToIgnoreArr, false)
+    }
+    def String  updateJobMetadata(  String fullName, int buildNumber,List&lt;String&gt; jobsToIgnoreArr, boolean  isPipelineJob){
+
+        //   println(&apos;Updating project &apos; + fullName)
+        def  JobBuild jb
+        try {
+            key = getKey(fullName,buildNumber)
+            println(&apos;Updating matadata for &apos; + fullName + &apos; Build &apos;+ buildNumber.toString())
+            jb= getJobMetaData(fullName,buildNumber)
+            project=jb.project
+            jb.jobToIgnore=IsThisJobInTheIgnoreList(fullName,jobsToIgnoreArr)
+            if(project == null ){
+                throw new Exception(&quot;This project does not exits&quot;)}
+
+            if (isPipelineJob == true) {
+                println &quot;Update job with Pipeline Job&quot;
+                jb.projectName=project.fullName
+                jb.isPipelineJob==true}
+            jb.projectUrl=project.url
+            println &quot;Getting project ${jb.projectName} number ${buildNumber} information &quot;
+            Run r =  project.getBuildByNumber(buildNumber)
+            if(r == null ){
+                jb.buildStatus = JobStatus.PENDING
+                throw new Exception(jb.projectName + &quot; project did not started yet or Does not exist anymore !!!!&quot;)
+            }
+            else {
+
+                def Result result = r.getResult()
+                println &quot;Project ${jb.projectName} number ${buildNumber} status= ${result} &quot;
+                switch (result) {
+                    case Result.ABORTED:
+                        jb.buildStatus = JobStatus.ABORTED
+                        break
+                    case Result.FAILURE:
+                        jb.buildStatus = JobStatus.FAILURE;
+                        break
+                    case Result.SUCCESS:
+                        jb.buildStatus = JobStatus.SUCCESS;
+                        break
+                    case Result.UNSTABLE:
+                        jb.buildStatus = JobStatus.UNSTABLE;
+                        break
+                    case Result.NOT_BUILT:
+                        jb.buildStatus = JobStatus.NOT_BUILT;
+                        break
+                    default:
+
+                        break
+                }
+                jb.build = (AbstractBuild) r
+                jb.run = r
+                //     println jb.projectName + &apos;Status = &apos; + jb.buildStatus
+                if (r.isBuilding() || r.isInProgress()) {
+                    println(&quot;The current build is still in progress&quot;)
+                }
+            }
+
+        }
+        catch(Exception ex) {
+            println(&apos;Filed to update matadatea for: &apos;+ fullName + ex)
+            throw ex
+        }
+
+
+
+
+        jobs.put(key,  jb)
+        println key + &quot; -was updated status=${jb.buildStatus}   jobToIgnore= ${jb.jobToIgnore} isPipelineJob= ${jb.isPipelineJob}&quot;
+        return key
+
+    }
+    def String  getKey(String projectName,int buildNumber) {
+
+        return &quot;${projectName}---${buildNumber}&quot;
+    }
+
+    def JobBuild getJobMetaData(String projectName,int buildNumber) {
+    //println &apos;in getJobMetaData&apos;
+        key=getKey(projectName,buildNumber)
+        JobBuild jb= new JobBuild()
+        if (jobs.containsKey(key)){
+            jb=jobs.get(key)
+        }
+        else{
+
+
+            jb.projectName=projectName
+            jb.buildNumber=buildNumber
+            jb.key = key
+            jb.project = (AbstractProject)instance.getItemByFullName(jb.projectName,AbstractProject.class)
+            jb.isPipelineJob=false
+            if (!jb.project == null)      jobs.put(key,jb)
+        }
+
+        return jb
+    }
+
+    def String  getParent(JobBuild jb,jobsToIgnoreArr) {
+        //   println(&apos;in1 getParent &apos;)
+        String parentKey = jb.key
+        def int parentBuildNumber
+        def AbstractProject parent
+        //   def List&lt;String&gt;  parentList = new ArrayList&lt;String&gt;();
+        println &apos;Checking parent of &apos; + jb.key
+
+        try {
+            if (jb.buildStatus == JobStatus.PENDING) {
+                printlb(&quot;No active parent was found for ${jb.projectName}&quot;)
+                return getKey(jb.projectName, jb.buildNumber)
+            }
+
+            //  curRun = curProject.getBuildByNumber(curBuildNumber)
+            //   curBuild = (AbstractBuild) curRun
+            println(&apos;Start interate causs  &apos;)
+
+
+            for (Cause c : jb.run.getCauses()) {
+                try {
+                    if (c instanceof UpstreamCause) {
+                        Cause.UpstreamCause upCause = (Cause.UpstreamCause) c;
+                        String upProjectName = upCause.getUpstreamProject();
+                        println &apos;Parent Job = &apos; + upProjectName
+                        parentBuildNumber = upCause.getUpstreamBuild();
+                        parent = instance.getItemByFullName(upProjectName, AbstractProject.class);
+                        // This can be null if this parent was started by a non-parent (ie, promotion action)
+
+                        if (parent == null) {
+                            println &apos;No parent project was found &apos;
+                            continue
+                        };  // This is not a Parent
+                        upBuild = (AbstractBuild) parent.getBuildByNumber(parentBuildNumber);
+                        if (upBuild == null) {
+                            println &apos;Could not found build &apos; + parentBuildNumber
+                            continue;
+                        }
+                        parentKey = updateJobMetadata(upProjectName, parentBuildNumber,jobsToIgnoreArr)
+
+                        jb.parent = parentKey
+    //            jobs.put(jb.key,jb)  //update parent name  = parentKey
+                    }
+                }
+                catch (Exception ex) {
+
+                    println(&apos;Failed to check cause :&apos; + ex.message)
+                    throw ex
+
+                }
+            }
+            //   println(&apos;Finished interate causs  &apos;)
+            return parentKey
+        }
+        catch (Exception ex1){
+            println &apos;Failed getting parent&apos;
+            throw ex1
+        }
+    }
+
+
+
+
+    def public JobStatus getDownStreamJobs(String  key,jobsToIgnoreArr) {
+
+        def JobStatus downstreamStatus = JobStatus.SUCCESS
+        childsList = getChilds(key,jobsToIgnoreArr)
+
+        for (String childKey in childsList){
+
+            downstreamStatus=getDownStreamJobs(childKey,jobsToIgnoreArr)
+           // if (!downstreamStatus== JobStatus.SUCCESS ) {
+            JobBuild jb = jobs.get(key)
+            jb.isPipelineJob=true
+            println &apos;Job &apos; +  jb.build  +  &apos; status is &apos; + jb.buildStatus
+            jobs.putAt(key,jb)
+               // break
+          //  }
+
+
+        }
+        return downstreamStatus
+
+    }
+    def public List&lt;String&gt; getChilds(String  key, jobsToIgnoreArr ) {
+        def List&lt;String&gt; childList=[]
+        JobBuild jb = jobs.get(key)
+
+        if (jb==null){
+            println &apos;This key has null value =&gt;&apos; + key
+            return null
+        }
+
+
+
+        childList.addAll( getTriggeredActions(jb,jobsToIgnoreArr))
+
+
+        def childs= jb.build.getProject().getDownstreamProjects()
+
+
+
+        for (Iterator&lt;AbstractProject&gt; iterator = childs.iterator(); iterator.hasNext();) {
+            AbstractProject childProject = iterator.next();
+            childBuildsMap = childProject._getRuns()
+
+            for ( childBuildNumber in childBuildsMap ) {
+
+
+                build =(Run)childBuildNumber
+
+                childKey = getKey( build.getParent().fullName,build.number)
+                updateJobMetadata(  build.getParent().fullName,build.number, jobsToIgnoreArr )
+                optionalParent = getParent(getJobMetaData(  build.getParent().fullName,build.number),jobsToIgnoreArr)
+                if (optionalParent == key){
+                    childList.add(childKey)
+                    println &quot;${childKey}   ${key} is a pipeline Job&quot;
+                    SetAsPipelineJob(childKey)
+
+
+                    break
+                }
+            }
+    //        println childProject.fullName
+        }
+
+    //    jb.childs=childList
+    //    jobs.put(key,jb)
+    //
+        return  childList
+    }
+    def List&lt;String&gt; getTriggeredActions(JobBuild jb ,jobsToIgnoreArr){
+        //Get triggered steps
+    //println &apos;actions&apos;+jb.run.getActions()
+        def  List&lt;String&gt; childs = []
+
+    //    println &apos;status=&apos; +jb.run.getBuildStatusSummary().toString()
+    //    actions=jb.run.getBuildStatusSummary().properties
+        actions=jb.build.getActions( hudson.plugins.parameterizedtrigger.BuildInfoExporterAction)
+        for (Action action in actions)
+        {
+            props = action.getProperties()
+
+
+            //Projects that were not triggered for some reason
+
+            ArrayList triggeredProjects = props.get(&apos;triggeredProjects&apos;)
+            triggeredProjects.each {
+                println (&apos;-----------triggeredProjects = &apos; + it)
+                AbstractProject triggeredProject= it
+                projectName=triggeredProject.fullName
+                SetAsPipelineJob(projectKey)
+            }
+
+            ///Update Jobs that were triggered and run
+            ArrayList triggeredBuilds = props.get(&apos;triggeredBuilds&apos;)
+            triggeredBuilds.each {
+                println (&apos;-----------triggeredBuilds = &apos; + it)
+                Run triggeredBuild = it
+                projectName=((AbstractBuild)triggeredBuild).getProject().fullName
+                projectKey =updateJobMetadata(projectName,triggeredBuild.number,jobsToIgnoreArr )
+                childs.add(projectKey)
+                SetAsPipelineJob(projectKey)
+            }
+
+        }
+        return childs
+    }
+def SetAsPipelineJob(String key){
+    println &quot;${key}   is set as a pipeline Job&quot;
+    JobBuild jb = jobs.get(key)
+    jb.isPipelineJob=true
+    jobs.putAt(key,jb)
+}
+    public class   JobBuild {
+
+        Boolean isPipelineJob,jobToIgnore;
+        String key,projectName, projectUrl,upProjectName,parent,status;
+        List&lt;String&gt; childs;
+        int depth, childNumber,buildNumber,parentBuildNumber;
+        List&lt;Integer&gt; parentChildSize;
+        AbstractProject project;
+        AbstractBuild build;
+        Run run;
+        JobStatus buildStatus;
+    }
+</groovyScriptContent>
         <loadFilesFromMaster>false</loadFilesFromMaster>
       </info>
     </EnvInjectBuildWrapper>

@@ -50,6 +50,11 @@ Publish Git and Artifactory&#xd;
           <description></description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>envID</name>
+          <description></description>
+          <defaultValue>base02</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <jenkins.plugins.slack.SlackNotifier_-SlackJobProperty plugin="slack@1.7">
@@ -252,7 +257,7 @@ MasterBuildVersion=${MasterBuildVersion}</properties>
       <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
     </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
     <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder plugin="conditional-buildstep@1.3.3">
-      <condition class="org.jenkins_ci.plugins.run_condition.core.NeverRun" plugin="run-condition@1.0"/>
+      <condition class="org.jenkins_ci.plugins.run_condition.core.AlwaysRun" plugin="run-condition@1.0"/>
       <buildStep class="hudson.plugins.parameterizedtrigger.TriggerBuilder" plugin="parameterized-trigger@2.25">
         <configs>
           <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
@@ -265,7 +270,8 @@ sourceRepos=ci-release
 targetRepos=ci-release-temp
 DevRootPath=${DevRootPath}
 PromoteOnSuccess=${PromoteOnSuccess}
-checkPipelineGreen=true</properties>
+checkPipelineGreen=true
+installedVersionFiles=..\\promotion\\installedVersions.json</properties>
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
             </configs>
             <projects>Z_TPL091_(ArtifactoryPromotion)</projects>
@@ -279,19 +285,21 @@ checkPipelineGreen=true</properties>
     </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
     <org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder plugin="conditional-buildstep@1.3.3">
       <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
-      <runCondition class="org.jenkins_ci.plugins.run_condition.core.AlwaysRun" plugin="run-condition@1.0"/>
+      <runCondition class="org.jenkins_ci.plugins.run_condition.core.NeverRun" plugin="run-condition@1.0"/>
       <conditionalbuilders>
         <hudson.tasks.BatchFile>
-          <command>echo f | xcopy /f /y /q %WORKSPACE%\ci\playbook.yaml \\atldocker09\vebutu\playbooks\playbook_base01.yaml</command>
+          <command>echo f | xcopy /f /y /q %WORKSPACE%\ci\playbook.yaml \\atldocker09\vebutu\playbooks\playbook_%envID%.yaml&#xd;
+&#xd;
+echo f | xcopy /f /y /q %WORKSPACE%\ci\playbookAsIs.yaml \\atldocker09\vebutu\playbooks\playbookAsIs_%envID%.yaml</command>
         </hudson.tasks.BatchFile>
         <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.25">
           <configs>
             <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
               <configs>
                 <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-                  <properties>playbook=playbook_base01.yaml
-playbookAsIs=playbookAsIs_base01.yaml
-envId=base01
+                  <properties>playbook=playbook_${envID}.yaml
+playbookAsIs=playbookAsIs_${envID}.yaml
+envID=${envID}
 VmIp=10.156.3.112</properties>
                 </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
                 <hudson.plugins.parameterizedtrigger.FileBuildParameters>
