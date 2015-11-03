@@ -51,7 +51,7 @@ Publish Git and Artifactory&#xd;
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>envID</name>
+          <name>envID_Remove</name>
           <description></description>
           <defaultValue>base02</defaultValue>
         </hudson.model.StringParameterDefinition>
@@ -257,7 +257,7 @@ MasterBuildVersion=${MasterBuildVersion}</properties>
       <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
     </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
     <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder plugin="conditional-buildstep@1.3.3">
-      <condition class="org.jenkins_ci.plugins.run_condition.core.AlwaysRun" plugin="run-condition@1.0"/>
+      <condition class="org.jenkins_ci.plugins.run_condition.core.NeverRun" plugin="run-condition@1.0"/>
       <buildStep class="hudson.plugins.parameterizedtrigger.TriggerBuilder" plugin="parameterized-trigger@2.25">
         <configs>
           <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
@@ -338,11 +338,74 @@ VmIp=10.156.3.112</properties>
         </hudson.plugins.parameterizedtrigger.TriggerBuilder>
       </conditionalbuilders>
     </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>
+    <org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder plugin="conditional-buildstep@1.3.3">
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+      <runCondition class="org.jenkins_ci.plugins.run_condition.core.NeverRun" plugin="run-condition@1.0"/>
+      <conditionalbuilders>
+        <hudson.tasks.Shell>
+          <command>echo envID=$(date +%s)&gt;envID.properties</command>
+        </hudson.tasks.Shell>
+        <EnvInjectBuilder plugin="envinject@1.90">
+          <info>
+            <propertiesFilePath>envID.properties</propertiesFilePath>
+          </info>
+        </EnvInjectBuilder>
+        <hudson.tasks.BatchFile>
+          <command>echo f | xcopy /f /y /q %WORKSPACE%\ci\playbook.yaml \\atldocker09\vebutu\playbooks\playbook_%envID%.yaml&#xd;
+&#xd;
+echo f | xcopy /f /y /q %WORKSPACE%\ci\playbookAsIs.yaml \\atldocker09\vebutu\playbooks\playbookAsIs_%envID%.yaml</command>
+        </hudson.tasks.BatchFile>
+        <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.25">
+          <configs>
+            <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+              <configs>
+                <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+                  <properties>playbook=playbook_${envID}.yaml
+playbookAsIs=playbookAsIs_${envID}.yaml
+envID=${envID}
+VmIp=10.156.3.112</properties>
+                </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+                <hudson.plugins.parameterizedtrigger.FileBuildParameters>
+                  <propertiesFile>${WORKSPACE}\\Z_TPL010_${MasterBuildVersion}.prop</propertiesFile>
+                  <failTriggerOnMissing>false</failTriggerOnMissing>
+                  <useMatrixChild>false</useMatrixChild>
+                  <onlyExactRuns>false</onlyExactRuns>
+                </hudson.plugins.parameterizedtrigger.FileBuildParameters>
+              </configs>
+              <projects>Z_TPL080_(RemoteCall)</projects>
+              <condition>ALWAYS</condition>
+              <triggerWithNoParameters>false</triggerWithNoParameters>
+              <block>
+                <buildStepFailureThreshold>
+                  <name>UNSTABLE</name>
+                  <ordinal>1</ordinal>
+                  <color>YELLOW</color>
+                  <completeBuild>true</completeBuild>
+                </buildStepFailureThreshold>
+                <unstableThreshold>
+                  <name>UNSTABLE</name>
+                  <ordinal>1</ordinal>
+                  <color>YELLOW</color>
+                  <completeBuild>true</completeBuild>
+                </unstableThreshold>
+                <failureThreshold>
+                  <name>UNSTABLE</name>
+                  <ordinal>1</ordinal>
+                  <color>YELLOW</color>
+                  <completeBuild>true</completeBuild>
+                </failureThreshold>
+              </block>
+              <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
+            </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+          </configs>
+        </hudson.plugins.parameterizedtrigger.TriggerBuilder>
+      </conditionalbuilders>
+    </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>
   </builders>
   <publishers/>
   <buildWrappers>
     <org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder plugin="versionnumber@1.4.1">
-      <versionNumberString>15.0.0.${BUILD_NUMBER}</versionNumberString>
+      <versionNumberString>15.1.1.${BUILD_NUMBER}</versionNumberString>
       <projectStartDate>2014-07-29 04:00:00.0 UTC</projectStartDate>
       <environmentVariableName>MasterBuildVersion</environmentVariableName>
       <oBuildsToday>-1</oBuildsToday>

@@ -12,7 +12,7 @@
         "RepoURL": "git@scgit:testing",
         "KeepTheFixtureWhenDone": "false",
         "PromoteOnSuccess": "false",
-        "envID": "base02"
+        "envID_Remove": "base02"
       },
     "buildTrigger": {
 
