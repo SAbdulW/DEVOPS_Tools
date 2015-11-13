@@ -39,10 +39,10 @@ def artifactoryPurging (String repos, String dayToKeeps, String minimumToKeeps, 
 
             File fFullL = new File ("$projectDir/${repoKey}_FullList.log")
             File fDelete = new File ("$projectDir/${repoKey}_DeleteList.log")
-            File fExclude = new File ("$projectDir/${repoKey}_ExcludeList.log")
+            File fTop = new File ("$projectDir/${repoKey}_TopList.log")
             File fDoNotPurge = new File ("$projectDir/${repoKey}_DoNotPurgeList.log")
             fFullL.setText("ALL ARTIFACTS OLDER THAN $dayToKeep DAYS\r\n")
-            fExclude.setText("THESE ARTIFACTS HAVE BEEN EXCLUDED FROM PURGING\r\n")
+            fTop.setText("THESE ARTIFACTS ARE THE TOP LATEST TO KEEP FROM PURGING\r\n")
             fDoNotPurge.setText("THESE ARTIFACTS HAVE 'DO NOT PURGE' PROPERTY SET AND HAVE NOT BEEN PURGED\r\n")
             if ("${viewOnly}".toBoolean()) {
                 fDelete.setText("THIS IS JUST A DRY RUN. NO REAL PURGING HAPPENING\r\n")
@@ -52,7 +52,10 @@ def artifactoryPurging (String repos, String dayToKeeps, String minimumToKeeps, 
             }
 
             // get list of top latest versions of an artifact to keep
-            List topLatestPathList = getXNumberLatestArtifacts("$minimumToKeep".toInteger(), repoKey, fExclude)
+            List topLatestPathList = getXNumberLatestArtifactsPerVersion("$minimumToKeep".toInteger(), repoKey)
+            topLatestPathList.each{ itemPath ->
+                fTop << itemPath + "\r\n"
+            }
 
 
             // get list of all artifacts marked as do not purge
@@ -62,7 +65,6 @@ def artifactoryPurging (String repos, String dayToKeeps, String minimumToKeeps, 
                 doNotPurgePathList.add(item.path)
                 fDoNotPurge << item.path + "\r\n"
             }
-
 
             // get all artifacts OLDER than configured days
             List candidateList = getArtifactsOlderThanXDays (repoKey, pathMatch, dayToKeep.toInteger())
@@ -157,6 +159,72 @@ def List getXNumberLatestArtifacts(int topElement, String repoKey, File fKeep){
     }
 
     return rtnList
+}
+
+def List getXNumberLatestArtifactsPerVersion(int topElement, String repoKey){
+    def mapAllItems = [:]
+    List topItemsToKeep = []
+
+    // get all artifacts from this repo, then put them into a map
+    // [rootPath: [version1, version2, ...], rootPath:[version1, version2,...], ...]
+    List resultsList = getArtifactsOlderThanXDays(repoKey, "*", 0)
+    resultsList.each { resultItem ->
+        String itemPath = resultItem."path";
+        mapAllItems= putToTheMap(mapAllItems, itemPath, repoKey)
+    }
+
+    // for each item, we need to process the version in format of a.b.c.d
+    // to take out the top of each distinguished version to keep
+    mapAllItems.each { itemPathRoot, listItems ->
+        List distinctVersionList = []
+        listItems.each{ itemPath ->
+            // first, parse the version
+            int lastIndex = itemPath.lastIndexOf("/")
+            String itemVersion = itemPath.substring(lastIndex + 1, itemPath.size())
+            String[] versionDigit = itemVersion.tokenize('.')
+
+            // second, build distinct version list
+            String abc = versionDigit[0] + "." + versionDigit[1] + "." + versionDigit[2]
+            if(!distinctVersionList.any {it == abc}){
+                distinctVersionList.add(abc)
+            }
+        }
+
+        // now we got the list of distinct version list of this root artifact
+        // next we need to build an order map of all versions for each distinct version
+        def distinctVersionArtifacts = [:]
+        distinctVersionList.each{ versionPrefix ->
+            def artifactList = [:]
+            listItems.each{ itemPath ->
+                // first, parse the version
+                int lastIndex = itemPath.lastIndexOf("/")
+                String itemVersion = itemPath.substring(lastIndex + 1, itemPath.size())
+                String[] versionDigit = itemVersion.tokenize('.')
+
+                // second, get the build number
+                String abc = versionDigit[0] + "." + versionDigit[1] + "." + versionDigit[2]
+                String d = versionDigit[3]
+
+                // compare and put in this map if
+                if( versionPrefix == abc){
+                    artifactList.put(Integer.parseInt(d), itemPath)
+                }
+            }
+
+            // now sort it, DESC
+            def sortedMap = artifactList.sort { -it.key }
+
+            // and now take the top
+            def mapToKeep = sortedMap.take(topElement)
+
+            // last, add all keep items to the final list
+            mapToKeep.each{key, value ->
+                topItemsToKeep.add(value)
+            }
+        }
+    }
+
+    return topItemsToKeep
 }
 
 def List search(String aql ){
