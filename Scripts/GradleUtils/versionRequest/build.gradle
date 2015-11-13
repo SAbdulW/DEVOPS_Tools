@@ -1,0 +1,127 @@
+import groovy.json.JsonSlurper
+
+buildscript {
+    repositories {
+        maven {
+            url "${artifactory_contextUrl}/plugins-release"
+            credentials {
+                username = "${artifactory_user}"
+                password = "${artifactory_password}"
+            }
+        }
+    }
+    dependencies {
+        classpath(group: 'org.jfrog.buildinfo', name: 'build-info-extractor-gradle', version: '2.2.4')
+        classpath 'org.yaml:snakeyaml:1.16-SNAPSHOT'
+        classpath 'com.verint.plugins:vebutu-plugin:latest.release'
+        classpath 'org.yaml:snakeyaml:1.16-SNAPSHOT'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'vebutu'
+//apply plugin: 'artifactory'
+
+String pp_timestamp= Calendar.getInstance().getTimeInMillis();
+
+allprojects {
+    apply plugin: 'idea'
+    group = groupID
+    version = currentVersion
+}
+
+repositories {
+    //Resolving the artifact from the release repo, the one promoted by team
+    maven {
+        url "${artifactory_contextUrl}/${aRepoKey}"
+        credentials {
+            username = "${artifactory_user}"
+            password = "${artifactory_password}"
+        }
+    }
+}
+
+configurations {
+    aConfig
+}
+
+dependencies {
+    String strGAV = "${aGAV}"
+    strGAV = strGAV.replaceAll("%20"," ")
+    strGAV = strGAV.replaceAll("\\[RELEASE\\]",'+')
+    aConfig "${strGAV}@${aExt}"
+    logger.info "REGISTER ${strGAV}@${aExt} \n "
+}
+
+dependencyLock {
+    lockFile = "dependencies_${pp_timestamp}.info"
+    configurationNames = ['aConfig']
+}
+
+task updateRequestVersion () << {
+    tasks.generateLock.execute()
+    tasks.saveLock.execute()
+    updateYamlFiles "${yamlFiles}", "dependencies_${pp_timestamp}.info", "${aGAV}"
+}
+
+import org.yaml.snakeyaml.Yaml
+import groovy.json.JsonSlurper
+//import groovy.util.XmlSlurper
+
+// Get the version
+def String getRequestedVersion(String lockFileName){
+    String strRtn = ""
+    File fLockfile = new File (lockFileName)
+    def jsonObject = loadJsonObject(fLockfile)
+    jsonObject.each { lockItem ->
+        logger.quiet("" + lockItem.getValue())
+        def lockItemValue = lockItem.getValue()
+        strRtn =lockItemValue."locked"
+    }
+    return strRtn
+}
+
+def updateYamlFiles (String iYamlFiles, String lockFileName, String srcGAV ){
+    def String[] yamlFiles = "${iYamlFiles}".split(',');
+    yamlValidation (yamlFiles)
+    String requestedVersion = getRequestedVersion(lockFileName)
+    for (String yamlSrcPath : yamlFiles) {
+        updateYamlFile (yamlSrcPath,srcGAV,requestedVersion )
+    }
+}
+
+def updateYamlFile(String yamlFilePath, String srcGAV , String strRequestedVersion){
+
+    File yamlFile = new File (yamlFilePath)
+    String newText = ""
+    yamlFile.readLines().each { yamlLine ->
+        if (yamlLine.contains("${srcGAV}")){
+            int lastIndex = yamlLine.lastIndexOf(":")
+            newText = newText + yamlLine.substring(0,lastIndex+1) + "${strRequestedVersion}'\n"
+        }else{
+            newText = newText + "${yamlLine}\n"
+        }
+    }
+    logger.quiet("newText:\n${newText}")
+}
+
+
+def loadJsonObject(File jsonFile) {
+    def InputJSON = new JsonSlurper().parseText(jsonFile.text)
+
+    return InputJSON
+}
+
+def yamlValidation(String [] yamlFiles){
+    yamlFiles.each { yamlFile ->
+        def yaml = new Yaml()
+        def doc = new File(yamlFile).text
+        try {
+            def map = (Map) yaml.load(doc)
+            logger.quiet ("GradleUtils: YAML (${yamlFile}) PASSED validation")
+        }catch (Exception e){
+            logger.quiet ("GradleUtils: Invalid YAML (${yamlFile})")
+            throw new GradleException("GradleUtils:  (${e})")
+        }
+    }
+}
