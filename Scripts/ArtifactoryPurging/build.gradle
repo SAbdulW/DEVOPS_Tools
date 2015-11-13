@@ -134,33 +134,6 @@ def List getArtifactsTaggedAsDoNotPurge(String repo, String pathMatch){
     return resultsList
 }
 
-def List getXNumberLatestArtifacts(int topElement, String repoKey, File fKeep){
-    def mapLastItems = [:]
-    def mapLastItemsKeep = [:]
-
-    List resultsList = getArtifactsOlderThanXDays(repoKey, "*", 0)
-    resultsList.each { resultItem ->
-        String itemPath = resultItem."path";
-        mapLastItems= putToTheMap(mapLastItems, itemPath, repoKey)
-    }
-
-    mapLastItems.each { itemPathRoot, listItems ->
-        List listToKeep = listItems.reverse().take(topElement)
-        mapLastItemsKeep.put (itemPathRoot,listToKeep )
-    }
-
-    def rtnList = []
-    mapLastItemsKeep.each {  itemPathRoot, listItems ->
-        fKeep << "========================Item: ${itemPathRoot}\n"
-        listItems.each { item ->
-            fKeep << "${item}\r\n"
-            rtnList.add (item)
-        }
-    }
-
-    return rtnList
-}
-
 def List getXNumberLatestArtifactsPerVersion(int topElement, String repoKey){
     def mapAllItems = [:]
     List topItemsToKeep = []
@@ -181,12 +154,14 @@ def List getXNumberLatestArtifactsPerVersion(int topElement, String repoKey){
             // first, parse the version
             int lastIndex = itemPath.lastIndexOf("/")
             String itemVersion = itemPath.substring(lastIndex + 1, itemPath.size())
-            String[] versionDigit = itemVersion.tokenize('.')
 
-            // second, build distinct version list
-            String abc = versionDigit[0] + "." + versionDigit[1] + "." + versionDigit[2]
-            if(!distinctVersionList.any {it == abc}){
-                distinctVersionList.add(abc)
+            lastIndex = itemVersion.lastIndexOf(".")
+            if(lastIndex > 0){
+                String abc = itemVersion.substring(0, lastIndex)
+
+                if(!distinctVersionList.any {it == abc}) {
+                    distinctVersionList.add(abc)
+                }
             }
         }
 
@@ -199,15 +174,19 @@ def List getXNumberLatestArtifactsPerVersion(int topElement, String repoKey){
                 // first, parse the version
                 int lastIndex = itemPath.lastIndexOf("/")
                 String itemVersion = itemPath.substring(lastIndex + 1, itemPath.size())
-                String[] versionDigit = itemVersion.tokenize('.')
 
-                // second, get the build number
-                String abc = versionDigit[0] + "." + versionDigit[1] + "." + versionDigit[2]
-                String d = versionDigit[3]
+                lastIndex = itemVersion.lastIndexOf(".")
+                if(lastIndex > 0){
+                    String abc = itemVersion.substring(0, lastIndex)
 
-                // compare and put in this map if
-                if( versionPrefix == abc){
-                    artifactList.put(Integer.parseInt(d), itemPath)
+                    // second, get the build number
+                    String d = itemVersion.substring(lastIndex + 1, itemVersion.size())
+
+                    // compare and put in this map if
+                    // make sure the build number is interger otherwise just ignore them - don't keep e.g. SNAPSHOT
+                    if( versionPrefix == abc && d.isInteger()){
+                        artifactList.put(Integer.parseInt(d), itemPath)
+                    }
                 }
             }
 
