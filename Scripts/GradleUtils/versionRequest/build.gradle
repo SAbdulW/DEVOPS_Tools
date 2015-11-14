@@ -61,7 +61,7 @@ dependencyLock {
 task updateRequestVersion () << {
     tasks.generateLock.execute()
     tasks.saveLock.execute()
-    updateYamlFiles "${yamlFiles}", "dependencies_${pp_timestamp}.info", "${aGAV}"
+    updateYamlFiles "${yamlFiles}", "${projectDir}\\dependencies_${pp_timestamp}.info", "${aGAV}"
 }
 
 import org.yaml.snakeyaml.Yaml
@@ -72,6 +72,10 @@ import groovy.json.JsonSlurper
 def String getRequestedVersion(String lockFileName){
     String strRtn = ""
     File fLockfile = new File (lockFileName)
+    String sLockfilePath = fLockfile.getCanonicalPath()
+
+    logger.quiet ("sLockfilePath: ${sLockfilePath}")
+
     def jsonObject = loadJsonObject(fLockfile)
     jsonObject.each { lockItem ->
         logger.quiet("" + lockItem.getValue())

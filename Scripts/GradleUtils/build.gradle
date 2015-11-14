@@ -504,6 +504,7 @@ def fillSpecificVersionYAML (String iYamlFile){
     Yaml yaml = new Yaml();
     Object data = yaml.load(sourceContent);
     logger.info("GradleUtils: ${iYamlFile}")
+    srcFilePath = srcFilePath.replaceAll("\\\\", "\\\\\\\\");
 
     data."wfoComponents".each { wfoComponents ->
         //logger.quiet(wfoComponents)
@@ -528,14 +529,24 @@ def fillSpecificVersionYAML (String iYamlFile){
             }
         }
 
-        logger.info("GradleUtils: fillSpecificVersionYAML:  ${sComponentName} : ${sComponentGAV} : ${sComponentRepo}: ${srcFilePath}")
+        logger.info("GradleUtils: fillSpecificVersionYAML:  ${sComponentName}:${sComponentGAV}:${sComponentRepo}:${srcFilePath}")
 
+        updateRequestedVersion (sComponentGAV,sComponentRepo,srcFilePath )
+
+        //Now , call and execute gradle tasks
         //Fill the version
 //        if (componentGAV!="")
 //            componentGAV = componentGAV.substring(0, componentGAV.lastIndexOf(":"))+ ":" + "${installedVersion}"
 
     }
 }
+
+def updateRequestedVersion (String sComponentGAV, String sComponentRepo, String sYamlFiles){
+    String cmdLine = ""
+
+    executeCommandLine(cmdLine)
+}
+
 
 def loadJsonObject(File jsonFile) {
     def InputJSON = new JsonSlurper().parseText(jsonFile.text)
@@ -568,6 +579,20 @@ def getRtnCode (String strException) {
         //logger.quiet ("GradleUtils: strReturn=->${strReturn}<-")
     }
     return strReturn;
+}
+
+def executeCommandLine (String cmdLine) {
+
+    String rtnCode=""
+    try {
+        logger.info ("GAC: EXECUTING...:" + cmdLine )
+        exec {
+            commandLine 'cmd', '/c', cmdLine
+        }
+    }
+    catch (Exception e) {
+        logger.error ("GAC: some " + e.toString())
+    }
 }
 
 def executeOnCMDFile(String command) {
@@ -704,6 +729,7 @@ def yamlValidation(String [] yamlFiles){
         }
     }
 }
+
 
 task wrapper(type: Wrapper) {
     gradleVersion = supportedGradleVersion
