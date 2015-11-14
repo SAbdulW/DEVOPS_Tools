@@ -74,7 +74,7 @@ def String getRequestedVersion(String lockFileName){
     File fLockfile = new File (lockFileName)
     String sLockfilePath = fLockfile.getCanonicalPath()
 
-    logger.quiet ("sLockfilePath: ${sLockfilePath}")
+    logger.info ("sLockfilePath: ${sLockfilePath}")
 
     def jsonObject = loadJsonObject(fLockfile)
     jsonObject.each { lockItem ->
@@ -106,7 +106,8 @@ def updateYamlFile(String yamlFilePath, String srcGAV , String strRequestedVersi
             newText = newText + "${yamlLine}\n"
         }
     }
-    logger.quiet("newText:\n${newText}")
+    logger.info("newText:\n${newText}")
+    yamlFile.text = "${newText}"
 }
 
 

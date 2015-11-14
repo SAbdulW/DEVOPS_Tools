@@ -529,21 +529,17 @@ def fillSpecificVersionYAML (String iYamlFile){
             }
         }
 
+        if (sComponentRepo=="") sComponentRepo="${defaultRepoKey}"
         logger.info("GradleUtils: fillSpecificVersionYAML:  ${sComponentName}:${sComponentGAV}:${sComponentRepo}:${srcFilePath}")
-
-        updateRequestedVersion (sComponentGAV,sComponentRepo,srcFilePath )
-
-        //Now , call and execute gradle tasks
-        //Fill the version
-//        if (componentGAV!="")
-//            componentGAV = componentGAV.substring(0, componentGAV.lastIndexOf(":"))+ ":" + "${installedVersion}"
+        if (sComponentGAV != "")
+            updateRequestedVersion (sComponentGAV,sComponentRepo,srcFilePath )
 
     }
 }
 
 def updateRequestedVersion (String sComponentGAV, String sComponentRepo, String sYamlFiles){
-    String cmdLine = ""
 
+    String cmdLine = "gradlew.bat --daemon --parallel -b versionRequest/build.gradle updateRequestVersion -PyamlFiles=${sYamlFiles} -PaGAV=${sComponentGAV} -PaRepoKey=${sComponentRepo}"
     executeCommandLine(cmdLine)
 }
 
