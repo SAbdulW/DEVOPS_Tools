@@ -53,19 +53,27 @@ task init() << {
 }
 
 task testPP() << {
-    loadPuppetLog ("ci_wfo_env_1438279679740", "ci_wfo_env" )
+    //loadPuppetLog ("ci_wfo_env_1438279679740", "ci_wfo_env" )
     //loadPuppetLog ("ci_wfo_env_test", "ci_wfo_env_test")
-    def String[] yamlFiles = "${yamlFiles}".split(',');
-    yamlValidation (yamlFiles)
-    extractInstalledVersion (yamlFiles, new File("${projectDir}\\PPLogs\\registryExport.json") )
+    //def String[] yamlFiles = "${yamlFiles}".split(',');
+    //yamlValidation (yamlFiles)
+    //extractInstalledVersion (yamlFiles, new File("${projectDir}\\PPLogs\\registryExport.json") )
 
     //def sviXMLObj = loadXMLObject (new File ("${projectDir}\\PPLogs\\ServerVersionInformation.xml"))
 
     //getVersionInstalledFromSVIXML (sviXMLObj, "Coaching Reporting")
 
     //renameYAML "\\\\atlpuppetmaster\\puppet_agent\\environments\\ci_wfo_env_test\\hieradata\\ci_wfo_env_test.yaml"
-}
 
+    if ("${forceVersionRange}".toBoolean())
+        fillSpecificVersionYAMLs "$yamlFiles"
+
+}
+task forceVersionRange() << {
+    if ("${forceVersionRange}".toBoolean())
+        fillSpecificVersionYAMLs "$yamlFiles"
+
+}
 task runPuppetAgent(dependsOn: 'init') << {
     logger.quiet ("GradleUtils: Stop Watchdog service")
 //	remoteService( vmIP, vmUser, vmPw, watchdogService , "stop")
@@ -476,6 +484,57 @@ def getVersionInstalledFromSVIXML (Object xmlObject, String componentName){
         }
     }
     return rtnVersion
+}
+
+
+// General function
+def fillSpecificVersionYAMLs (String iYamlFiles){
+    //base on the GAV input, to get the specific version from artifactory and update the YAML
+    def String[] yamlFiles = "${iYamlFiles}".split(',');
+    yamlValidation (yamlFiles)
+    for (String yamlSrcPath : yamlFiles) {
+        fillSpecificVersionYAML (yamlSrcPath)
+    }
+}
+def fillSpecificVersionYAML (String iYamlFile){
+    //base on the GAV input, to get the specific version from artifactory and update the YAML
+    File sourceFile = new File (iYamlFile);
+    String srcFilePath = sourceFile.getCanonicalPath()
+    String sourceContent = sourceFile.getText("UTF-8")
+    Yaml yaml = new Yaml();
+    Object data = yaml.load(sourceContent);
+    logger.info("GradleUtils: ${iYamlFile}")
+
+    data."wfoComponents".each { wfoComponents ->
+        //logger.quiet(wfoComponents)
+        Map<Object> wfoComponentsMap = (Map<Object>) wfoComponents
+        String sComponentName =""
+        String sComponentGAV = ""
+        String sComponentRepo = ""
+
+        wfoComponentsMap.each { wfoComponent ->
+            wfoComponent.each { it ->
+                logger.debug("${it}")
+                String [] prop =    "${it}".split("=")
+                if (prop[0]=="ComponentName") {
+                    sComponentName = prop[1]
+                }
+                if (prop[0]=="ComponentGAV") {
+                    sComponentGAV = prop[1]
+                }
+                if (prop[0]=="ComponentRepo") {
+                    sComponentRepo = prop[1]
+                }
+            }
+        }
+
+        logger.info("GradleUtils: fillSpecificVersionYAML:  ${sComponentName} : ${sComponentGAV} : ${sComponentRepo}: ${srcFilePath}")
+
+        //Fill the version
+//        if (componentGAV!="")
+//            componentGAV = componentGAV.substring(0, componentGAV.lastIndexOf(":"))+ ":" + "${installedVersion}"
+
+    }
 }
 
 def loadJsonObject(File jsonFile) {
