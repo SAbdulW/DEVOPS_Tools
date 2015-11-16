@@ -48,6 +48,7 @@ dependencies {
 
 // prepare environment, getting the tools
 task init() << {
+
     ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("PSTools-")}, dest: "${projectDir}\\Pstools\\")
     ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("paexec")}, dest: "${projectDir}\\PAExec\\")
 }
@@ -64,17 +65,25 @@ task testPP() << {
     //getVersionInstalledFromSVIXML (sviXMLObj, "Coaching Reporting")
 
     //renameYAML "\\\\atlpuppetmaster\\puppet_agent\\environments\\ci_wfo_env_test\\hieradata\\ci_wfo_env_test.yaml"
-
-    if ("${forceVersionRange}".toBoolean())
+    logger.quiet ("GradleUtils: Filling the version range to YAML files: ${yamlFiles}")
+    if ("${fillVersionRange}".toBoolean())
         fillSpecificVersionYAMLs "$yamlFiles"
 
 }
-task forceVersionRange() << {
-    if ("${forceVersionRange}".toBoolean())
-        fillSpecificVersionYAMLs "$yamlFiles"
+//task forceVersionRange() << {
+//    if ("${fillVersionRange}".toBoolean())
+//        fillSpecificVersionYAMLs "$yamlFiles"
+//
+//}
 
-}
 task runPuppetAgent(dependsOn: 'init') << {
+
+    if ("${fillVersionRange}".toBoolean()) {
+        logger.quiet ("GradleUtils: Filling the version range to YAML files: ${yamlFiles}")
+        fillSpecificVersionYAMLs "$yamlFiles"
+    }
+
+
     logger.quiet ("GradleUtils: Stop Watchdog service")
 //	remoteService( vmIP, vmUser, vmPw, watchdogService , "stop")
     MultiRemoteService( vmIP, vmUser, vmPw, "${stopStartservices}" , "stop")
@@ -539,7 +548,9 @@ def fillSpecificVersionYAML (String iYamlFile){
 
 def updateRequestedVersion (String sComponentGAV, String sComponentRepo, String sYamlFiles){
 
-    String cmdLine = "gradlew.bat --daemon --parallel -b versionRequest/build.gradle updateRequestVersion -PyamlFiles=${sYamlFiles} -PaGAV=${sComponentGAV} -PaRepoKey=${sComponentRepo}"
+    String cmdLine = "gradlew.bat --parallel -b versionRequest/build.gradle updateRequestVersion -PyamlFiles=${sYamlFiles} -PaGAV=${sComponentGAV} -PaRepoKey=${sComponentRepo}"
+    // --daemon didn't help much
+    // String cmdLine = "gradlew.bat --daemon --parallel -b versionRequest/build.gradle updateRequestVersion -PyamlFiles=${sYamlFiles} -PaGAV=${sComponentGAV} -PaRepoKey=${sComponentRepo}"
     executeCommandLine(cmdLine)
 }
 
