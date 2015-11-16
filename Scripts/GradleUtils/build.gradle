@@ -521,6 +521,7 @@ def fillSpecificVersionYAML (String iYamlFile){
         String sComponentName =""
         String sComponentGAV = ""
         String sComponentRepo = ""
+        String sCurrentVersion = ""
 
         wfoComponentsMap.each { wfoComponent ->
             wfoComponent.each { it ->
@@ -539,16 +540,19 @@ def fillSpecificVersionYAML (String iYamlFile){
         }
 
         if (sComponentRepo=="") sComponentRepo="${defaultRepoKey}"
+
+        sCurrentVersion = "${currentVersion}"
+
         logger.info("GradleUtils: fillSpecificVersionYAML:  ${sComponentName}:${sComponentGAV}:${sComponentRepo}:${srcFilePath}")
         if (sComponentGAV != "")
-            updateRequestedVersion (sComponentGAV,sComponentRepo,srcFilePath )
+            updateRequestedVersion (sComponentGAV,sComponentRepo,srcFilePath,sCurrentVersion )
 
     }
 }
 
-def updateRequestedVersion (String sComponentGAV, String sComponentRepo, String sYamlFiles){
+def updateRequestedVersion (String sComponentGAV, String sComponentRepo, String sYamlFiles, String sCurrentVersion){
 
-    String cmdLine = "gradlew.bat --parallel -b versionRequest/build.gradle updateRequestVersion -PyamlFiles=${sYamlFiles} -PaGAV=${sComponentGAV} -PaRepoKey=${sComponentRepo}"
+    String cmdLine = "gradlew.bat --parallel -b versionRequest/build.gradle updateRequestVersion -PyamlFiles=${sYamlFiles} -PaGAV=${sComponentGAV} -PaRepoKey=${sComponentRepo} -PcurrentVersion=${sCurrentVersion}"
     // --daemon didn't help much
     // String cmdLine = "gradlew.bat --daemon --parallel -b versionRequest/build.gradle updateRequestVersion -PyamlFiles=${sYamlFiles} -PaGAV=${sComponentGAV} -PaRepoKey=${sComponentRepo}"
     executeCommandLine(cmdLine)
