@@ -99,7 +99,7 @@ def updateYamlFile(String yamlFilePath, String srcGAV , String strRequestedVersi
     File yamlFile = new File (yamlFilePath)
     String newText = ""
     yamlFile.readLines().each { yamlLine ->
-        if (yamlLine.contains("${srcGAV}")){
+        if ((yamlLine.contains("${srcGAV}")) && !(yamlLine.contains("MasterBuildVersion"))){
             int lastIndex = yamlLine.lastIndexOf(":")
             newText = newText + yamlLine.substring(0,lastIndex+1) + "${strRequestedVersion}'\n"
         }else{
