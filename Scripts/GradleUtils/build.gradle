@@ -596,7 +596,7 @@ def executeCommandLine (String cmdLine) {
 
     String rtnCode=""
     try {
-        logger.info ("GAC: EXECUTING...:" + cmdLine )
+        logger.debug ("GAC: EXECUTING...:" + cmdLine )
         exec {
             commandLine 'cmd', '/c', cmdLine
         }
