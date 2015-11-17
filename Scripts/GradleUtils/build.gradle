@@ -548,6 +548,13 @@ def fillSpecificVersionYAML (String iYamlFile){
             updateRequestedVersion (sComponentGAV,sComponentRepo,srcFilePath,sCurrentVersion )
 
     }
+
+    // Print out the source contnet
+
+    File yamlFile = new File (iYamlFile);
+
+    logger.quiet(" GradleUtils: YAML file ${iYamlFile} after filling versions:\n" + yamlFile.text)
+
 }
 
 def updateRequestedVersion (String sComponentGAV, String sComponentRepo, String sYamlFiles, String sCurrentVersion){
