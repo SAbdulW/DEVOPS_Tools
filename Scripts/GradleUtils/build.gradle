@@ -544,7 +544,7 @@ def fillSpecificVersionYAML (String iYamlFile){
         sCurrentVersion = "${currentVersion}"
 
         logger.info("GradleUtils: fillSpecificVersionYAML:  ${sComponentName}:${sComponentGAV}:${sComponentRepo}:${srcFilePath}")
-        if (sComponentGAV != "")
+        if ((sComponentGAV != "") && !(sComponentGAV.contains("MasterBuildVersion") ))
             updateRequestedVersion (sComponentGAV,sComponentRepo,srcFilePath,sCurrentVersion )
 
     }
