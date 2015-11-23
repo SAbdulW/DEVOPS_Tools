@@ -172,9 +172,9 @@ def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvir
     sCmd = "\"C:\\Program Files\\Puppet Labs\\Puppet\\bin\\puppet.bat\" agent --test --server=${iPuppetServer} --certname=${iCertName} --environment=${iEnvironment} --debug --detailed-exitcodes"
 
     //Create the psexec command
-    // String sPsExecCmd ="cmd /c ${projectDir}\\Pstools\\PsExec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
-    //String sPsExecCmd ="cmd /c ${projectDir}\\Pstools\\PsExec.exe -accepteula -i \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
-    String sPsExecCmd ="cmd /c .\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    // String sPsExecCmd = "cmd /c ${projectDir}\\Pstools\\PsExec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    //String sPsExecCmd = "cmd /c ${projectDir}\\Pstools\\PsExec.exe -accepteula -i \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    String sPsExecCmd = "cmd /c .\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -noname -h ${sCmd}"
 
     logger.quiet ("GradleUtils: the command: ${sPsExecCmd} ")
 
@@ -202,7 +202,7 @@ def runDeployEar (String iVmIP, String iUser, String iPw) {
     // CommandLine to execute in the agent
     sCmd = "%windir%\\system32\\cscript.exe c:\\impact360\\software\\WFODeployer\\DeployWfo.vbs WLSAdmin pumpkin1 true true"
 
-    String sPsExecCmd = "cmd /c .\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    String sPsExecCmd = "cmd /c .\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -noname -h ${sCmd}"
 
     logger.quiet ("GradleUtils: the command: ${sPsExecCmd} ")
 
@@ -255,14 +255,14 @@ def remoteEnableService(String iVmIP, String iUser, String iPw,String iServiceNa
     }
 }
 
-def remoteService(String iVmIP, String iUser, String iPw,String iServiceName ,String iAction) {
+def remoteService(String iVmIP, String iUser, String iPw, String iServiceName, String iAction) {
     if (iAction.toLowerCase().contains("start")){
         remoteEnableService( iVmIP,  iUser,  iPw, iServiceName)}
 
     String sCmd = ""
     sCmd = "net ${iAction} \"${iServiceName}\""
 
-    String sPsExecCmd = "cmd /c .\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    String sPsExecCmd = "cmd /c .\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -noname -h ${sCmd}"
 
     logger.quiet ("GradleUtils: the command RemoteService: ${sPsExecCmd} ")
 
