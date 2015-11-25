@@ -45,6 +45,16 @@ configurations {
     aConfig
 }
 
+
+configurations.aConfig {
+    resolutionStrategy {
+        // don't cache dynamic versions
+        cacheDynamicVersionsFor 0, 'seconds'
+        // don't cache changing modules at all
+        cacheChangingModulesFor 0, 'seconds'
+    }
+}
+
 dependencies {
     String strGAV = "${aGAV}"
     strGAV = strGAV.replaceAll("%20"," ")
