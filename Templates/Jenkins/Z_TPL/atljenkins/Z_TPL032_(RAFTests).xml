@@ -4,7 +4,7 @@
   <description></description>
   <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>-1</daysToKeep>
-    <numToKeep>50</numToKeep>
+    <numToKeep>100</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
@@ -18,7 +18,7 @@
         <hudson.model.StringParameterDefinition>
           <name>DevRootPath</name>
           <description></description>
-          <defaultValue>D:\gitroot\Z_DEVOPS</defaultValue>
+          <defaultValue>D:\ws</defaultValue>
         </hudson.model.StringParameterDefinition>
         <com.wangyin.parameter.WHideParameterDefinition plugin="hidden-parameter@0.0.4">
           <name>VmIp</name>
@@ -78,6 +78,14 @@ Ex: raf\Regression Automation Framework\workflows\BasicInt.script</description>
           <description>Optional:    The RAF products version located in the following GAV: group: &apos;com.verint.automation&apos;, name: &apos;raf_products&apos;, version: &quot;${rafProductsVersion}&quot; in ATLArtifactory, automation-release</description>
           <defaultValue>11.2.1.4</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition plugin="nodelabelparameter@1.5.1">
+          <name>WhereToRunRaf</name>
+          <description>Optional: The Node\Pool to run this job. Default=ATL-FTW-Slaves</description>
+          <defaultValue>ATL-FTW-Slaves</defaultValue>
+          <allNodesMatchingLabel>false</allNodesMatchingLabel>
+          <triggerIfResult>allCases</triggerIfResult>
+          <nodeEligibility class="org.jvnet.jenkins.plugins.nodelabelparameter.node.AllNodeEligibility"/>
+        </org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <jenkins.plugins.slack.SlackNotifier_-SlackJobProperty plugin="slack@1.7">
@@ -95,6 +103,25 @@ Ex: raf\Regression Automation Framework\workflows\BasicInt.script</description>
       <includeTestSummary>false</includeTestSummary>
       <showCommitList>false</showCommitList>
     </jenkins.plugins.slack.SlackNotifier_-SlackJobProperty>
+    <EnvInjectJobProperty plugin="envinject@1.90">
+      <info>
+        <groovyScriptContent>def TIME_STAMP=new Date().toString().replaceAll(&quot;[^a-zA-Z0-9]+&quot;,&quot;&quot;);
+def map = [TIME_STAMP: TIME_STAMP]</groovyScriptContent>
+        <loadFilesFromMaster>false</loadFilesFromMaster>
+      </info>
+      <on>true</on>
+      <keepJenkinsSystemVariables>true</keepJenkinsSystemVariables>
+      <keepBuildVariables>true</keepBuildVariables>
+      <overrideBuildParameters>false</overrideBuildParameters>
+      <contributors>
+        <org.jenkinsci.plugins.sharedobjects.SharedObjectJobProperty plugin="shared-objects@0.44">
+          <populateSharedObjects>false</populateSharedObjects>
+        </org.jenkinsci.plugins.sharedobjects.SharedObjectJobProperty>
+        <org.jenkinsci.plugins.sharedobjects.ToolInstallationJobProperty plugin="shared-objects@0.44">
+          <populateToolInstallation>false</populateToolInstallation>
+        </org.jenkinsci.plugins.sharedobjects.ToolInstallationJobProperty>
+      </contributors>
+    </EnvInjectJobProperty>
   </properties>
   <scm class="org.jenkinsci.plugins.multiplescms.MultiSCM" plugin="multiple-scms@0.4">
     <scms>
@@ -140,7 +167,7 @@ Ex: raf\Regression Automation Framework\workflows\BasicInt.script</description>
       </hudson.plugins.git.GitSCM>
     </scms>
   </scm>
-  <assignedNode>ATL-FTW-Slaves</assignedNode>
+  <assignedNode>${WhereToRunRaf}</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -164,7 +191,7 @@ rd /S /Q &quot;%WORKSPACE%\raf&quot;&#xd;
 cmd /c taskkill /F /FI &quot;IMAGENAME eq werFault.exe*&quot;&#xd;
 cmd /c taskkill /F /FI &quot;IMAGENAME eq raf*&quot;&#xd;
 cmd /c taskkill /IM iexplorer.exe*&#xd;
-&#xd;
+cmd /c taskkill /F /IM  IEDriverServer.exe* &#xd;
 echo Set Hosts file with   %VmIp%    %DnsName%&#xd;
 cmd /c &quot;echo %VmIp%    %DnsName%&gt;C:\Windows\System32\drivers\etc\hosts&quot;&#xd;
 &#xd;
@@ -172,7 +199,7 @@ exit 0</command>
     </hudson.tasks.BatchFile>
     <hudson.plugins.gradle.Gradle plugin="gradle@1.24">
       <description></description>
-      <switches>-i -Prafdir=&quot;${workspace}/raf&quot; --refresh-dependencies -PrafScriptsVersion=${RafScriptsVersion} -PrafProductsVersion=${RafProductsVersion} </switches>
+      <switches>-i -Prafdir=&quot;${workspace}/raf&quot; --refresh-dependencies -PrafScriptsVersion=${RafScriptsVersion} -PrafProductsVersion=${RafProductsVersion} -PcurrentVersion=${MasterBuildVersion} </switches>
       <tasks>installRaf</tasks>
       <rootBuildScriptDir>${workspace}\${ToolsRepo}\IntegrationTests\RAF\Generic\Download</rootBuildScriptDir>
       <buildFile></buildFile>
@@ -194,6 +221,7 @@ exit 0</command>
       <conditionalbuilders>
         <hudson.tasks.BatchFile>
           <command>rem ----------- Copying Scriptfile from git to the script location ---------------&#xd;
+pushd %WORKSPACE%&#xd;
 xcopy /S /E /Y &quot;%SourceScriptFolder%&quot; &quot;%RafInstallDir%&quot;</command>
         </hudson.tasks.BatchFile>
       </conditionalbuilders>

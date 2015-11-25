@@ -45,11 +45,6 @@ com/verint/foundation,com/verint/sr/foundation##com/verint/sr/foundation2
           <description></description>
           <defaultValue>D:\gitroot\ArtifactoryPromotion\WFM11.2SP1\</defaultValue>
         </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>viewName</name>
-          <description></description>
-          <defaultValue>/job/Z_DEVOPS/job/Z_TPL/view/Z_TPL</defaultValue>
-        </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>checkPipelineGreen</name>
           <description>If you can&apos;t check the pipeline, uncheck this box, will get promote anytime</description>
@@ -66,7 +61,7 @@ com/verint/foundation,com/verint/sr/foundation##com/verint/sr/foundation2
         <hudson.model.StringParameterDefinition>
           <name>JobsToIgnore</name>
           <description>Put the Jobs that you want to ignore. You can put partial string of the Job name. To put multiple strings, put a comma inbetween</description>
-          <defaultValue>Z_TPL090,Flow_TPL</defaultValue>
+          <defaultValue>Z_TPL090,Flow_TPL,FTW_Wrapper_Flow,ArtifactoryPromotion</defaultValue>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>

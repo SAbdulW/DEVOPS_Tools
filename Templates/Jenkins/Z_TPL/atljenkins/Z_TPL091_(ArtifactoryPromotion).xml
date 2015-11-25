@@ -10,6 +10,11 @@
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
+          <name>DevRootPath</name>
+          <description>Location of ARtifactoryPromote : it is getting from DEVOPS_TOOLS</description>
+          <defaultValue>D:\gitroot\Z_TPL</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>sourceRepos</name>
           <description></description>
           <defaultValue>ci-release</defaultValue>
@@ -30,24 +35,13 @@
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>DevRootPath</name>
-          <description>Location of ARtifactoryPromote : it is getting from DEVOPS_TOOLS</description>
-          <defaultValue>D:\gitroot\Z_TPL</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>viewName</name>
-          <description>Change the viewName to your pipeline view. If it is in the folder remember to put the path
-For example: /job/FTW/job/WFM/view/WFM_11.2SP1</description>
-          <defaultValue>/job/FTW/view/FTW</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
           <name>installedVersionFiles</name>
           <description></description>
           <defaultValue>..\\ci_global\\Scripts\\GradleUtils\\PPLogs\\installedVersions.json</defaultValue>
         </hudson.model.StringParameterDefinition>
         <org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition plugin="nodelabelparameter@1.5.1">
-          <name>WhereToRun</name>
-          <description></description>
+          <name>Node_To_Run</name>
+          <description>[Optional] The Jenkins node to run this build</description>
           <defaultValue>ATL-WFO-Slaves</defaultValue>
           <allNodesMatchingLabel>false</allNodesMatchingLabel>
           <triggerIfResult>allCases</triggerIfResult>
@@ -99,7 +93,7 @@ For example: /job/FTW/job/WFM/view/WFM_11.2SP1</description>
   <jdk>(Default)</jdk>
   <triggers/>
   <concurrentBuild>true</concurrentBuild>
-  <customWorkspace>${DevRootPath}\ArtifactoryPromotion91</customWorkspace>
+  <customWorkspace>${DevRootPath}/ArtifactoryPromotion91</customWorkspace>
   <builders>
     <org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder plugin="conditional-buildstep@1.3.3">
       <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>

@@ -13,6 +13,19 @@ with runPA -PcurrentVersion=$MasterBuildVersion  </description>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
+          <name>DevRootPath</name>
+          <description></description>
+          <defaultValue>D:\gitroot\Z_TPL</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition plugin="nodelabelparameter@1.5.1">
+          <name>Node_To_Run</name>
+          <description>[Optional] The Jenkins node to run this build</description>
+          <defaultValue>ATL-WFO-Slaves</defaultValue>
+          <allNodesMatchingLabel>false</allNodesMatchingLabel>
+          <triggerIfResult>allCases</triggerIfResult>
+          <nodeEligibility class="org.jvnet.jenkins.plugins.nodelabelparameter.node.AllNodeEligibility"/>
+        </org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>PuppetEnv</name>
           <description>Environment to us in the puppet server</description>
           <defaultValue>ci_wfo_env</defaultValue>
@@ -38,26 +51,6 @@ with runPA -PcurrentVersion=$MasterBuildVersion  </description>
           <defaultValue>d3oihSOqMY6ANI1hPitrCl1W8+z6FoYGB74IT3gB1ng=</defaultValue>
         </hudson.model.PasswordParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>PendingFolderPath</name>
-          <description></description>
-          <defaultValue></defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>TestEnvFolderPath</name>
-          <description></description>
-          <defaultValue></defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>DevRootPath</name>
-          <description></description>
-          <defaultValue>D:\gitroot\Z_TPL</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.BooleanParameterDefinition>
-          <name>PromoteOnSuccess</name>
-          <description></description>
-          <defaultValue>false</defaultValue>
-        </hudson.model.BooleanParameterDefinition>
-        <hudson.model.StringParameterDefinition>
           <name>YamlFiles</name>
           <description>The YAML file define the MSI/s GAV in Artifactory to be used on the target test machine. Each one of those MSI&apos;s will be uninstalled (if exists) and reinstalled with the version in the Yaml file. MSI&apos;s in one Yaml file will be installed in random order. Order of installation could be defined by using different files.
 Multiple paths can be added in this property split with &quot;,&quot;. Ex. &quot;..\\..\\..\\ci\\wfo-wl.yaml,..\\..\\..\\ci\\wfo-db.yaml,..\\..\\..\\ci\\wfo-core.yaml&quot;</description>
@@ -69,7 +62,7 @@ Multiple paths can be added in this property split with &quot;,&quot;. Ex. &quot
           <defaultValue>true</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
-          <name>CheckIfWFOLoginPageIsUp </name>
+          <name>CheckIfWFOLoginPageIsUp</name>
           <description>By checking this property the Puppet agent will verify that the WFO Login Page Is Up at the end of the process. It does not required if &quot;DeplyEarFile&quot; was already checked</description>
           <defaultValue>true</defaultValue>
         </hudson.model.BooleanParameterDefinition>
@@ -110,14 +103,14 @@ Multiple paths can be added in this property split with &quot;,&quot;. Ex. &quot
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>origin/ci_wfo_env</name>
+        <name>origin/${PuppetEnv}</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
     <submoduleCfg class="list"/>
     <extensions/>
   </scm>
-  <assignedNode>ATL-FTW-Slaves</assignedNode>
+  <assignedNode>$Node_To_Run</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -125,20 +118,21 @@ Multiple paths can be added in this property split with &quot;,&quot;. Ex. &quot
   <jdk>(Default)</jdk>
   <triggers/>
   <concurrentBuild>true</concurrentBuild>
-  <customWorkspace>$DevRootPath\ci_global</customWorkspace>
+  <customWorkspace>$DevRootPath/ci_global</customWorkspace>
   <builders>
     <hudson.plugins.gradle.Gradle plugin="gradle@1.24">
       <description></description>
       <switches>-i</switches>
       <tasks>runPA
--PcurrentVersion=[RELEASE]
+-PcurrentVersion=${MasterBuildVersion}
+-PMasterBuildVersion=${MasterBuildVersion}
 -PvmIP=$VmIp
 -PyamlFiles=${YamlFiles}
 -PdeployEarFile=${deployEarFile}
 -PchkApp=${CheckIfWFOLoginPageIsUp}
 -PwfoService=&quot;${wfoService}&quot;
 -PstopStartservices=&quot;${stopStartservices}&quot;</tasks>
-      <rootBuildScriptDir>${workspace}\Scripts\GradleUtils\</rootBuildScriptDir>
+      <rootBuildScriptDir>.\Scripts\GradleUtils\</rootBuildScriptDir>
       <buildFile></buildFile>
       <gradleName>(Default)</gradleName>
       <useWrapper>true</useWrapper>
@@ -146,6 +140,11 @@ Multiple paths can be added in this property split with &quot;,&quot;. Ex. &quot
       <fromRootBuildScriptDir>true</fromRootBuildScriptDir>
       <useWorkspaceAsHome>true</useWorkspaceAsHome>
     </hudson.plugins.gradle.Gradle>
+    <hudson.tasks.BatchFile>
+      <command>rem ---- Write output properties ----------&#xd;
+echo PuppetWorkspace=%WORKSPACE%&gt;%DevRootPath%/out.prop&#xd;
+exit 0</command>
+    </hudson.tasks.BatchFile>
   </builders>
   <publishers/>
   <buildWrappers>

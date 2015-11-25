@@ -1,6 +1,6 @@
 { 
  "viewName": "/job/Z_DEVOPS/job/Z_TPL/view/Z_TPL", 
- "jobList": "/job/Z_DEVOPS/job/Z_TPL/job/Z_Test_(Commit%20Build)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL010_(AssignMachine)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL020_(Puppet)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL032_(RAFTests)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL090_(ArtifactoryPromotion)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL091_(ArtifactoryPromotion)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL080_(RemoteCall)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL085_(RemoteCall)/",
+ "jobList": "/job/Z_DEVOPS/job/Z_TPL/job/Z_Test_(Commit%20Build)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL010_(AssignMachine)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL020_(Puppet)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL032_(RAFTests)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL090_(ArtifactoryPromotion)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL091_(ArtifactoryPromotion)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL080_(RemoteCall)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL085_(RemoteCall)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL011_(AssignMachine)/",
  "firstJobName": "Z_Test_(Commit Build)", 
  "jobs":{"Z_Test_(Commit Build)": {
     "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_Test_(Commit%20Build)/",
@@ -12,7 +12,12 @@
         "RepoURL": "git@scgit:testing",
         "KeepTheFixtureWhenDone": "false",
         "PromoteOnSuccess": "false",
-        "envID_Remove": "base02"
+        "envID_Remove": "base02",
+        "ProvisioningRoot": "Fixture/11.2.1.x/Green",
+        "PendingPoolFolder": "Pending",
+        "RunningPoolFolder": "Running",
+        "SelectedFixture": "(latest)",
+        "TypesOfClone": "Linked"
       },
     "buildTrigger": {
 
@@ -22,11 +27,12 @@
     "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL010_(AssignMachine)/",
     "customWorkspace": "$DevRootPath",
     "buildParams": {
+        "DevRootPath": "${WORKSPACE}",
+        "Node_To_Run": "ATL-WFO-Slaves",
         "ProvisioningRoot": "Fixture/11.2.1.x/Green",
         "PendingPoolFolder": "Pending",
         "RunningPoolFolder": "Running",
         "ParkingPoolFolder": "Parking",
-        "DevRootPath": "${WORKSPACE}",
         "RetryTime": "6m",
         "LeaseTime": "1",
         "PeriodicTime": "2",
@@ -42,18 +48,16 @@
     "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL020_(Puppet)/",
     "customWorkspace": "$DevRootPath/ci_global",
     "buildParams": {
+        "DevRootPath": "D:/gitroot/Z_TPL",
+        "Node_To_Run": "ATL-WFO-Slaves",
         "PuppetEnv": "ci_wfo_env",
         "PuppetServer": "atlpuppetmaster.lab.local",
         "VmIp": "10.200.50.00",
         "TestMachineAdmin": "systemadmin",
         "VmPw": "!veRinT$5",
-        "PendingFolderPath": "",
-        "TestEnvFolderPath": "",
-        "DevRootPath": "D:/gitroot/Z_TPL",
-        "PromoteOnSuccess": "false",
         "YamlFiles": "../../../ci/puppet.yaml",
         "deployEarFile": "true",
-        "CheckIfWFOLoginPageIsUp ": "true",
+        "CheckIfWFOLoginPageIsUp": "true",
         "stopStartservices": "WatchDog,MinerTomcat",
         "wfoService": "WFO_ProductionDomain_ProductionServer"
       },
@@ -65,7 +69,7 @@
     "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL032_(RAFTests)/",
     "customWorkspace": "${DevRootPath}",
     "buildParams": {
-        "DevRootPath": "D:/gitroot/Z_DEVOPS",
+        "DevRootPath": "D:/ws",
         "VmIp": "#10.156.16.125",
         "DnsName": "ATLCONW12GL001",
         "ToolsRepo": "DEVOPS_Tools",
@@ -76,7 +80,8 @@
         "ScriptLocator": "raf/Regression Automation Framework/workflows/BasicInt.script",
         "RafParams": "",
         "RafScriptsVersion": "11.2.1.0",
-        "RafProductsVersion": "11.2.1.4"
+        "RafProductsVersion": "11.2.1.4",
+        "WhereToRunRaf": "ATL-FTW-Slaves"
       },
     "buildTrigger": {
 
@@ -92,10 +97,9 @@
         "teamGroupPrefixes": "com/verint/wfm,com/verint/wfm",
         "artifactoryContextURL": "http://atlartifactory:8081/artifactory",
         "DevRootPath": "D:/gitroot/ArtifactoryPromotion/WFM11.2SP1/",
-        "viewName": "/job/Z_DEVOPS/job/Z_TPL/view/Z_TPL",
         "checkPipelineGreen": "true",
         "WhereToRun": "ATL-WFO-Slaves",
-        "JobsToIgnore": "Z_TPL090,Flow_TPL"
+        "JobsToIgnore": "Z_TPL090,Flow_TPL,FTW_Wrapper_Flow,ArtifactoryPromotion"
       },
     "buildTrigger": {
 
@@ -105,14 +109,13 @@
     "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL091_(ArtifactoryPromotion)/",
     "customWorkspace": "${DevRootPath}/ArtifactoryPromotion91",
     "buildParams": {
+        "DevRootPath": "D:/gitroot/Z_TPL",
         "sourceRepos": "ci-release",
         "targetRepos": "ci-release-temp",
         "checkPipelineGreen": "true",
         "PromoteOnSuccess": "false",
-        "DevRootPath": "D:/gitroot/Z_TPL",
-        "viewName": "/job/FTW/view/FTW",
         "installedVersionFiles": "../ci_global/Scripts/GradleUtils/PPLogs/installedVersions.json",
-        "WhereToRun": "ATL-WFO-Slaves",
+        "Node_To_Run": "ATL-WFO-Slaves",
         "JobsToIgnore": "Z_TPL091,Flow_TPL"
       },
     "buildTrigger": {
@@ -147,6 +150,28 @@
         "artifactoryContextURL": "http://atlartifactory:8081/artifactory",
         "paexecCmd": "ipconfig",
         "runTasks": "runPaExecCmd"
+      },
+    "buildTrigger": {
+
+      }
+},
+"Z_TPL011_(AssignMachine)": {
+    "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL011_(AssignMachine)/",
+    "customWorkspace": "$DevRootPath",
+    "buildParams": {
+        "ProvisioningRoot": "Fixture/11.2.1.x/Green",
+        "PendingPoolFolder": "Pending",
+        "RunningPoolFolder": "Running",
+        "ParkingPoolFolder": "Parking",
+        "DevRootPath": "Z_TPL011",
+        "RetryTime": "6m",
+        "LeaseTime": "8",
+        "PeriodicTime": "2",
+        "KeepTheFixtureWhenDone": "false",
+        "Assign_Config_Branch": "origin/WFO_POC",
+        "Assign_Config_Folder": "AssignMachine",
+        "TypesOfClone": "Linked",
+        "SelectedFixture": "(latest)"
       },
     "buildTrigger": {
 

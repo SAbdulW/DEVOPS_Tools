@@ -16,6 +16,19 @@
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
+          <name>DevRootPath</name>
+          <description></description>
+          <defaultValue>${WORKSPACE}</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition plugin="nodelabelparameter@1.5.1">
+          <name>Node_To_Run</name>
+          <description>[Optional] The Jenkins node to run this build</description>
+          <defaultValue>ATL-WFO-Slaves</defaultValue>
+          <allNodesMatchingLabel>false</allNodesMatchingLabel>
+          <triggerIfResult>allCases</triggerIfResult>
+          <nodeEligibility class="org.jvnet.jenkins.plugins.nodelabelparameter.node.AllNodeEligibility"/>
+        </org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>ProvisioningRoot</name>
           <description>&quot;Test bench Pool Path&quot; - A path that indicates where the environments are located in the Vcenter</description>
           <defaultValue>Fixture/11.2.1.x/Green</defaultValue>
@@ -34,11 +47,6 @@
           <name>ParkingPoolFolder</name>
           <description>VM folder where the parking pool VM&apos;s are located (Relative to &apos;provisioning_root&apos;)</description>
           <defaultValue>Parking</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>DevRootPath</name>
-          <description></description>
-          <defaultValue>${WORKSPACE}</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>RetryTime</name>
@@ -108,7 +116,7 @@
       </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
     </extensions>
   </scm>
-  <assignedNode>ATL-FTW-Slaves</assignedNode>
+  <assignedNode>$Node_To_Run</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -208,7 +216,7 @@ echo ProvisioningRoot=%ProvisioningRoot%&gt;&gt;&quot;%WORKSPACE%\assign.prop&qu
 echo PendingFolderName=%ProvisioningRoot%/%PendingPoolFolder%/%LAST_FOLDER%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
 echo RunningFolderPath=%ProvisioningRoot%/%RunningPoolFolder%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
 echo VmFolderName=%LAST_FOLDER%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
-echo TestEnvFolderPath=%DestPool%/%LAST_FOLDER% &gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
+echo TestEnvFolderPath=%DestPool%/%LAST_FOLDER%&gt;&gt;&quot;%WORKSPACE%\assign.prop&quot;&#xd;
 &#xd;
 TYPE &quot;%WORKSPACE%\assign.prop&quot;</command>
     </hudson.tasks.BatchFile>
@@ -322,7 +330,7 @@ copy &quot;%WORKSPACE%\%Assign_Config_Folder%\Jenkins\Workflows\Templates\DevOps
         <hudson.tasks.BatchFile>
           <command>echo schtasks /Create /RU systemadmin /RP !veRinT$5 /SC DAILY /MO %LeaseTime% /TN BackToPool /TR &quot;C:\curl -X POST &apos;http://%JenkinsMaster%:8080%BackToPoolJob%/buildWithParameters?TestEnvFolderPath=%TestEnvFolderPath%&amp;PendingFolderPath=%PendingFolderPath%&apos;&quot; /F /RL HIGHEST&gt; &quot;%workspace%\createtask.cmd&quot;&#xd;
 &#xd;
-&quot;%WORKSPACE%\paexec.exe&quot; \\%VmIp% -u %VmIp%\systemadmin -p !veRinT$5 -h -c -csrc &quot;%workspace%\createtask.cmd&quot; createtask.cmd</command>
+&quot;%WORKSPACE%\paexec.exe&quot; \\%VmIp% -u %VmIp%\systemadmin -p !veRinT$5 -noname -h -c -csrc &quot;%workspace%\createtask.cmd&quot; createtask.cmd</command>
         </hudson.tasks.BatchFile>
       </conditionalbuilders>
     </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>
@@ -337,7 +345,7 @@ copy &quot;%WORKSPACE%\%Assign_Config_Folder%\Jenkins\Workflows\Templates\DevOps
         <hudson.tasks.BatchFile>
           <command>echo schtasks /Create /RU systemadmin /RP !veRinT$5 /SC HOURLY /MO %PeriodicTime% /TN BackToPool /TR &quot;C:\curl -X POST &apos;http://%JenkinsMaster%:8080%BackToPoolJob%/buildWithParameters?TestEnvFolderPath=%TestEnvFolderPath%&amp;PendingFolderPath=%PendingFolderPath%&apos;&quot; /F /RL HIGHEST&gt; &quot;%workspace%\createtask.cmd&quot;&#xd;
 &#xd;
-&quot;%WORKSPACE%\paexec.exe&quot; \\%VmIp% -u %VmIp%\systemadmin -p !veRinT$5 -h -c -csrc &quot;%workspace%\createtask.cmd&quot; createtask.cmd</command>
+&quot;%WORKSPACE%\paexec.exe&quot; \\%VmIp% -u %VmIp%\systemadmin -p !veRinT$5 -noname -h -c -csrc &quot;%workspace%\createtask.cmd&quot; createtask.cmd</command>
         </hudson.tasks.BatchFile>
       </conditionalbuilders>
     </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>

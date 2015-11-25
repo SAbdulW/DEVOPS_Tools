@@ -55,6 +55,42 @@ Publish Git and Artifactory&#xd;
           <description></description>
           <defaultValue>base02</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ProvisioningRoot</name>
+          <description></description>
+          <defaultValue>Fixture/11.2.1.x/Green</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PendingPoolFolder</name>
+          <description></description>
+          <defaultValue>Pending</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>RunningPoolFolder</name>
+          <description></description>
+          <defaultValue>Running</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition plugin="extended-choice-parameter@0.50">
+          <name>SelectedFixture</name>
+          <description></description>
+          <quoteValue>false</quoteValue>
+          <saveJSONParameterToFile>false</saveJSONParameterToFile>
+          <visibleItemCount>5</visibleItemCount>
+          <type>PT_SINGLE_SELECT</type>
+          <value>(latest),Templates/archive/10009-cons-green-After-GNG--15.1.0.1501,Templates/archive/10010-cons-green-After-GNG--15.1.0.1536</value>
+          <defaultValue>(latest)</defaultValue>
+          <multiSelectDelimiter>,</multiSelectDelimiter>
+        </com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>TypesOfClone</name>
+          <description></description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>Linked</string>
+              <string>Full</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <jenkins.plugins.slack.SlackNotifier_-SlackJobProperty plugin="slack@1.7">
@@ -395,6 +431,190 @@ VmIp=10.156.3.112</properties>
                   <completeBuild>true</completeBuild>
                 </failureThreshold>
               </block>
+              <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
+            </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+          </configs>
+        </hudson.plugins.parameterizedtrigger.TriggerBuilder>
+      </conditionalbuilders>
+    </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>
+    <org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder plugin="conditional-buildstep@1.3.3">
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+      <runCondition class="org.jenkins_ci.plugins.run_condition.logic.And" plugin="run-condition@1.0">
+        <conditions>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.core.NeverRun"/>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.core.StringsMatchCondition">
+              <arg1>$SelectedFixture</arg1>
+              <arg2>(latest)</arg2>
+              <ignoreCase>false</ignoreCase>
+            </condition>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+        </conditions>
+      </runCondition>
+      <conditionalbuilders>
+        <hudson.tasks.BatchFile>
+          <command>echo &quot;Is the latest: %SelectedFixture%&quot;</command>
+        </hudson.tasks.BatchFile>
+        <hudson.tasks.Shell>
+          <command>echo TIMESTAMP=$(date +%s)&gt;timestamp.properties</command>
+        </hudson.tasks.Shell>
+        <EnvInjectBuilder plugin="envinject@1.90">
+          <info>
+            <propertiesFilePath>timestamp.properties</propertiesFilePath>
+          </info>
+        </EnvInjectBuilder>
+      </conditionalbuilders>
+    </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>
+    <org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder plugin="conditional-buildstep@1.3.3">
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+      <runCondition class="org.jenkins_ci.plugins.run_condition.logic.And" plugin="run-condition@1.0">
+        <conditions>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.core.NeverRun"/>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.logic.Not">
+              <condition class="org.jenkins_ci.plugins.run_condition.core.StringsMatchCondition">
+                <arg1>$SelectedFixture</arg1>
+                <arg2>(latest)</arg2>
+                <ignoreCase>false</ignoreCase>
+              </condition>
+            </condition>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+        </conditions>
+      </runCondition>
+      <conditionalbuilders>
+        <hudson.plugins.groovy.Groovy plugin="groovy@1.27">
+          <scriptSource class="hudson.plugins.groovy.StringScriptSource">
+            <command>def vFile = new File (&quot;vSphere.properties&quot;)
+def String sTimeStamp = System.currentTimeMillis()
+def String sBuildId = System.getenv(&apos;BUILD_ID&apos;)
+def String sSelectedFixture = System.getenv(&apos;SelectedFixture&apos;)
+def String sTemplateName=&quot;&quot;
+def String sNewVmName = &quot;${sTimeStamp}_${sBuildId}&quot;
+
+if (!sSelectedFixture.equals(&quot;(latest)&quot;)){
+	int iLast = sSelectedFixture.lastIndexOf(&quot;/&quot;)
+    sTemplateName = sSelectedFixture.substring(iLast+1)
+}
+
+def String sText = &quot;TIMESTAMP=&quot; + sTimeStamp + &quot;\n&quot; +
+            &quot;NewVmName=${sTemplateName}_${sNewVmName}\n&quot; +
+  			&quot;SelectedFixture=&quot; + sSelectedFixture + &quot;\n&quot; +
+    		&quot;TemplateName=&quot; + sTemplateName + &quot;\n&quot;	
+    
+println (&quot;sText:\n${sText}&quot;);
+
+vFile.text=&quot;${sText}&quot;
+</command>
+          </scriptSource>
+          <groovyName>Groovy2.4.3</groovyName>
+          <parameters></parameters>
+          <scriptParameters>-DTIMESTAMP=$TIMESTAMP
+-DBUILD_ID=$BUILD_ID
+-DSelectedFixture=$SelectedFixture</scriptParameters>
+          <properties></properties>
+          <javaOpts></javaOpts>
+          <classPath></classPath>
+        </hudson.plugins.groovy.Groovy>
+        <EnvInjectBuilder plugin="envinject@1.90">
+          <info>
+            <propertiesFilePath>vSphere.properties</propertiesFilePath>
+          </info>
+        </EnvInjectBuilder>
+        <hudson.tasks.BatchFile>
+          <command>echo &quot;Is NOT the latest: %SelectedFixture%&quot;&#xd;
+echo NewVmName=%NewVmName%&#xd;
+echo TemplateName=%TemplateName%&#xd;
+&#xd;
+</command>
+        </hudson.tasks.BatchFile>
+        <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@11.2.1.8">
+          <buildStep class="org.jenkinsci.plugins.vsphere.builders.Clone">
+            <sourceName>$TemplateName</sourceName>
+            <clone>$NewVmName</clone>
+            <linkedClone>false</linkedClone>
+            <resourcePool>hpe4bl11.lab.local</resourcePool>
+            <cluster>ATL_CI</cluster>
+            <datastore>VNX1061_LUN65_6TB</datastore>
+            <location>$ProvisioningRoot/$RunningPoolFolder/$NewVmName</location>
+          </buildStep>
+          <serverName>ATL Vsphere Server</serverName>
+          <serverHash>-1412856745</serverHash>
+        </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+        <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@11.2.1.8">
+          <buildStep class="org.jenkinsci.plugins.vsphere.builders.PowerOn">
+            <vm>$NewVmName</vm>
+            <timeoutInSeconds>180</timeoutInSeconds>
+          </buildStep>
+          <serverName>ATL Vsphere Server</serverName>
+          <serverHash>-1412856745</serverHash>
+        </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+      </conditionalbuilders>
+    </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>
+    <org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder plugin="conditional-buildstep@1.3.3">
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+      <runCondition class="org.jenkins_ci.plugins.run_condition.logic.And" plugin="run-condition@1.0">
+        <conditions>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.core.NeverRun"/>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.logic.Not">
+              <condition class="org.jenkins_ci.plugins.run_condition.core.StringsMatchCondition">
+                <arg1>$SelectedFixture</arg1>
+                <arg2>(latest)</arg2>
+                <ignoreCase>false</ignoreCase>
+              </condition>
+            </condition>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.core.StringsMatchCondition">
+              <arg1>$TypesOfClone</arg1>
+              <arg2>Linked</arg2>
+              <ignoreCase>false</ignoreCase>
+            </condition>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+        </conditions>
+      </runCondition>
+      <conditionalbuilders>
+        <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@11.2.1.8">
+          <buildStep class="org.jenkinsci.plugins.vsphere.builders.Clone">
+            <sourceName>$TemplateName</sourceName>
+            <clone>$NewVmName</clone>
+            <linkedClone>true</linkedClone>
+            <resourcePool>hpe4bl11.lab.local</resourcePool>
+            <cluster>ATL_CI</cluster>
+            <datastore>VNX1061_LUN65_6TB</datastore>
+            <location>$ProvisioningRoot/$RunningPoolFolder</location>
+          </buildStep>
+          <serverName>ATL Vsphere Server</serverName>
+          <serverHash>-1412856745</serverHash>
+        </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+      </conditionalbuilders>
+    </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>
+    <org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder plugin="conditional-buildstep@1.3.3">
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+      <runCondition class="org.jenkins_ci.plugins.run_condition.logic.And" plugin="run-condition@1.0">
+        <conditions>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.core.NeverRun"/>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.core.AlwaysRun"/>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+        </conditions>
+      </runCondition>
+      <conditionalbuilders>
+        <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.25">
+          <configs>
+            <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+              <configs class="empty-list"/>
+              <projects>Z_TPL011_(AssignMachine)</projects>
+              <condition>ALWAYS</condition>
+              <triggerWithNoParameters>false</triggerWithNoParameters>
               <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
             </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
           </configs>
