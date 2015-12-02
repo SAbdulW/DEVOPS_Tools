@@ -271,8 +271,13 @@ def deleteAnArtifactVersion(Object itemToDelete, String repoKey){
 }
 
 def boolean isMatchPurgingExcluded(String purgingExcluded, String uriToCheck){
-    def purgingExcludedList= purgingExcluded.split(',')
     boolean foundIt=false
+    if(purgingExcluded == ""){
+        return foundIt
+    }
+
+    def purgingExcludedList= purgingExcluded.split(',')
+
     purgingExcludedList.each { purgingExcludedItem ->
         if (!foundIt){
             if (uriToCheck.contains("${purgingExcludedItem}")){
