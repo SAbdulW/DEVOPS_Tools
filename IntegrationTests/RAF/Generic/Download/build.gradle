@@ -76,5 +76,5 @@ task installRaf {
 //  unzipPruducts.execute()
 //  unzipScripts.execute()
 
-	ant.replace(file: "${rafdir}/Regression Automation Framework/RAFReport.xsl", token: "<h3>Summary:</h3>", value: "<h3>Build#:${currentVersion} - Summary:</h3>")
+	ant.replace(file: "${rafdir}/Regression Automation Framework/RAFReport.xsl", token: "<h3>Summary:</h3>", value: "<h3>Build #${currentVersion} - Summary:</h3>")
 }
