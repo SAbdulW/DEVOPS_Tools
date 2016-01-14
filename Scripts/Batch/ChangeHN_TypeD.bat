@@ -12,7 +12,7 @@ REM netdom renamecomputer %COMPUTERNAME% /NewName:%randname% /Force /REBoot:3
 
 REM Get current time in HHMMSS
 for /F "usebackq tokens=1,2 delims==" %%i in (`wmic os get LocalDateTime /VALUE 2^>NUL`) do if '.%%i.'=='.LocalDateTime.' set cur_time=%%j
-set cur_time=%cur_time:~8,2%%cur_time:~10,2%%cur_time:~12,2%
+set cur_time=%cur_time:~6,2%%cur_time:~8,2%%cur_time:~10,2%%cur_time:~12,2%
 
 REM Format computer name: Type-D-HHMMSS
 set new_name="Type-D-%cur_time%"
