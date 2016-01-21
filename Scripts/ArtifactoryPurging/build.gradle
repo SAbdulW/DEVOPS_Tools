@@ -20,6 +20,61 @@ task artifactoryPurgingTask() <<{
     artifactoryPurging ("$purgingRepos", "$purgingDateToKeeps", "$purgingMinimumToKeep", "$purgingPathMatch")
 }
 
+task artifactoryPurgingTaskForNpmRepo() <<{
+    logger.quiet("ArtifactoryPurging For NPM: ****************************************************************************")
+    logger.quiet("viewOnly:                 ${viewOnly}")
+    logger.quiet("ArtifactoryPurging For NPM: ****************************************************************************")
+
+    artifactoryPurgingForNpmRepo ()
+}
+
+def artifactoryPurgingForNpmRepo (){
+
+    String repoKey = "npm-local"
+    String dayToKeep = "30"
+    String minimumToKeep = "10"
+    String pathMatch = "*"
+    logger.quiet("Processing repo [$repoKey] with [$dayToKeep] days to keep and minimum of [$minimumToKeep] versions of any artifact to keep and only purge partifacts have path match [$pathMatch]\r\n")
+
+    File fFullL = new File ("$projectDir/${repoKey}_FullList.log")
+    File fDelete = new File ("$projectDir/${repoKey}_DeleteList.log")
+    File fTop = new File ("$projectDir/${repoKey}_TopList.log")
+    fFullL.setText("ALL ARTIFACTS OLDER THAN $dayToKeep DAYS\r\n")
+    fTop.setText("THESE ARTIFACTS ARE THE TOP LATEST TO KEEP FROM PURGING\r\n")
+    if ("${viewOnly}".toBoolean()) {
+        fDelete.setText("THIS IS JUST A DRY RUN. NO REAL PURGING HAPPENING\r\n")
+    }
+    else{
+        fDelete.setText("THESE ARTIFACTS HAVE BEEN PURGED\r\n")
+    }
+
+    // get list of top latest versions of an artifact to keep
+    List topLatestPathList = getXNumberLatestNpmArtifactsPerVersion(5, repoKey)
+    topLatestPathList.each{ itemName ->
+        fTop << itemName + "\r\n"
+    }
+
+    // get all artifacts OLDER than configured days
+    List candidateList = getArtifactsOlderThanXDays (repoKey, pathMatch, dayToKeep.toInteger())
+    candidateList.each { item ->
+        fFullL << item.path + "/" + item.name + "\r\n"
+
+        // check if it should really be purged
+        logger.quiet("Checking artifact before purge: $item.name")
+        if (topLatestPathList.any{it == item.name}){
+            logger.quiet("    > It is in TOP MINIMUM TO KEEP list - let it go")
+        }
+        else if ("${viewOnly}".toBoolean()) {
+            logger.quiet("    > DRY-RUN DELETING: $item.name")
+            fDelete << item.name + "\r\n"
+        }
+        else{
+            logger.quiet("    > DELETING: $item.name")
+            deleteAnNpmArtifactVersion(item, repoKey, fDelete)
+        }
+    }
+}
+
 def artifactoryPurging (String repos, String dayToKeeps, String minimumToKeeps, String pathMatches){
     def reposList = repos.split(',')
     def dayToKeepsList = dayToKeeps.split(',')
@@ -88,8 +143,7 @@ def artifactoryPurging (String repos, String dayToKeeps, String minimumToKeeps, 
                 }
                 else{
                     logger.quiet("    > DELETING: $item.path")
-                    deleteAnArtifactVersion(item, repoKey)
-                    fDelete << item.path + "\r\n"
+                    deleteAnArtifactVersion(item, repoKey, fDelete)
                 }
             }
 
@@ -132,6 +186,104 @@ def List getArtifactsTaggedAsDoNotPurge(String repo, String pathMatch){
 
     List resultsList  = search(aqlQuery)
     return resultsList
+}
+
+def List getXNumberLatestNpmArtifactsPerVersion(int topElement, String repoKey){
+    def mapAllItems = [:]
+    List topItemsToKeep = []
+
+    // get all artifacts from this repo, then put them into a map
+    // [rootPath: [version1, version2, ...], rootPath:[version1, version2,...], ...]
+    List resultsList = getArtifactsOlderThanXDays(repoKey, "*", 0)
+    resultsList.each { resultItem ->
+        String itemPath = resultItem."path";
+        String itemName = resultItem."name";
+        mapAllItems= putToTheMapNpm(mapAllItems, itemPath, itemName, repoKey)
+    }
+
+    // for each item, we need to process the version in format of name-version.build.ext
+    // to take out the top of each distinguished version to keep
+    mapAllItems.each { itemPath, listItems ->
+
+        // first, get a distinct list of version of this artifact
+        List distinctVersionList = []
+        listItems.each{ itemName ->
+            // first, parse the version
+            int lastIndex1 = itemName.lastIndexOf(".")
+            if(lastIndex1 > 0){
+                int lastIndex2 = (itemName.substring(0, lastIndex1)).lastIndexOf(".")
+                if(lastIndex2 > 0){
+                    int lastIndex3 = itemName.lastIndexOf("-")
+                    if(lastIndex3 > 0){
+                        int lastIndex4 = (itemName.substring(0, lastIndex3)).lastIndexOf("-")
+                        if(lastIndex4 > 0){
+                            String version = itemName.substring(lastIndex4 + 1, lastIndex2)
+                            String buildNumber = itemName.substring(lastIndex2 + 1, lastIndex1)
+
+                            // put this version into the distinct list if it not in there already
+                            if(!distinctVersionList.any {it == version}) {
+                                distinctVersionList.add(version)
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+
+        // now we got the list of distinct version list of this root artifact
+        // next we need to build an order map of all versions for each distinct version
+        def distinctVersionArtifacts = [:]
+        distinctVersionList.each{ versionPrefix ->
+            def artifactList = [:]
+            listItems.each{ itemName ->
+                // first, parse the version
+                int lastIndex1 = itemName.lastIndexOf(".")
+                if(lastIndex1 > 0){
+                    int lastIndex2 = (itemName.substring(0, lastIndex1)).lastIndexOf(".")
+                    if(lastIndex2 > 0){
+                        int lastIndex3 = itemName.lastIndexOf("-")
+                        if(lastIndex3 > 0){
+                            int lastIndex4 = (itemName.substring(0, lastIndex3)).lastIndexOf("-")
+                            if(lastIndex4 > 0){
+                                String version = itemName.substring(lastIndex4 + 1, lastIndex2)
+                                String buildNumber = itemName.substring(lastIndex2 + 1, lastIndex1)
+
+                                // compare and put in this map if
+                                // make sure the build number is interger otherwise just ignore them - don't keep e.g. SNAPSHOT
+                                if( versionPrefix == version && buildNumber.isInteger()){
+                                    artifactList.put(Integer.parseInt(buildNumber), itemName)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // now sort it, DESC
+            def sortedMap = artifactList.sort { -it.key }
+
+            // and now take the top
+            def mapToKeep = sortedMap.take(topElement)
+
+            // last, add all keep items to the final list
+            mapToKeep.each{key, value ->
+                topItemsToKeep.add(value)
+            }
+        }
+
+
+        logger.quiet("-------------------------------------------\r\n")
+        logger.quiet(itemPath + "\r\n")
+        distinctVersionList.each{ version ->
+            logger.quiet("    " + version + "\r\n")
+        }
+        logger.quiet("###########################################\r\n")
+    }
+
+
+    return topItemsToKeep
+
 }
 
 def List getXNumberLatestArtifactsPerVersion(int topElement, String repoKey){
@@ -252,7 +404,28 @@ def String executeAQL(String query){
     return rtnText
 }
 
-def deleteAnArtifactVersion(Object itemToDelete, String repoKey){
+def deleteAnNpmArtifactVersion(Object itemToDelete, String repoKey, File fDelete){
+    //To delete the whole folder
+    String itemFolderToDeleteURI = "${contextURL}" + "/" + repoKey + "/" +  itemToDelete.path + "/" + itemToDelete.name
+    itemFolderToDeleteURI = itemFolderToDeleteURI.replaceAll(" ", "%20" )
+
+    String sCmd = "curl -f -X DELETE -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"${itemFolderToDeleteURI}\" "
+
+    try {
+        exec {
+            commandLine 'sh', '-c', sCmd
+        }
+
+        logger.quiet("DELETED: ${itemFolderToDeleteURI}")
+        fDelete << itemToDelete.name + "\r\n"
+    }
+    catch (Exception e) {
+        logger.quiet("FAILED DELETING: ${itemFolderToDeleteURI}")
+        logger.quiet ("    > Reason: " + e.toString())
+    }
+}
+
+def deleteAnArtifactVersion(Object itemToDelete, String repoKey, File fDelete){
     //To delete the whole folder
     String itemFolderToDeleteURI = "${contextURL}" + "/" + repoKey + "/" +  itemToDelete.path
     itemFolderToDeleteURI = itemFolderToDeleteURI.replaceAll(" ", "%20" )
@@ -263,6 +436,9 @@ def deleteAnArtifactVersion(Object itemToDelete, String repoKey){
         exec {
             commandLine 'sh', '-c', sCmd
         }
+
+        logger.quiet("DELETED: ${itemFolderToDeleteURI}")
+        fDelete << itemToDelete.path + "\r\n"
     }
     catch (Exception e) {
         logger.quiet("FAILED DELETING: ${itemFolderToDeleteURI}")
@@ -312,6 +488,24 @@ def putToTheMap (Object mapLastItems, String itemPath, String repoKey ){
         List mapLastItemNew =[]
         mapLastItemNew.add(itemPath)
         mapLastItems.put(itemPathRoot,mapLastItemNew)
+    }
+
+    return mapLastItems
+}
+
+def putToTheMapNpm (Object mapLastItems, String itemPath, String itemName, String repoKey ){
+    List mapLastItem = []
+    mapLastItem = mapLastItems.get(itemPath);
+
+    if (mapLastItem!=null){
+        if (!mapLastItem.any {it == itemName}) {
+            mapLastItem.add(itemName)
+            mapLastItems.put(itemPath, mapLastItem)
+        }
+    }else{
+        List mapLastItemNew =[]
+        mapLastItemNew.add(itemName)
+        mapLastItems.put(itemPath,mapLastItemNew)
     }
 
     return mapLastItems

@@ -28,3 +28,7 @@ gradlew.bat artifactoryPT -PcontextURL=http://atlartifactory:8081/artifactory -i
 
 gradlew.bat artifactorySearchingTask -PcontextURL=http://atlartifactory:8081/artifactory -i -PpurgingRepos=cf-ci-release -PpurgingDateToKeeps=0 -PpurgingMinimumToKeep=0 -PpurgingPathMatch=com/verint/cf
 gradlew.bat artifactoryPurgingTask -PcontextURL=http://atlartifactory:8081/artifactory -i -PpurgingRepos=cf-ci-release -PpurgingDateToKeeps=0 -PpurgingMinimumToKeep=0 -PpurgingPathMatch=com/verint/cf
+
+
+gradlew.bat artifactoryPurgingTaskForNpmRepo -PcontextURL=http://atlartifactory:8081/artifactory -i -PviewOnly=false
+gradlew.bat artifactoryPurgingTaskForNpmRepo -PcontextURL=http://atlartifactory-backup:8081/artifactory -i -PviewOnly=false
