@@ -3,9 +3,9 @@ import groovy.json.JsonSlurper
 ext.supportedGradleVersion = '2.3'
 
 allprojects {
-	apply plugin: 'idea'
-	group = 'com.verint.artifactorypurging'
-	version = currentVersion
+    apply plugin: 'idea'
+    group = 'com.verint.artifactorypurging'
+    version = currentVersion
 }
 
 task artifactoryPurgingTask() <<{
@@ -22,55 +22,70 @@ task artifactoryPurgingTask() <<{
 
 task artifactoryPurgingTaskForNpmRepo() <<{
     logger.quiet("ArtifactoryPurging For NPM: ****************************************************************************")
-    logger.quiet("viewOnly:                 ${viewOnly}")
+    logger.quiet("purgingNpmRepos:             ${purgingNpmRepos}")
+    logger.quiet("purgingNpmDateToKeeps:       ${purgingNpmDateToKeeps}")
+    logger.quiet("purgingNpmMinimumToKeep:     ${purgingNpmMinimumToKeep}")
+    logger.quiet("purgingNpmPathMatch:         ${purgingNpmPathMatch}")
+    logger.quiet("viewOnly:                    ${viewOnly}")
     logger.quiet("ArtifactoryPurging For NPM: ****************************************************************************")
 
-    artifactoryPurgingForNpmRepo ()
+    artifactoryPurgingForNpmRepo ("$purgingNpmRepos", "$purgingNpmDateToKeeps", "$purgingNpmMinimumToKeep", "$purgingNpmPathMatch")
 }
 
-def artifactoryPurgingForNpmRepo (){
+def artifactoryPurgingForNpmRepo (String repos, String dayToKeeps, String minimumToKeeps, String pathMatches){
+    def reposList = repos.split(',')
+    def dayToKeepsList = dayToKeeps.split(',')
+    def minimumToKeepsList = minimumToKeeps.split(',')
+    def pathMatchesList = pathMatches.split(',')
 
-    String repoKey = "npm-local"
-    String dayToKeep = "30"
-    String minimumToKeep = "10"
-    String pathMatch = "*"
-    logger.quiet("Processing repo [$repoKey] with [$dayToKeep] days to keep and minimum of [$minimumToKeep] versions of any artifact to keep and only purge partifacts have path match [$pathMatch]\r\n")
-
-    File fFullL = new File ("$projectDir/${repoKey}_FullList.log")
-    File fDelete = new File ("$projectDir/${repoKey}_DeleteList.log")
-    File fTop = new File ("$projectDir/${repoKey}_TopList.log")
-    fFullL.setText("ALL ARTIFACTS OLDER THAN $dayToKeep DAYS\r\n")
-    fTop.setText("THESE ARTIFACTS ARE THE TOP LATEST TO KEEP FROM PURGING\r\n")
-    if ("${viewOnly}".toBoolean()) {
-        fDelete.setText("THIS IS JUST A DRY RUN. NO REAL PURGING HAPPENING\r\n")
+    if ((reposList.length != dayToKeepsList.length)||(reposList.length !=pathMatchesList.length)){
+        logger.quiet ("### ERROR: Wrong configuration, mismatch two lists of repos")
     }
     else{
-        fDelete.setText("THESE ARTIFACTS HAVE BEEN PURGED\r\n")
-    }
+        for (int i=0; i< reposList.length; i++){
+            String repoKey = reposList[i]
+            String dayToKeep = dayToKeepsList[i]
+            String minimumToKeep = minimumToKeepsList[i]
+            String pathMatch = pathMatchesList[i]
+            logger.quiet("Processing repo [$repoKey] with [$dayToKeep] days to keep and minimum of [$minimumToKeep] versions of any artifact to keep and only purge partifacts have path match [$pathMatch]\r\n")
 
-    // get list of top latest versions of an artifact to keep
-    List topLatestPathList = getXNumberLatestNpmArtifactsPerVersion(5, repoKey)
-    topLatestPathList.each{ itemName ->
-        fTop << itemName + "\r\n"
-    }
+            File fFullL = new File ("$projectDir/${repoKey}_FullList.log")
+            File fDelete = new File ("$projectDir/${repoKey}_DeleteList.log")
+            File fTop = new File ("$projectDir/${repoKey}_TopList.log")
+            fFullL.setText("ALL ARTIFACTS OLDER THAN $dayToKeep DAYS\r\n")
+            fTop.setText("THESE ARTIFACTS ARE THE TOP LATEST TO KEEP FROM PURGING\r\n")
+            if ("${viewOnly}".toBoolean()) {
+                fDelete.setText("THIS IS JUST A DRY RUN. NO REAL PURGING HAPPENING\r\n")
+            }
+            else{
+                fDelete.setText("THESE ARTIFACTS HAVE BEEN PURGED\r\n")
+            }
 
-    // get all artifacts OLDER than configured days
-    List candidateList = getArtifactsOlderThanXDays (repoKey, pathMatch, dayToKeep.toInteger())
-    candidateList.each { item ->
-        fFullL << item.path + "/" + item.name + "\r\n"
+            // get list of top latest versions of an artifact to keep
+            List topLatestPathList = getXNumberLatestNpmArtifactsPerVersion(5, repoKey)
+            topLatestPathList.each{ itemName ->
+                fTop << itemName + "\r\n"
+            }
 
-        // check if it should really be purged
-        logger.quiet("Checking artifact before purge: $item.name")
-        if (topLatestPathList.any{it == item.name}){
-            logger.quiet("    > It is in TOP MINIMUM TO KEEP list - let it go")
-        }
-        else if ("${viewOnly}".toBoolean()) {
-            logger.quiet("    > DRY-RUN DELETING: $item.name")
-            fDelete << item.name + "\r\n"
-        }
-        else{
-            logger.quiet("    > DELETING: $item.name")
-            deleteAnNpmArtifactVersion(item, repoKey, fDelete)
+            // get all artifacts OLDER than configured days
+            List candidateList = getArtifactsOlderThanXDays (repoKey, pathMatch, dayToKeep.toInteger())
+            candidateList.each { item ->
+                fFullL << item.path + "/" + item.name + "\r\n"
+
+                // check if it should really be purged
+                logger.quiet("Checking artifact before purge: $item.name")
+                if (topLatestPathList.any{it == item.name}){
+                    logger.quiet("    > It is in TOP MINIMUM TO KEEP list - let it go")
+                }
+                else if ("${viewOnly}".toBoolean()) {
+                    logger.quiet("    > DRY-RUN DELETING: $item.name")
+                    fDelete << item.name + "\r\n"
+                }
+                else{
+                    logger.quiet("    > DELETING: $item.name")
+                    deleteAnNpmArtifactVersion(item, repoKey, fDelete)
+                }
+            }
         }
     }
 }
@@ -512,5 +527,5 @@ def putToTheMapNpm (Object mapLastItems, String itemPath, String itemName, Strin
 }
 
 task wrapper(type: Wrapper) {
-	gradleVersion = supportedGradleVersion
+    gradleVersion = supportedGradleVersion
 }
