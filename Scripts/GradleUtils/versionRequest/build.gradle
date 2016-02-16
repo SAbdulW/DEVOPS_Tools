@@ -15,12 +15,14 @@ buildscript {
         classpath 'org.yaml:snakeyaml:1.16-SNAPSHOT'
         classpath 'com.verint.plugins:vebutu-plugin:latest.release'
         classpath 'org.yaml:snakeyaml:1.16-SNAPSHOT'
+		classpath 'com.netflix.nebula:gradle-dependency-lock-plugin:4.2.0'
     }
 }
 
 apply plugin: 'java'
 apply plugin: 'vebutu'
 //apply plugin: 'artifactory'
+apply plugin: 'nebula.dependency-lock'
 
 String pp_timestamp= Calendar.getInstance().getTimeInMillis();
 
