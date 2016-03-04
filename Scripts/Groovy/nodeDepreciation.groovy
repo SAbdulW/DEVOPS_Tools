@@ -13,7 +13,7 @@ for (Node node in jenkins.nodes) {
   if (sDisplayName ==~ "${sNodeName}") {
     println "Found node: ${sDisplayName}"
     if ((node.getLabelString() != sTempLabel)) {
-      //node.setLabelString(sTempLabel)
+      node.setLabelString(sTempLabel)
       println "Node: ${sNodeName} has moved to pool: " + sTempLabel
     }
     break
