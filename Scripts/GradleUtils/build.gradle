@@ -43,7 +43,7 @@ configurations {
 
 dependencies {
     envConfig 'com.microsoft.technet.sysinternals:PSTools:2.11@zip'
-    envConfig 'com.poweradmin:paexec:1.26@zip'
+    // envConfig 'com.poweradmin:paexec:1.26@zip'
 }
 
 // prepare environment, getting the tools
@@ -52,7 +52,7 @@ task init() << {
     logger.quiet ("GradleUtils: Version updated by Nov 25 2015- 1.05")
 
     ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("PSTools-")}, dest: "${projectDir}\\Pstools\\")
-    ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("paexec")}, dest: "${projectDir}\\PAExec\\")
+    //   ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("paexec")}, dest: "${projectDir}\\PAExec\\")
 }
 
 task testPP() << {
@@ -171,12 +171,14 @@ def handlePuppetErrCode (String errCode){
 def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvironment, String iVmIP, String iUser, String iPw) {
     String sCmd = ""
     // CommandLine to execute in the agent
+    //sCmd = "\"C:\\Program Files\\Puppet Labs\\Puppet\\bin\\puppet.bat\" agent --test --server=${iPuppetServer} --certname=${iCertName} --environment=${iEnvironment} --debug --detailed-exitcodes"
     sCmd = "\"C:\\Program Files\\Puppet Labs\\Puppet\\bin\\puppet.bat\" agent --test --server=${iPuppetServer} --certname=${iCertName} --environment=${iEnvironment} --debug --detailed-exitcodes"
-
     //Create the psexec command
     // String sPsExecCmd = "cmd /c ${projectDir}\\Pstools\\PsExec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
     //String sPsExecCmd = "cmd /c ${projectDir}\\Pstools\\PsExec.exe -accepteula -i \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
-    String sPsExecCmd = "cmd /c .\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
+    // String sPsExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -h ${sCmd}"
+
+//  String sPsExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -h -c -f ${sTmpBat}"
 
     logger.quiet ("GradleUtils: the command: ${sPsExecCmd} ")
 
@@ -203,7 +205,6 @@ def runDeployEar (String iVmIP, String iUser, String iPw) {
     String sCmd = ""
     // CommandLine to execute in the agent
     sCmd = "%windir%\\system32\\cscript.exe c:\\impact360\\software\\WFODeployer\\DeployWfo.vbs WLSAdmin pumpkin1 true true"
-
     String sPsExecCmd = "cmd /c .\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
 
     logger.quiet ("GradleUtils: the command: ${sPsExecCmd} ")
@@ -230,7 +231,6 @@ def runDeployEar (String iVmIP, String iUser, String iPw) {
 
 def remoteEnableService(String iVmIP, String iUser, String iPw,String iServiceName ) {
     logger.quiet("Checking if service is disabled")
-    String sPsServiceChkCmd = "cmd /c .\\PSTools\\psservice.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} config \"${iServiceName}\" "
     String sPsServiceCmd = "cmd /c .\\PSTools\\psservice.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} setconfig \"${iServiceName}\" auto "
 
     try {
@@ -241,16 +241,16 @@ def remoteEnableService(String iVmIP, String iUser, String iPw,String iServiceNa
         }
         String out = stdout.toString()
         if (out.indexOf("DISABLED")>0) {
-           logger.quiet("The service is disabled, moving it to Auto")
-           try {
-               exec {
-                   commandLine('cmd', '/c', sPsServiceCmd)
-               }
-           }
-           catch(Exception e){
+            logger.quiet("The service is disabled, moving it to Auto")
+            try {
+                exec {
+                    commandLine('cmd', '/c', sPsServiceCmd)
+                }
+            }
+            catch(Exception e){
                 logger.quiet("Failed to configure ${iServiceName} ")
-           }
-       }
+            }
+        }
     }
     catch (Exception e) {
         logger.quiet ("Gradle Utils: Failied to read service status " + e.toString())
@@ -278,7 +278,7 @@ def remoteService(String iVmIP, String iUser, String iPw, String iServiceName, S
     catch (Exception e) {
         if ( e.toString().contains(("1058")))  //Service disabled
 
-        logger.quiet ("GradleUtils: some " + e.toString())
+            logger.quiet ("GradleUtils: some " + e.toString())
         rtnCode =  getRtnCode(e.toString())
     }
 
