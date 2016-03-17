@@ -43,7 +43,7 @@ configurations {
 
 dependencies {
     envConfig 'com.microsoft.technet.sysinternals:PSTools:2.11@zip'
-   // envConfig 'com.poweradmin:paexec:1.26@zip'
+    envConfig 'com.poweradmin:paexec:1.26@zip'
 }
 
 // prepare environment, getting the tools
@@ -52,7 +52,7 @@ task init() << {
     logger.quiet ("GradleUtils: Version updated by Nov 25 2015- 1.05")
 
     ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("PSTools-")}, dest: "${projectDir}\\Pstools\\")
- //   ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("paexec")}, dest: "${projectDir}\\PAExec\\")
+    ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("paexec")}, dest: "${projectDir}\\PAExec\\")
 }
 
 task testPP() << {
@@ -72,11 +72,6 @@ task testPP() << {
         fillSpecificVersionYAMLs "$yamlFiles"
 
 }
-//task forceVersionRange() << {
-//    if ("${fillVersionRange}".toBoolean())
-//        fillSpecificVersionYAMLs "$yamlFiles"
-//
-//}
 
 task runPuppetAgent(dependsOn: 'init') << {
 
@@ -166,28 +161,16 @@ def handlePuppetErrCode (String errCode){
         throw new GradleException("GradleUtils: there are FAILURES during the transaction: exitCode (${errCode})")
     }
 }
+def String runRemote(String sCommand, String iVmIP, String iUser, String iPw){
 
-// Get list of repositories from Artifactory, write the list into a file
-def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvironment, String iVmIP, String iUser, String iPw) {
-    String sCmd = ""
-	
-    // CommandLine to execute in the agent
-    //sCmd = "\"C:\\Program Files\\Puppet Labs\\Puppet\\bin\\puppet.bat\" agent --test --server=${iPuppetServer} --certname=${iCertName} --environment=${iEnvironment} --debug --detailed-exitcodes"
-    sCmd = "\"C:\\Program Files\\Puppet Labs\\Puppet\\bin\\puppet.bat\" agent --test --server=${iPuppetServer} --certname=${iCertName} --environment=${iEnvironment} --debug --detailed-exitcodes"
-    //Create the psexec command
-    // String sPsExecCmd = "cmd /c ${projectDir}\\Pstools\\PsExec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
-    //String sPsExecCmd = "cmd /c ${projectDir}\\Pstools\\PsExec.exe -accepteula -i \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCmd}"
-   // String sPsExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -h ${sCmd}"
-	
-   String sPsExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -h ${sCmd}"
-//  String sPsExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -h -c -f ${sTmpBat}"
+    String sExecCmd = generateRemoteCmd (sCommand, iVmIP,iUser,iPw)
 
-    logger.quiet ("GradleUtils: the command: ${sPsExecCmd} ")
+    logger.quiet ("GradleUtils: the command: ${sExecCmd} ")
 
     String rtnCode = ""
     try {
         exec {
-            commandLine 'cmd', '/c', sPsExecCmd
+            commandLine 'cmd', '/c', sExecCmd
         }
     }
     catch (Exception e) {
@@ -198,30 +181,50 @@ def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvir
     logger.quiet ("GradleUtils: there were changes during the transaction: exitCode (${rtnCode})")
     //rtnCode = result.getExitValue()
     return rtnCode
-    // executeOnCMDFile sPsExecCmd
-    //executeAsIs sPsExecCmd
-    //ppCommandFile.delete()
+
+}
+
+def String generateRemoteCmd(String sCommand, String iVmIP, String iUser, String iPw){
+
+    String strExecCmd = ""
+    String sRemoteCommand = "${remoteCmd}"
+    if (sRemoteCommand.equalsIgnoreCase("paexec")){
+        strExecCmd = generateRemoteCmdPaExec(sCommand,iVmIP,iUser,iPw)
+    }else{
+        strExecCmd = generateRemoteCmdPsExec (sCommand,iVmIP,iUser,iPw)
+    }
+    return strExecCmd
+}
+
+def String generateRemoteCmdPsExec(String sCommand, String iVmIP, String iUser, String iPw){
+
+    String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -h ${sCommand}"
+    return strExecCmd;
+}
+
+def String generateRemoteCmdPaExec(String sCommand, String iVmIP, String iUser, String iPw){
+
+    String strExecCmd = "cmd /c .\\PAExec\\paexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCommand}"
+    return strExecCmd;
+}
+
+
+// Get list of repositories from Artifactory, write the list into a file
+def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvironment, String iVmIP, String iUser, String iPw) {
+    String sCmd
+    // CommandLine to execute in the agent
+    sCmd = "\"C:\\Program Files\\Puppet Labs\\Puppet\\bin\\puppet.bat\" agent --test --server=${iPuppetServer} --certname=${iCertName} --environment=${iEnvironment} --debug --detailed-exitcodes"
+
+    String rtnCode = runRemote (sCmd, iVmIP,iUser,iPw)
+    return rtnCode
 }
 
 def runDeployEar (String iVmIP, String iUser, String iPw) {
-    String sCmd = ""
+    String sCmd
     // CommandLine to execute in the agent
-    sCmd = "cmd /c \"%windir%\\system32\\cscript.exe c:\\impact360\\software\\WFODeployer\\DeployWfo.vbs WLSAdmin pumpkin1 true true\""
-    String sPsExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -h ${sCmd}"
+    sCmd = "%windir%\\system32\\cscript.exe c:\\impact360\\software\\WFODeployer\\DeployWfo.vbs WLSAdmin pumpkin1 true true"
 
-    logger.quiet ("GradleUtils: the command: ${sPsExecCmd} ")
-
-    String rtnCode = ""
-    try {
-        exec {
-            commandLine 'cmd', '/c', sPsExecCmd
-        }
-    }
-    catch (Exception e) {
-        logger.quiet ("GradleUtils: some " + e.toString())
-        rtnCode =  getRtnCode(e.toString())
-    }
-
+    String rtnCode = runRemote (sCmd, iVmIP,iUser,iPw)
     logger.quiet ("Ear Deployment: exitCode (${rtnCode})")
 
     if (rtnCode!="" && rtnCode!="0" ) {
@@ -265,26 +268,10 @@ def remoteService(String iVmIP, String iUser, String iPw, String iServiceName, S
     if (iAction.toLowerCase().contains("start")){
         remoteEnableService( iVmIP,  iUser,  iPw, iServiceName)}
 
-    String sCmd = ""
-    sCmd = "cmd /c net ${iAction} \"${iServiceName}\""
+    String sCmd
+    sCmd = "net ${iAction} \"${iServiceName}\""
 
-    String sPsExecCmd = "cmd /c .\\PStools\\psexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h -w ${sWorkDir} ${sCmd}"
-
-    logger.quiet ("GradleUtils: the command RemoteService: ${sPsExecCmd} ")
-
-    String rtnCode = ""
-
-    try {
-        exec {
-            commandLine('cmd', '/c', sPsExecCmd)
-        }
-    }
-    catch (Exception e) {
-        if ( e.toString().contains(("1058")))  //Service disabled
-
-        logger.quiet ("GradleUtils: some " + e.toString())
-        rtnCode =  getRtnCode(e.toString())
-    }
+    String rtnCode = runRemote (sCmd, iVmIP,iUser,iPw)
 
     logger.quiet ("RemoteService: exitCode (${rtnCode})")
 
@@ -633,6 +620,7 @@ def executeOnCMDFile(String command) {
     //TODO: uncomment code bellow
     //temp.delete()
 }
+
 
 def executeOnCMD(String command) {
     return executeOnCMD(command, new File(System.properties.'java.io.tmpdir'))
