@@ -112,29 +112,29 @@ task runPuppetAgent(dependsOn: 'init') << {
         logger.quiet("\nGradleUtils: ****************************************************************************")
         logger.quiet("GradleUtils: *                      ERROR ERROR IN PUPPET STEPS - COLLECTING LOGS         *")
         logger.quiet("\nGradleUtils: ****************************************************************************")
-    }
+    }else{
+        //Move to this to have the puppet log capture
+        if ("${deployEarFile}".toBoolean()){
+            runDeployEar (vmIP, vmUser,  vmPw)
+            remoteService (vmIP, vmUser,  vmPw, wfoService, "start")
+        }
+        //remoteService( vmIP, vmUser, vmPw, watchdogService , "start")
+        MultiRemoteService( vmIP, vmUser, vmPw, "${stopStartservices}" , "start")
 
+        //wait for the application ready
+        if ("${chkApp}".toBoolean())
+            waitAppReady "$vmIP"
+    }
     //Run by the very end for gradle tasks:
     // - publish logs
     renameYAML "${yamlDestPath}\\${certname}.yaml"
-    runPuppetAgentCommand "$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw"
+    runPuppetAgentCommand("$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw")
 
     if (loadPuppetLog( "$certname","$environment"))
         extractInstalledVersion(yamlFiles, new File("${projectDir}\\PPLogs\\registryExport.json"))
-
     //Now publish the error
     handlePuppetErrCode errRtnErrorCode
 
-    if ("${deployEarFile}".toBoolean()){
-        runDeployEar (vmIP, vmUser,  vmPw)
-        remoteService (vmIP, vmUser,  vmPw, wfoService, "start")
-    }
-    //remoteService( vmIP, vmUser, vmPw, watchdogService , "start")
-    MultiRemoteService( vmIP, vmUser, vmPw, "${stopStartservices}" , "start")
-
-    //wait for the application ready
-    if ("${chkApp}".toBoolean())
-        waitAppReady "$vmIP"
 }
 
 task deployEar(dependsOn: 'init') << {
@@ -161,9 +161,9 @@ def handlePuppetErrCode (String errCode){
         throw new GradleException("GradleUtils: there are FAILURES during the transaction: exitCode (${errCode})")
     }
 }
-def String runRemote(String sCommand, String iVmIP, String iUser, String iPw){
+def String runRemote(String sPrefix, String sCommand, String iVmIP, String iUser, String iPw){
 
-    String sExecCmd = generateRemoteCmd (sCommand, iVmIP,iUser,iPw)
+    String sExecCmd = generateRemoteCmd (sPrefix,sCommand, iVmIP,iUser,iPw)
 
     logger.quiet ("GradleUtils: the command: ${sExecCmd} ")
 
@@ -184,23 +184,45 @@ def String runRemote(String sCommand, String iVmIP, String iUser, String iPw){
 
 }
 
-def String generateRemoteCmd(String sCommand, String iVmIP, String iUser, String iPw){
+def String generateRemoteCmd(String sPrefix, String sCommand, String iVmIP, String iUser, String iPw){
 
     String strExecCmd = ""
     String sRemoteCommand = "${remoteCmd}"
-    if (sRemoteCommand.equalsIgnoreCase("paexec")){
-        strExecCmd = generateRemoteCmdPaExec(sCommand,iVmIP,iUser,iPw)
+    if (sRemoteCommand.equalsIgnoreCase("psexec")){
+        strExecCmd = generateRemoteCmdPsExec(sCommand,iVmIP,iUser,iPw)
+    }else if (sRemoteCommand.equalsIgnoreCase("psexecfile")){
+        strExecCmd = generateRemoteCmdPsExecFile(sPrefix,sCommand,iVmIP,iUser,iPw)
     }else{
-        strExecCmd = generateRemoteCmdPsExec (sCommand,iVmIP,iUser,iPw)
+        strExecCmd = generateRemoteCmdPaExec(sCommand,iVmIP,iUser,iPw)
     }
     return strExecCmd
 }
 
 def String generateRemoteCmdPsExec(String sCommand, String iVmIP, String iUser, String iPw){
 
-    String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -h ${sCommand}"
+    String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -s -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -h ${sCommand}"
     return strExecCmd;
 }
+
+def String generateRemoteCmdPsExecFile(String sPrefix,String sCommand, String iVmIP, String iUser, String iPw){
+
+    //GEnerate the bat file
+    File batchFile = File.createTempFile("puppet",".bat");
+
+    String strFileName= batchFile.getName()
+    String strShortName= strFileName.replaceFirst(~/\.[^\.]+$/, '')
+    String strContent = sCommand + ">>C:\\Impact360\\Data\\Logs\\${sPrefix}_${strShortName}.log"
+    batchFile.write(strContent)
+
+    logger.quiet ("GradleUtils: Batch file content to execute remotely:  (${strFileName}) \n ${strContent}")
+
+    String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -s -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -c \"${batchFile.getAbsolutePath()}\""
+
+    return strExecCmd;
+
+}
+
+
 
 def String generateRemoteCmdPaExec(String sCommand, String iVmIP, String iUser, String iPw){
 
@@ -215,7 +237,7 @@ def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvir
     // CommandLine to execute in the agent
     sCmd = "\"C:\\Program Files\\Puppet Labs\\Puppet\\bin\\puppet.bat\" agent --test --server=${iPuppetServer} --certname=${iCertName} --environment=${iEnvironment} --debug --detailed-exitcodes"
 
-    String rtnCode = runRemote (sCmd, iVmIP,iUser,iPw)
+    String rtnCode = runRemote ("runPuppetAgent",sCmd, iVmIP,iUser,iPw)
     return rtnCode
 }
 
@@ -224,7 +246,7 @@ def runDeployEar (String iVmIP, String iUser, String iPw) {
     // CommandLine to execute in the agent
     sCmd = "%windir%\\system32\\cscript.exe c:\\impact360\\software\\WFODeployer\\DeployWfo.vbs WLSAdmin pumpkin1 true true"
 
-    String rtnCode = runRemote (sCmd, iVmIP,iUser,iPw)
+    String rtnCode = runRemote ("runDeployEar",sCmd, iVmIP,iUser,iPw)
     logger.quiet ("Ear Deployment: exitCode (${rtnCode})")
 
     if (rtnCode!="" && rtnCode!="0" ) {
@@ -248,16 +270,16 @@ def remoteEnableService(String iVmIP, String iUser, String iPw,String iServiceNa
         }
         String out = stdout.toString()
         if (out.indexOf("DISABLED")>0) {
-           logger.quiet("The service is disabled, moving it to Auto")
-           try {
-               exec {
-                   commandLine('cmd', '/c', sPsServiceCmd)
-               }
-           }
-           catch(Exception e){
+            logger.quiet("The service is disabled, moving it to Auto")
+            try {
+                exec {
+                    commandLine('cmd', '/c', sPsServiceCmd)
+                }
+            }
+            catch(Exception e){
                 logger.quiet("Failed to configure ${iServiceName} ")
-           }
-       }
+            }
+        }
     }
     catch (Exception e) {
         logger.quiet ("Gradle Utils: Failied to read service status " + e.toString())
@@ -271,7 +293,7 @@ def remoteService(String iVmIP, String iUser, String iPw, String iServiceName, S
     String sCmd
     sCmd = "net ${iAction} \"${iServiceName}\""
 
-    String rtnCode = runRemote (sCmd, iVmIP,iUser,iPw)
+    String rtnCode = runRemote ("remoteService",sCmd, iVmIP,iUser,iPw)
 
     logger.quiet ("RemoteService: exitCode (${rtnCode})")
 
