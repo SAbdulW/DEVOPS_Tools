@@ -139,26 +139,35 @@ task runPuppetAgent(dependsOn: 'init') << {
         logger.quiet("GradleUtils: *                      ERROR ERROR IN PUPPET STEPS - COLLECTING LOGS         *")
         logger.quiet("\nGradleUtils: ****************************************************************************")
     }else{
-        //Move to this to have the puppet log capture
-        if ("${deployEarFile}".toBoolean()){
+        try {
+            //Move to this to have the puppet log capture
+            if ("${deployEarFile}".toBoolean()){
 
-            noticeLog ("GradleUtils: Stage 4.1 - Run deploy the ear (if there is the need) with cscripts [REMOTE]")
+                noticeLog ("GradleUtils: Stage 4.1 - Run deploy the ear (if there is the need) with cscripts [REMOTE]")
 
-            runDeployEar (vmIP, vmUser,  vmPw)
+                runDeployEar (vmIP, vmUser,  vmPw)
+
+                noticeLog ("GradleUtils: Stage 4.2 - Start the services on remote remote machine with remote call[REMOTE]")
+
+                remoteService (vmIP, vmUser,  vmPw, wfoService, "start")
+            }
 
             noticeLog ("GradleUtils: Stage 4.2 - Start the services on remote remote machine with remote call[REMOTE]")
+            //remoteService( vmIP, vmUser, vmPw, watchdogService , "start")
+            MultiRemoteService( vmIP, vmUser, vmPw, "${stopStartservices}" , "start")
 
-            remoteService (vmIP, vmUser,  vmPw, wfoService, "start")
+            //wait for the application ready
+            noticeLog ("GradleUtils: Stage 4.3 - Check and wait until the login page come up [SLAVE]")
+            if ("${chkApp}".toBoolean())
+                waitAppReady "$vmIP"
+        } catch (Exception e) {
+            logger.quiet ("GradleUtils: some " + e.toString())
+            errRtnErrorCode = getRtnCode(e.toString())
+            if ((errRtnErrorCode!="2") &&(errRtnErrorCode!="")){
+            }else{
+                errRtnErrorCode="99"
+            }
         }
-
-        noticeLog ("GradleUtils: Stage 4.2 - Start the services on remote remote machine with remote call[REMOTE]")
-        //remoteService( vmIP, vmUser, vmPw, watchdogService , "start")
-        MultiRemoteService( vmIP, vmUser, vmPw, "${stopStartservices}" , "start")
-
-        //wait for the application ready
-        noticeLog ("GradleUtils: Stage 4.3 - Check and wait until the login page come up [SLAVE]")
-        if ("${chkApp}".toBoolean())
-            waitAppReady "$vmIP"
     }
     //Run by the very end for gradle tasks:
     // - publish logs
