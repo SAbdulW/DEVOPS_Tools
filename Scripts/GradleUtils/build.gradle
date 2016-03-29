@@ -242,6 +242,8 @@ def String generateRemoteCmd(String sPrefix, String sCommand, String iVmIP, Stri
         strExecCmd = generateRemoteCmdPsExec(sCommand,iVmIP,iUser,iPw)
     }else if (sRemoteCommand.equalsIgnoreCase("psexecfile")){
         strExecCmd = generateRemoteCmdPsExecFile(sPrefix,sCommand,iVmIP,iUser,iPw)
+    }else if (sRemoteCommand.equalsIgnoreCase("local")){
+        strExecCmd = sCommand
     }else{
         strExecCmd = generateRemoteCmdPaExec(sCommand,iVmIP,iUser,iPw)
     }
@@ -309,13 +311,19 @@ def runDeployEar (String iVmIP, String iUser, String iPw) {
 def remoteEnableService(String iVmIP, String iUser, String iPw,String iServiceName ) {
     logger.quiet("Checking if service is disabled")
 
-    String sPsServiceChkCmd = "cmd /c .\\PSTools\\psservice.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} config \"${iServiceName}\" "
-    String sPsServiceCmd = "cmd /c .\\PSTools\\psservice.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} setconfig \"${iServiceName}\" auto "
+    String sServiceChkCmd = "cmd /c .\\PSTools\\psservice.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} config \"${iServiceName}\" "
+    String sServiceCmd = "cmd /c .\\PSTools\\psservice.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} setconfig \"${iServiceName}\" auto "
+
+    String sRemoteCommand = "${remoteCmd}"
+    if (sRemoteCommand.equalsIgnoreCase("local")){
+        sServiceChkCmd = "config \"${iServiceName}\" "
+        sServiceCmd = "setconfig \"${iServiceName}\" auto "
+    }
 
     try {
         def stdout = new ByteArrayOutputStream()
         exec {
-            commandLine('cmd', '/c', sPsServiceChkCmd)
+            commandLine('cmd', '/c', sServiceChkCmd)
             standardOutput = stdout
         }
         String out = stdout.toString()
@@ -323,7 +331,7 @@ def remoteEnableService(String iVmIP, String iUser, String iPw,String iServiceNa
             logger.quiet("The service is disabled, moving it to Auto")
             try {
                 exec {
-                    commandLine('cmd', '/c', sPsServiceCmd)
+                    commandLine('cmd', '/c', sServiceCmd)
                 }
             }
             catch(Exception e){
@@ -829,3 +837,204 @@ def noticeLog(String strNotice){
 
 }
 //reference
+//  New approach - to copy the gradleUtils to the remote and run it from there
+
+task copyFilesPrepare << {
+
+    // Copy the yamls translation to the workspace
+    logger.info ("${yamlFiles}") ;
+
+    def String[] yamlFilesArr = "${yamlFiles}".split(',');
+    for (String yamlSrcPath : yamlFilesArr) {
+        File fileToCopy = new File (yamlSrcPath)
+        String fileName = fileToCopy.getName();
+        ant.copy (file: "${yamlSrcPath}", tofile: "${projectDir}\\ci\\${fileName}", verbose: true)
+    }
+    // Now copy everything to remoret
+    ant.exec(executable: "cmd", failonerror:"true") {
+        arg line: '/c'
+        arg line: "net use \\\\${vmIP}\\C\$ /user:${vmUser} ${vmPw}"
+    }
+
+    ant.copy (todir: "\\\\${vmIP}\\C\$\\GradleUtils",overwrite:true, verbose: true){
+        fileset (dir: "${projectDir}" ){
+            exclude name: "**/.gradle/**"
+            exclude name: "**/.git/**"
+        }
+    }
+}
+
+task runLocalDeployController(dependsOn: 'init') << {
+
+    noticeLog("GradleUtils: The full flow as below\n"         )
+
+    if ("${fillVersionRange}".toBoolean()) {
+        noticeLog ("GradleUtils: Stage 1.1: Check the YAML file and fill the version as needed [SLAVE]: ${yamlFiles}")
+        fillSpecificVersionYAMLs "$yamlFiles"
+    }
+
+    String pp_timestamp= Calendar.getInstance().getTimeInMillis();
+    // Replace the yaml content with the new build number and create the yaml file
+    String certname="${environment}_${pp_timestamp}"
+    noticeLog ("GradleUtils: Stage 1.2: Generate the puppet certificate [SLAVE]")
+    logger.quiet ("GradleUtils: certname:${certname}")
+
+    def String[] yamlFiles = "${yamlFiles}".split(',');
+    yamlValidation (yamlFiles)
+
+    for (String yamlSrcPath : yamlFiles){
+        logger.quiet ("GradleUtils: run the setting for Yaml = ${yamlSrcPath}")
+        createYAML ("${currentVersion}", "${yamlSrcPath}", "${yamlDestPath}\\${certname}.yaml")
+    }
+
+    //TODO: GEnerating the gradle file
+
+    //generateGradleRemote()
+
+    //TODO: Copy all neccessary to remote
+    tasks.copyFilesPrepare.execute();
+
+    //TODO: Run the gradle remotely
+
+    runDeployFromTestBench()
+
+
+    //WAIT for the result
+
+    if ("${chkApp}".toBoolean())
+        waitAppReady "$vmIP"
+
+    noticeLog ("GradleUtils: Stage 5.2 - Extract and fill the installed version to : PPLogs\\installedVersions.json")
+
+    if (loadPuppetLog( "$certname","$environment"))
+        extractInstalledVersion(yamlFiles, new File("${projectDir}\\PPLogs\\registryExport.json"))
+    //Now publish the error
+    handlePuppetErrCode errRtnErrorCode
+
+    noticeLog ("GradleUtils: DONE!!!")
+
+}
+
+
+task runLocalDeploy() << {
+
+    noticeLog("GradleUtils: Execution in the Testbench\n"         )
+
+    noticeLog ("GradleUtils: Stage 1.2: Stop the services on remote machine with remote call[REMOTE]")
+    logger.quiet ("GradleUtils: Stop Watchdog service")
+//	remoteService( vmIP, vmUser, vmPw, watchdogService , "stop")
+    MultiRemoteService( vmIP, vmUser, vmPw, "${stopStartservices}" , "stop")
+    logger.quiet ("GradleUtils: run the puppet agent")
+
+    String pp_timestamp= Calendar.getInstance().getTimeInMillis();
+
+    // Replace the yaml content with the new build number and create the yaml file
+    String certname="${icertname}"
+    noticeLog ("GradleUtils: Stage 1.3: Generate the puppet certificate [SLAVE]")
+    logger.quiet ("GradleUtils: certname:${certname}")
+
+    noticeLog ("GradleUtils: Stage 2.1: Run puppet to prepare the environements in remote machine[REMOTE]")
+    logger.quiet ("GradleUtils: run the initial set up on base environment with certname:${certname}")
+
+    def String[] yamlFiles = "${yamlFiles}".split(',');
+
+
+    String errRtnErrorCode=""
+    errRtnErrorCode=runPuppetAgentCommand("$puppetServer", "$certname","$environment_base","$vmIP","$vmUser","$vmPw")
+
+    logger.quiet ("GradleUtils: ErrorCode - Base - ${errRtnErrorCode}")
+    noticeLog ("GradleUtils: Stage 3.1: Run puppet to setup (uninstall, install or do both) the msi(s) [REMOTE]\n" +
+            "\t\tfor each defined yaml")
+
+    for (String yamlSrcPath : yamlFiles){
+        if ((errRtnErrorCode=="2") ||(errRtnErrorCode=="")) {
+            logger.quiet ("GradleUtils: run the setting for Yaml = ${yamlSrcPath}")
+            errRtnErrorCode=runPuppetAgentCommand("$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw")
+            logger.quiet ("GradleUtils: ErrorCode - ${yamlSrcPath} - ${errRtnErrorCode}")
+        }
+    }
+
+    noticeLog ("GradleUtils: Stage 4: If the Stage 3 is success, else go to stage 5")
+    if ((errRtnErrorCode!="2") &&(errRtnErrorCode!="")) {
+        logger.quiet("\nGradleUtils: ****************************************************************************")
+        logger.quiet("GradleUtils: *                      ERROR ERROR IN PUPPET STEPS - COLLECTING LOGS         *")
+        logger.quiet("\nGradleUtils: ****************************************************************************")
+    }else{
+        try {
+            //Move to this to have the puppet log capture
+            if ("${deployEarFile}".toBoolean()){
+
+                noticeLog ("GradleUtils: Stage 4.1 - Run deploy the ear (if there is the need) with cscripts [REMOTE]")
+
+                runDeployEar (vmIP, vmUser,  vmPw)
+
+                noticeLog ("GradleUtils: Stage 4.2 - Start the services on remote remote machine with remote call[REMOTE]")
+
+                remoteService (vmIP, vmUser,  vmPw, wfoService, "start")
+            }
+
+            noticeLog ("GradleUtils: Stage 4.2 - Start the services on remote remote machine with remote call[REMOTE]")
+            //remoteService( vmIP, vmUser, vmPw, watchdogService , "start")
+            MultiRemoteService( vmIP, vmUser, vmPw, "${stopStartservices}" , "start")
+
+            //wait for the application ready
+            noticeLog ("GradleUtils: Stage 4.3 - Check and wait until the login page come up [SLAVE]")
+            if ("${chkApp}".toBoolean())
+                waitAppReady "$vmIP"
+        } catch (Exception e) {
+            logger.quiet ("GradleUtils: some " + e.toString())
+            errRtnErrorCode = getRtnCode(e.toString())
+            if ((errRtnErrorCode!="2") &&(errRtnErrorCode!="")){
+            }else{
+                errRtnErrorCode="99"
+            }
+        }
+    }
+    //Run by the very end for gradle tasks:
+    // - publish logs
+
+    noticeLog ("GradleUtils: Stage 5.1 - Collecting the logs from remote machine with puppet [REMOTE]")
+
+    runLogCollectionLocal( "$certname","$environment")
+
+    noticeLog ("GradleUtils: DONE!!!")
+
+}
+
+def runLogCollection (String strCertName, String strEnv){
+    //C:\Impact360\WFOPuppet\install\gradle\gradlew.bat runG aP -Pcertname=ci_wfo_env_1459267658362 -Penvironment=ci_wfo_env > C:\Impact360\WFOPuppet\logs\gradlelog.log
+
+    String sCmd
+    sCmd = "C:\\Impact360\\WFOPuppet\\install\\gradle\\gradlew.bat runG aP -Pcertname=${strCertName} -Penvironment=${strEnv} > C:\\Impact360\\WFOPuppet\\logs\\gradlelog.log"
+
+    String rtnCode = runRemote ("remoteService",sCmd, iVmIP,iUser,iPw)
+
+    logger.quiet ("runLogCollection: exitCode (${rtnCode})")
+
+}
+
+def generateGradleRemote(String strCertName){
+    //gradlew.bat -i --refresh-dependencies runPA -PcurrentVersion=15.1.0.10049 -PMasterBuildVersion=15.1.0.10049 -PvmIP=10.156.16.202 -PyamlFiles=puppet.yaml -PdeployEarFile=true -PchkApp=true -PwfoService=WFO_ProductionDomain_ProductionServer "-PstopStartservices=WatchDog,MinerTomcat,RecorderTomcat,Recorder Alarm Service" -PfillVersionRange=false
+
+    String sCmd = "cmd /c gradlew.bat -i --refresh-dependencies runPA -PcurrentVersion=${PcurrentVersion} -PMasterBuildVersion=${MasterBuildVersion} -PvmIP=${vmIP} -PyamlFiles=${yamlFiles} -PdeployEarFile=${deployEarFile} -PchkApp=${chkApp} -PwfoService=${wfoService} \"-PstopStartservices=${stopStartservices}\" -PfillVersionRange=false -PremoteCmd=local -Picertname=${strCertName}"
+
+    File cmdFile = new File ("${projectDir}\\runGradleLocalDeploy.bat")
+
+    cmdFile.text = sCmd
+
+}
+
+
+def runDeployFromTestBench (String iVmIP, String iUser, String iPw) {
+    String sCmd
+    // CommandLine to execute in the agent
+    sCmd = "runGradleLocalDeploy.bat"
+
+    String rtnCode = runRemote ("runGradleLocalDeploy",sCmd, iVmIP,iUser,iPw)
+    logger.quiet ("Run the gradle local: exitCode (${rtnCode})")
+
+    if (rtnCode!="" && rtnCode!="0" ) {
+        logger.quiet ("GradleUtils: Failed with: exitCode (${rtnCode})")
+        throw new GradleException("GradleUtils: Failed to gradle in test bench exitCode (${rtnCode})")
+    }
+}
