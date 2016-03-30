@@ -67,9 +67,10 @@ task testPP() << {
     //getVersionInstalledFromSVIXML (sviXMLObj, "Coaching Reporting")
 
     //renameYAML "\\\\atlpuppetmaster\\puppet_agent\\environments\\ci_wfo_env_test\\hieradata\\ci_wfo_env_test.yaml"
-    logger.quiet ("GradleUtils: Filling the version range to YAML files: ${yamlFiles}")
-    if ("${fillVersionRange}".toBoolean())
-        fillSpecificVersionYAMLs "$yamlFiles"
+//    logger.quiet ("GradleUtils: Filling the version range to YAML files: ${yamlFiles}")
+//    if ("${fillVersionRange}".toBoolean())
+//        fillSpecificVersionYAMLs "$yamlFiles"
+    runLogCollectionLocal ("ci_wfo_env_1459358138028", "ci_wfo_env")
 
 }
 
@@ -234,6 +235,29 @@ def String runRemote(String sPrefix, String sCommand, String iVmIP, String iUser
 
 }
 
+def String runRemoteNonIteractive(String sCommand, String iVmIP, String iUser, String iPw){
+
+    String sExecCmd = generateRemoteCmdPsExecNonInteractive(sCommand, iVmIP,iUser,iPw)
+
+    logger.quiet ("GradleUtils: the command: ${sExecCmd} ")
+
+    String rtnCode = ""
+    try {
+        exec {
+            commandLine 'cmd', '/c', sExecCmd
+        }
+    }
+    catch (Exception e) {
+        logger.quiet ("GradleUtils: some " + e.toString())
+        rtnCode = getRtnCode(e.toString())
+    }
+
+    logger.quiet ("GradleUtils: there were changes during the transaction: exitCode (${rtnCode})")
+    //rtnCode = result.getExitValue()
+    return rtnCode
+
+}
+
 def String generateRemoteCmd(String sPrefix, String sCommand, String iVmIP, String iUser, String iPw){
 
     String strExecCmd = ""
@@ -244,10 +268,18 @@ def String generateRemoteCmd(String sPrefix, String sCommand, String iVmIP, Stri
         strExecCmd = generateRemoteCmdPsExecFile(sPrefix,sCommand,iVmIP,iUser,iPw)
     }else if (sRemoteCommand.equalsIgnoreCase("local")){
         strExecCmd = sCommand
+    }else if (sRemoteCommand.equalsIgnoreCase("localfile")){
+        strExecCmd = generateLocalCmdFile(sPrefix,sCommand,iVmIP,iUser,iPw)
     }else{
         strExecCmd = generateRemoteCmdPaExec(sCommand,iVmIP,iUser,iPw)
     }
     return strExecCmd
+}
+
+def String generateRemoteCmdPsExecNonInteractive(String sCommand, String iVmIP, String iUser, String iPw){
+
+    String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -h -d ${sCommand}"
+    return strExecCmd;
 }
 
 def String generateRemoteCmdPsExec(String sCommand, String iVmIP, String iUser, String iPw){
@@ -274,6 +306,18 @@ def String generateRemoteCmdPsExecFile(String sPrefix,String sCommand, String iV
 
 }
 
+def String generateLocalCmdFile(String sPrefix,String sCommand, String iVmIP, String iUser, String iPw){
+
+    //GEnerate the bat file
+    File batchFile = File.createTempFile("puppet",".bat");
+
+    String strFileName= batchFile.getName()
+    String strShortName= strFileName.replaceFirst(~/\.[^\.]+$/, '')
+    sCommand =  sCommand + ">>C:\\Impact360\\Data\\Logs\\${sPrefix}_${strShortName}.log"
+
+    return sCommand;
+
+}
 
 
 def String generateRemoteCmdPaExec(String sCommand, String iVmIP, String iUser, String iPw){
@@ -797,7 +841,7 @@ def waitArtifactReady (String aURL) {
     logger.quiet ("-----Waiting for aURL available ${aURL} : -----")
     boolean rtnSuccess = true
     //waits up to 10 minutes (and checks every 500 milliseconds) for a web server on vmIP to serve up the specified URL.
-    ant.waitfor (maxwait:"3", maxwaitunit:"minute", checkevery:"500", timeoutproperty:"web.timeout") {
+    ant.waitfor (maxwait:"60", maxwaitunit:"minute", checkevery:"10000", timeoutproperty:"web.timeout") {
         http (url:"${aURL}")
     }
     try {
@@ -1003,13 +1047,13 @@ task runLocalDeploy() << {
 
 }
 
-def runLogCollection (String strCertName, String strEnv){
+def runLogCollectionLocal (String strCertName, String strEnv){
     //C:\Impact360\WFOPuppet\install\gradle\gradlew.bat runG aP -Pcertname=ci_wfo_env_1459267658362 -Penvironment=ci_wfo_env > C:\Impact360\WFOPuppet\logs\gradlelog.log
 
     String sCmd
     sCmd = "C:\\Impact360\\WFOPuppet\\install\\gradle\\gradlew.bat runG aP -Pcertname=${strCertName} -Penvironment=${strEnv} > C:\\Impact360\\WFOPuppet\\logs\\gradlelog.log"
 
-    String rtnCode = runRemote ("remoteService",sCmd, iVmIP,iUser,iPw)
+    String rtnCode = runRemote ("remoteService",sCmd, "$vmIP","$vmUser","$vmPw")
 
     logger.quiet ("runLogCollection: exitCode (${rtnCode})")
 
@@ -1018,7 +1062,8 @@ def runLogCollection (String strCertName, String strEnv){
 def generateGradleRemote(String strCertName){
     //gradlew.bat -i --refresh-dependencies runPA -PcurrentVersion=15.1.0.10049 -PMasterBuildVersion=15.1.0.10049 -PvmIP=10.156.16.202 -PyamlFiles=puppet.yaml -PdeployEarFile=true -PchkApp=true -PwfoService=WFO_ProductionDomain_ProductionServer "-PstopStartservices=WatchDog,MinerTomcat,RecorderTomcat,Recorder Alarm Service" -PfillVersionRange=false
 
-    String sCmd = "cmd /c gradlew.bat -i --refresh-dependencies runPA -PcurrentVersion=${currentVersion} -PMasterBuildVersion=${MasterBuildVersion} -PvmIP=${vmIP} -PyamlFiles=${yamlFiles} -PdeployEarFile=${deployEarFile} -PchkApp=${chkApp} -PwfoService=${wfoService} \"-PstopStartservices=${stopStartservices}\" -PfillVersionRange=false -PremoteCmd=local -Picertname=${strCertName}"
+    String sCmd = "cd /D C:\\GradleUtils\n" +
+            "cmd /c gradlew.bat -i runLocalDeploy -PcurrentVersion=${currentVersion} -PMasterBuildVersion=${MasterBuildVersion} -PvmIP=${vmIP} -PyamlFiles=${yamlFiles} -PdeployEarFile=${deployEarFile} -PchkApp=${chkApp} -PwfoService=${wfoService} \"-PstopStartservices=${stopStartservices}\" -PfillVersionRange=false -PremoteCmd=localfile -Picertname=${strCertName}"
 
     File cmdFile = new File ("${projectDir}\\runGradleLocalDeploy.bat")
     noticeLog ("GradleUtils: GRadle command to be run:\n ${sCmd}")
@@ -1032,7 +1077,8 @@ def runDeployFromTestBench (String iVmIP, String iUser, String iPw) {
     // CommandLine to execute in the agent
     sCmd = "runGradleLocalDeploy.bat"
 
-    String rtnCode = runRemote ("runGradleLocalDeploy",sCmd, iVmIP,iUser,iPw)
+    String rtnCode = runRemoteNonIteractive(sCmd, iVmIP,iUser,iPw)
+
     logger.quiet ("Run the gradle local: exitCode (${rtnCode})")
 
     if (rtnCode!="" && rtnCode!="0" ) {
