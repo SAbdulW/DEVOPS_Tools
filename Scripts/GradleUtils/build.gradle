@@ -860,6 +860,8 @@ task copyFilesPrepare << {
         fileset (dir: "${projectDir}" ){
             exclude name: "**/.gradle/**"
             exclude name: "**/.git/**"
+            exclude name: "**/PAExec/**"
+            exclude name: "**/Pstools/**"
         }
     }
 }
@@ -889,14 +891,14 @@ task runLocalDeployController(dependsOn: 'init') << {
 
     //TODO: GEnerating the gradle file
 
-    //generateGradleRemote()
+    generateGradleRemote(certname)
 
     //TODO: Copy all neccessary to remote
     tasks.copyFilesPrepare.execute();
 
     //TODO: Run the gradle remotely
 
-    runDeployFromTestBench()
+    //runDeployFromTestBench()
 
 
     //WAIT for the result
@@ -1016,10 +1018,10 @@ def runLogCollection (String strCertName, String strEnv){
 def generateGradleRemote(String strCertName){
     //gradlew.bat -i --refresh-dependencies runPA -PcurrentVersion=15.1.0.10049 -PMasterBuildVersion=15.1.0.10049 -PvmIP=10.156.16.202 -PyamlFiles=puppet.yaml -PdeployEarFile=true -PchkApp=true -PwfoService=WFO_ProductionDomain_ProductionServer "-PstopStartservices=WatchDog,MinerTomcat,RecorderTomcat,Recorder Alarm Service" -PfillVersionRange=false
 
-    String sCmd = "cmd /c gradlew.bat -i --refresh-dependencies runPA -PcurrentVersion=${PcurrentVersion} -PMasterBuildVersion=${MasterBuildVersion} -PvmIP=${vmIP} -PyamlFiles=${yamlFiles} -PdeployEarFile=${deployEarFile} -PchkApp=${chkApp} -PwfoService=${wfoService} \"-PstopStartservices=${stopStartservices}\" -PfillVersionRange=false -PremoteCmd=local -Picertname=${strCertName}"
+    String sCmd = "cmd /c gradlew.bat -i --refresh-dependencies runPA -PcurrentVersion=${currentVersion} -PMasterBuildVersion=${MasterBuildVersion} -PvmIP=${vmIP} -PyamlFiles=${yamlFiles} -PdeployEarFile=${deployEarFile} -PchkApp=${chkApp} -PwfoService=${wfoService} \"-PstopStartservices=${stopStartservices}\" -PfillVersionRange=false -PremoteCmd=local -Picertname=${strCertName}"
 
     File cmdFile = new File ("${projectDir}\\runGradleLocalDeploy.bat")
-
+    noticeLog ("GradleUtils: GRadle command to be run:\n ${sCmd}")
     cmdFile.text = sCmd
 
 }
