@@ -1078,9 +1078,14 @@ def runLogCollectionLocal (String strCertName, String strEnv){
     //C:\Impact360\WFOPuppet\install\gradle\gradlew.bat runG aP -Pcertname=ci_wfo_env_1459267658362 -Penvironment=ci_wfo_env > C:\Impact360\WFOPuppet\logs\gradlelog.log
 
     String sCmd
-    sCmd = "C:\\Impact360\\WFOPuppet\\install\\gradle\\gradlew.bat runG aP -Pcertname=${strCertName} -Penvironment=${strEnv} > C:\\Impact360\\WFOPuppet\\logs\\gradlelog.log"
+    sCmd = "C:\\Impact360\\WFOPuppet\\install\\gradle\\gradlew.bat runG aP -Pcertname=${strCertName} -Penvironment=${strEnv}"
 
-    String rtnCode = runRemote ("remoteService",sCmd, "$vmIP","$vmUser","$vmPw")
+    String rtnCode = runRemote ("runLogCollectionLocal",sCmd, "$vmIP","$vmUser","$vmPw")
+
+    if (rtnCode !="2"){
+        logger.quiet ("Perform another attemp to get the logs")
+        rtnCode = runRemote ("runLogCollectionLocal",sCmd, "$vmIP","$vmUser","$vmPw")
+    }
 
     logger.quiet ("runLogCollection: exitCode (${rtnCode})")
 
