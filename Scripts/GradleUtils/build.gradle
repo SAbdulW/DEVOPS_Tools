@@ -902,6 +902,9 @@ task copyFilesPrepare << {
         String fileName = fileToCopy.getName();
         ant.copy (file: "${yamlSrcPath}", tofile: "${projectDir}\\ci\\${fileName}", verbose: true)
     }
+
+//    File gradleLog = new File("gradlelogDeploy.log")
+//    gradleLog.text = "*****GRADLE DEPLOY LOG *************"
     // Now copy everything to remoret
     ant.exec(executable: "cmd", failonerror:"true") {
         arg line: '/c'
@@ -961,7 +964,7 @@ task runLocalDeployController(dependsOn: 'init') << {
     noticeLog ("GradleUtils: Stage 5.2 - Extract and fill the installed version to : PPLogs\\installedVersions.json")
 
     if (loadPuppetLog( "$certname","$environment")){
-        errRtnErrorCode = printRemoteLog ("$certname")
+        String errRtnErrorCode = printRemoteLog ("$certname")
         handlePuppetErrCode errRtnErrorCode
         extractInstalledVersion(yamlFiles, new File("${projectDir}\\PPLogs\\registryExport.json"))
 
@@ -977,7 +980,8 @@ task runLocalDeployController(dependsOn: 'init') << {
 
 task runLocalDeploy() << {
 
-    File fLogStatus = new File ("C:\\Impact360\\Data\\Logs\\${icertname}_runLocal.log")
+    File fLogStatus = new File ("${projectDir}\\${icertname}_runLocal.log")
+    fLogStatus.text ="*******************DEPLLOY GRADLE LOG **********\n"
 
     noticeLog("GradleUtils: Execution in the Testbench\n"         ,fLogStatus)
 
@@ -1058,6 +1062,10 @@ task runLocalDeploy() << {
 
     fLogStatus.text ="${errRtnErrorCode}\n" + fLogStatus.text
 
+    ant.copy (file: "${projectDir}\\${icertname}_runLocal.log", tofile: "C:\\Impact360\\WFOPuppet\\logs\\${icertname}_runLocal.log", verbose: true)
+    ant.copy (file: "${projectDir}\\gradlelogDeploy.log", tofile: "C:\\Impact360\\WFOPuppet\\logs\\gradlelogDeploy.log", verbose: true)
+
+
     runLogCollectionLocal( "$certname","$environment")
 
 
@@ -1082,7 +1090,7 @@ def generateGradleRemote(String strCertName){
     //gradlew.bat -i --refresh-dependencies runPA -PcurrentVersion=15.1.0.10049 -PMasterBuildVersion=15.1.0.10049 -PvmIP=10.156.16.202 -PyamlFiles=puppet.yaml -PdeployEarFile=true -PchkApp=true -PwfoService=WFO_ProductionDomain_ProductionServer "-PstopStartservices=WatchDog,MinerTomcat,RecorderTomcat,Recorder Alarm Service" -PfillVersionRange=false
 
     String sCmd = "cd /D C:\\GradleUtils\n" +
-            "cmd /c gradlew.bat -i runLocalDeploy -PcurrentVersion=${currentVersion} -PMasterBuildVersion=${MasterBuildVersion} -PvmIP=${vmIP} -PyamlFiles=${yamlFiles} -PdeployEarFile=${deployEarFile} -PchkApp=${chkApp} -PwfoService=${wfoService} \"-PstopStartservices=${stopStartservices}\" -PfillVersionRange=false -PremoteCmd=localfile -Picertname=${strCertName}"
+            "cmd /c gradlew.bat -i runLocalDeploy -PcurrentVersion=${currentVersion} -PMasterBuildVersion=${MasterBuildVersion} -PvmIP=${vmIP} -PyamlFiles=${yamlFiles} -PdeployEarFile=${deployEarFile} -PchkApp=${chkApp} -PwfoService=${wfoService} \"-PstopStartservices=${stopStartservices}\" -PfillVersionRange=false -PremoteCmd=localfile -Picertname=${strCertName} > C:\\GradleUtils\\gradlelogDeploy.log"
 
     File cmdFile = new File ("${projectDir}\\runGradleLocalDeploy.bat")
     noticeLog ("GradleUtils: GRadle command to be run:\n ${sCmd}")
@@ -1109,10 +1117,10 @@ def runDeployFromTestBench (String iVmIP, String iUser, String iPw) {
 
 def String printRemoteLog(String certname){
     String strRtn = ""
-    File fLog = new File("${projectDir}\\PPLogs\\productionLogs\\Logs\\${certname}_runLocal.log")
+    File fLog = new File("${projectDir}\\PPLogs\\${certname}_runLocal.log")
     noticeLog(fLog.text)
 
-    new File("${projectDir}\\PPLogs\\productionLogs\\Logs\\${certname}_runLocal.log").withReader{
+    new File("${projectDir}\\PPLogs\\${certname}_runLocal.log").withReader{
         strRtn = it.readLine();
     }
 
