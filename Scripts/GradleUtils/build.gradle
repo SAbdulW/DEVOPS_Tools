@@ -880,6 +880,14 @@ def noticeLog(String strNotice){
             "***********************************************************************************************************************************\n")
 
 }
+
+def noticeLog(String strNotice, File fLog){
+
+    fLog.text = fLog.text + "\n***********************************************************************************************************************************\n" +
+            "****                 ${strNotice}                     ***\n" +
+            "***********************************************************************************************************************************\n"
+
+}
 //reference
 //  New approach - to copy the gradleUtils to the remote and run it from there
 
@@ -942,44 +950,51 @@ task runLocalDeployController(dependsOn: 'init') << {
 
     //TODO: Run the gradle remotely
 
-    //runDeployFromTestBench()
+    runDeployFromTestBench("$vmIP","$vmUser","$vmPw")
 
 
     //WAIT for the result
 
-    if ("${chkApp}".toBoolean())
-        waitAppReady "$vmIP"
+//    if ("${chkApp}".toBoolean())
+//        waitAppReady "$vmIP"
 
     noticeLog ("GradleUtils: Stage 5.2 - Extract and fill the installed version to : PPLogs\\installedVersions.json")
 
-    if (loadPuppetLog( "$certname","$environment"))
+    if (loadPuppetLog( "$certname","$environment")){
+        errRtnErrorCode = printRemoteLog ("$certname")
+        handlePuppetErrCode errRtnErrorCode
         extractInstalledVersion(yamlFiles, new File("${projectDir}\\PPLogs\\registryExport.json"))
+
+    }else{
+        throw new GradleException ("For some reason, there is no log, couldn't know wstatus exuection remotely. Build failed")
+    }
+
     //Now publish the error
-    handlePuppetErrCode errRtnErrorCode
-
+    //handlePuppetErrCode errRtnErrorCode
     noticeLog ("GradleUtils: DONE!!!")
-
 }
 
 
 task runLocalDeploy() << {
 
-    noticeLog("GradleUtils: Execution in the Testbench\n"         )
+    File fLogStatus = new File ("C:\\Impact360\\Data\\Logs\\${icertname}_runLocal.log")
 
-    noticeLog ("GradleUtils: Stage 1.2: Stop the services on remote machine with remote call[REMOTE]")
+    noticeLog("GradleUtils: Execution in the Testbench\n"         ,fLogStatus)
+
+    noticeLog ("GradleUtils: Stage 1.2: Stop the services ${stopStartservices} on ",fLogStatus)
     logger.quiet ("GradleUtils: Stop Watchdog service")
 //	remoteService( vmIP, vmUser, vmPw, watchdogService , "stop")
     MultiRemoteService( vmIP, vmUser, vmPw, "${stopStartservices}" , "stop")
     logger.quiet ("GradleUtils: run the puppet agent")
 
-    String pp_timestamp= Calendar.getInstance().getTimeInMillis();
+
 
     // Replace the yaml content with the new build number and create the yaml file
     String certname="${icertname}"
-    noticeLog ("GradleUtils: Stage 1.3: Generate the puppet certificate [SLAVE]")
+
     logger.quiet ("GradleUtils: certname:${certname}")
 
-    noticeLog ("GradleUtils: Stage 2.1: Run puppet to prepare the environements in remote machine[REMOTE]")
+    noticeLog ("GradleUtils: Stage 2.1: Run puppet to prepare the environements ",fLogStatus)
     logger.quiet ("GradleUtils: run the initial set up on base environment with certname:${certname}")
 
     def String[] yamlFiles = "${yamlFiles}".split(',');
@@ -989,8 +1004,8 @@ task runLocalDeploy() << {
     errRtnErrorCode=runPuppetAgentCommand("$puppetServer", "$certname","$environment_base","$vmIP","$vmUser","$vmPw")
 
     logger.quiet ("GradleUtils: ErrorCode - Base - ${errRtnErrorCode}")
-    noticeLog ("GradleUtils: Stage 3.1: Run puppet to setup (uninstall, install or do both) the msi(s) [REMOTE]\n" +
-            "\t\tfor each defined yaml")
+    noticeLog ("GradleUtils: Stage 3.1: Run puppet to setup (uninstall, install or do both) the msi(s)\n" +
+            "\t\tfor each defined yaml",fLogStatus)
 
     for (String yamlSrcPath : yamlFiles){
         if ((errRtnErrorCode=="2") ||(errRtnErrorCode=="")) {
@@ -1000,7 +1015,7 @@ task runLocalDeploy() << {
         }
     }
 
-    noticeLog ("GradleUtils: Stage 4: If the Stage 3 is success, else go to stage 5")
+    noticeLog ("GradleUtils: Stage 4: If the Stage 3 is success, else go to stage 5",fLogStatus)
     if ((errRtnErrorCode!="2") &&(errRtnErrorCode!="")) {
         logger.quiet("\nGradleUtils: ****************************************************************************")
         logger.quiet("GradleUtils: *                      ERROR ERROR IN PUPPET STEPS - COLLECTING LOGS         *")
@@ -1010,21 +1025,21 @@ task runLocalDeploy() << {
             //Move to this to have the puppet log capture
             if ("${deployEarFile}".toBoolean()){
 
-                noticeLog ("GradleUtils: Stage 4.1 - Run deploy the ear (if there is the need) with cscripts [REMOTE]")
+                noticeLog ("GradleUtils: Stage 4.1 - Run deploy the ear (if there is the need) with cscripts ",fLogStatus)
 
                 runDeployEar (vmIP, vmUser,  vmPw)
 
-                noticeLog ("GradleUtils: Stage 4.2 - Start the services on remote remote machine with remote call[REMOTE]")
+                noticeLog ("GradleUtils: Stage 4.2 - Start the ${wfoService} services ",fLogStatus)
 
                 remoteService (vmIP, vmUser,  vmPw, wfoService, "start")
             }
 
-            noticeLog ("GradleUtils: Stage 4.2 - Start the services on remote remote machine with remote call[REMOTE]")
+            noticeLog ("GradleUtils: Stage 4.2 - Start the services ${stopStartservices} on ",fLogStatus)
             //remoteService( vmIP, vmUser, vmPw, watchdogService , "start")
             MultiRemoteService( vmIP, vmUser, vmPw, "${stopStartservices}" , "start")
 
             //wait for the application ready
-            noticeLog ("GradleUtils: Stage 4.3 - Check and wait until the login page come up [SLAVE]")
+            noticeLog ("GradleUtils: Stage 4.3 - Check and wait until the login page come up ",fLogStatus)
             if ("${chkApp}".toBoolean())
                 waitAppReady "$vmIP"
         } catch (Exception e) {
@@ -1039,11 +1054,15 @@ task runLocalDeploy() << {
     //Run by the very end for gradle tasks:
     // - publish logs
 
-    noticeLog ("GradleUtils: Stage 5.1 - Collecting the logs from remote machine with puppet [REMOTE]")
+    noticeLog ("GradleUtils: Stage 5.1 - Collecting the logs",fLogStatus)
+
+    fLogStatus.text ="${errRtnErrorCode}\n" + fLogStatus.text
 
     runLogCollectionLocal( "$certname","$environment")
 
-    noticeLog ("GradleUtils: DONE!!!")
+
+    noticeLog ("GradleUtils: DONE!!!",fLogStatus)
+
 
 }
 
@@ -1075,14 +1094,26 @@ def generateGradleRemote(String strCertName){
 def runDeployFromTestBench (String iVmIP, String iUser, String iPw) {
     String sCmd
     // CommandLine to execute in the agent
-    sCmd = "runGradleLocalDeploy.bat"
+    sCmd = "C:\\GradleUtils\\runGradleLocalDeploy.bat"
 
+    //String rtnCode = runRemoteNonIteractive(sCmd, iVmIP,iUser,iPw)
     String rtnCode = runRemoteNonIteractive(sCmd, iVmIP,iUser,iPw)
 
     logger.quiet ("Run the gradle local: exitCode (${rtnCode})")
 
-    if (rtnCode!="" && rtnCode!="0" ) {
+    if (rtnCode!="" && rtnCode!="0" && Integer.parseInt("${rtnCode}")<10 ) {
         logger.quiet ("GradleUtils: Failed with: exitCode (${rtnCode})")
         throw new GradleException("GradleUtils: Failed to gradle in test bench exitCode (${rtnCode})")
     }
+}
+
+def String printRemoteLog(String certname){
+    String strRtn = ""
+    File fLog = new File("${projectDir}\\PPLogs\\productionLogs\\Logs\\${certname}_runLocal.log")
+    noticeLog(fLog.text)
+
+    new File("${projectDir}\\PPLogs\\productionLogs\\Logs\\${certname}_runLocal.log").withReader{
+        strRtn = it.readLine();
+    }
+
 }
