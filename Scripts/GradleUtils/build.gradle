@@ -928,6 +928,7 @@ task copyFilesPrepare << {
             exclude name: "**/Pstools/**"
             exclude name: "**/build/**"
             exclude name: "**/PPLogs/**"
+            exclude name: "**/dependencies_*.info"
         }
     }
 }
@@ -950,9 +951,16 @@ task runLocalDeployController(dependsOn: 'init') << {
     def String[] yamlFiles = "${yamlFiles}".split(',');
     yamlValidation (yamlFiles)
 
+    int yamlIndex = 0;
+    String yamlSuffix = "";
+
     for (String yamlSrcPath : yamlFiles){
         logger.quiet ("GradleUtils: run the setting for Yaml = ${yamlSrcPath}")
-        createYAML ("${currentVersion}", "${yamlSrcPath}", "${yamlDestPath}\\${certname}.yaml")
+
+        createYAML ("${currentVersion}", "${yamlSrcPath}", "${yamlDestPath}\\${certname}${yamlSuffix}.yaml")
+
+        yamlIndex ++;
+        yamlSuffix = "_${yamlIndex}"
     }
 
     //TODO: GEnerating the gradle file
@@ -1022,11 +1030,16 @@ task runLocalDeploy() << {
     noticeLog ("GradleUtils: Stage 3.1: Run puppet to setup (uninstall, install or do both) the msi(s)\n" +
             "\t\tfor each defined yaml",fLogStatus)
 
+    int yamlIndex = 0;
+    String yamlSuffix = "";
+
     for (String yamlSrcPath : yamlFiles){
         if ((errRtnErrorCode=="2") ||(errRtnErrorCode=="")) {
             logger.quiet ("GradleUtils: run the setting for Yaml = ${yamlSrcPath}")
-            errRtnErrorCode=runPuppetAgentCommand("$puppetServer", "$certname","$environment","$vmIP","$vmUser","$vmPw")
+            errRtnErrorCode=runPuppetAgentCommand("$puppetServer", "${certname}${yamlSuffix}","$environment","$vmIP","$vmUser","$vmPw")
             logger.quiet ("GradleUtils: ErrorCode - ${yamlSrcPath} - ${errRtnErrorCode}")
+            yamlIndex ++;
+            yamlSuffix = "_${yamlIndex}"
         }
     }
 
