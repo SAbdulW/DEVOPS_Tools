@@ -471,7 +471,7 @@ def loadPuppetLog (String certName, String env  ){
         }
 
         dependencies {
-            logConfig "com.verint.puppet.logs.${env}:${certName}:15.1.0.1@zip"
+            logConfig "com.verint.puppet.logs.${env}:${certName}:${currentVersion}@zip"
         }
 
         String unzipDirPath = "${projectDir}\\PPLogs"
