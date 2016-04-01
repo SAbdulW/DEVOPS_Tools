@@ -13,17 +13,26 @@ buildscript {
     dependencies {
         classpath 'com.verint.plugins:vebutu-plugin:latest.release'
         classpath 'org.yaml:snakeyaml:1.16-SNAPSHOT'
+        classpath 'com.github.sarxos:windows-registry-util:latest.release'
+        classpath(group: 'org.jfrog.buildinfo', name: 'build-info-extractor-gradle', version: '2.2.4')
     }
 }
 
 apply plugin: 'vebutu'
-
+apply plugin: 'artifactory'
+apply plugin: 'java'
 ext.supportedGradleVersion = '2.3'
 
 allprojects {
     apply plugin: 'idea'
-    group = groupID
+    group = "com.verint.puppet.logs.${environment}"
     version = currentVersion
+}
+// Only applicable when runLocalDeploy
+archivesBaseName = "${icertname}"
+def zipFile = file("$buildDir/pplog.zip")
+artifacts {
+    archives file: zipFile, name: "${archivesBaseName}", type: 'zip'
 }
 
 repositories {
@@ -454,7 +463,7 @@ def renameYAML (String destPathYAML) {
 
 def loadPuppetLog (String certName, String env  ){
 
-    String logZipURL="${artifactory_contextUrl}/devops/com/verint/puppet/logs/${env}/${certName}/15.1.0.1/${certName}-15.1.0.1.zip"
+    String logZipURL="${artifactory_contextUrl}/devops/com/verint/puppet/logs/${env}/${certName}/${currentVersion}/${certName}-${currentVersion}.zip"
     boolean rtnValue = true
     if (waitArtifactReady(logZipURL)) {
         configurations {
@@ -1062,17 +1071,18 @@ task runLocalDeploy() << {
 
     fLogStatus.text ="${errRtnErrorCode}\n" + fLogStatus.text
 
-    ant.copy (file: "${projectDir}\\${icertname}_runLocal.log", tofile: "C:\\Impact360\\WFOPuppet\\logs\\${icertname}_runLocal.log", verbose: true)
-    ant.copy (file: "${projectDir}\\gradlelogDeploy.log", tofile: "C:\\Impact360\\WFOPuppet\\logs\\gradlelogDeploy.log", verbose: true)
+//    ant.copy (file: "${projectDir}\\${icertname}_runLocal.log", tofile: "C:\\Impact360\\WFOPuppet\\logs\\${icertname}_runLocal.log", verbose: true)
+//    ant.copy (file: "${projectDir}\\gradlelogDeploy.log", tofile: "C:\\Impact360\\WFOPuppet\\logs\\gradlelogDeploy.log", verbose: true)
+//
+//    //Check the buildear.log
+//    File fBuildear = new File ("C:\\Impact360\\Software\\ProductionServer\\weblogic\\Impact360\\buildear.log")
+//    if (fBuildear.exists()){
+//        ant.copy (file: "C:\\Impact360\\Software\\ProductionServer\\weblogic\\Impact360\\buildear.log", tofile: "C:\\Impact360\\WFOPuppet\\logs\\buildear.log", verbose: true)
+//    }
 
-    //Check the buildear.log
-    File fBuildear = new File ("C:\\Impact360\\Software\\ProductionServer\\weblogic\\Impact360\\buildear.log")
-    if (fBuildear.exists()){
-        ant.copy (file: "C:\\Impact360\\Software\\ProductionServer\\weblogic\\Impact360\\buildear.log", tofile: "C:\\Impact360\\WFOPuppet\\logs\\buildear.log", verbose: true)
-    }
+    //runLogCollectionLocal( "$certname","$environment")
 
-    runLogCollectionLocal( "$certname","$environment")
-
+    //tasks.artifactoryPublish.execute();
 
     noticeLog ("GradleUtils: DONE!!!",fLogStatus)
 
@@ -1100,7 +1110,7 @@ def generateGradleRemote(String strCertName){
     //gradlew.bat -i --refresh-dependencies runPA -PcurrentVersion=15.1.0.10049 -PMasterBuildVersion=15.1.0.10049 -PvmIP=10.156.16.202 -PyamlFiles=puppet.yaml -PdeployEarFile=true -PchkApp=true -PwfoService=WFO_ProductionDomain_ProductionServer "-PstopStartservices=WatchDog,MinerTomcat,RecorderTomcat,Recorder Alarm Service" -PfillVersionRange=false
 
     String sCmd = "cd /D C:\\GradleUtils\n" +
-            "cmd /c gradlew.bat -i runLocalDeploy -PcurrentVersion=${currentVersion} -PMasterBuildVersion=${MasterBuildVersion} -PvmIP=${vmIP} -PyamlFiles=${yamlFiles} -PdeployEarFile=${deployEarFile} -PchkApp=${chkApp} -PwfoService=${wfoService} \"-PstopStartservices=${stopStartservices}\" -PfillVersionRange=false -PremoteCmd=localfile -Picertname=${strCertName} > C:\\GradleUtils\\gradlelogDeploy.log"
+            "cmd /c gradlew.bat -i runLocalDeploy aP -PcurrentVersion=${currentVersion} -PMasterBuildVersion=${MasterBuildVersion} -PvmIP=${vmIP} -PyamlFiles=${yamlFiles} -PdeployEarFile=${deployEarFile} -PchkApp=${chkApp} -PwfoService=${wfoService} \"-PstopStartservices=${stopStartservices}\" -PfillVersionRange=false -PremoteCmd=localfile -Picertname=${strCertName} > C:\\GradleUtils\\gradlelogDeploy.log"
 
     File cmdFile = new File ("${projectDir}\\runGradleLocalDeploy.bat")
     noticeLog ("GradleUtils: GRadle command to be run:\n ${sCmd}")
@@ -1135,3 +1145,151 @@ def String printRemoteLog(String certname){
     }
 
 }
+
+
+///***         MOVING THE LOG HANDLE HERE FROM PUPPET CLINET GRADLE
+task getInstalledVersions() << {
+    logger.quiet ("GradlePuppetClient: getting the installed versions from the certname ${certname}")
+    readRegistries()
+    //loadYAML()
+}
+
+import com.github.sarxos.winreg.HKey;
+import com.github.sarxos.winreg.RegistryException;
+import com.github.sarxos.winreg.WindowsRegistry;
+// List of function that we can use
+
+def readRegistries( ){
+    def parsedXmlObj =loadXML ("${srcLogInstallXML}")
+    WindowsRegistry reg = WindowsRegistry.getInstance();
+    //String tree = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
+    //String value = reg.readString(HKey.HKLM, tree, "ProductName");
+    String branch = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
+    List<String> keys = reg.readStringSubKeys(HKey.HKLM, branch);
+    def registryDiffFile = new File ("$srcLogDir\\ServerVersionInstalledMismatch.log")
+    registryDiffFile.write "List of mismatch of registry and ServerVersionInformation.xml\n"
+
+    def fullRegistryFile = new File ("$srcLogDir\\registryExport.json")
+    String fullRegistryContent = ""
+    String jsonItemHeader=""
+    for (String key : keys) {
+        String valueDisplayName = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayName");
+        String valueDisplayVersion = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayVersion");
+        String valuePublisher = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "Publisher");
+
+        def component = getXMLComponent(parsedXmlObj,key)
+
+        if (component !=null){
+            if ((component.@name != valueDisplayName) || (component.@version != valueDisplayVersion)){
+                registryDiffFile << "Component id=${key} ServerVeversion (${component.@name}, ${component.@version}) != Registry (${valueDisplayName},${valueDisplayVersion})\n"
+                logger.quiet("Component id=${key} ServerVeversion (${component.@name}, ${component.@version}) != Registry (${valueDisplayName},${valueDisplayVersion})")
+            }
+        }else {
+            if (valuePublisher!=null && valuePublisher.contains("Impact")){
+                registryDiffFile << "**************Not exist id=${key} Registry (${valueDisplayName},${valueDisplayVersion}) Publisher: ${valuePublisher}\n"
+                logger.quiet("**************Not exist id=${key} Registry (${valueDisplayName},${valueDisplayVersion}) Publisher: ${valuePublisher}")
+            }
+        }
+
+        if (fullRegistryContent=="") {
+            fullRegistryContent ="  \"${key}\": {\n" +
+                    "    \"ComponentName\": \"${valueDisplayName}\",\n" +
+                    "    \"InstalledVersion\": \"${valueDisplayVersion}\",\n" +
+                    "    \"Key\": \"${key}\",\n" +
+                    "    \"Publisher\": \"${valuePublisher}\"\n" +
+                    "  }"
+        }else{
+            fullRegistryContent =fullRegistryContent +",\n  \"${key}\": {\n" +
+                    "    \"ComponentName\": \"${valueDisplayName}\",\n" +
+                    "    \"InstalledVersion\": \"${valueDisplayVersion}\",\n" +
+                    "    \"Key\": \"${key}\",\n" +
+                    "    \"Publisher\": \"${valuePublisher}\"\n" +
+                    "  }"
+        }
+
+
+    }
+
+    fullRegistryFile.write "{\n${fullRegistryContent}\n}"
+
+}
+
+def loadXML(String xmlSrcPath){
+    def parsedXml = (new XmlParser()).parse(xmlSrcPath)
+    return parsedXml
+}
+
+def getXMLComponent(Object parsedXML, String id){
+    def rtnObj = null
+    def foundIt = false
+    parsedXML.Components.Component.each { component ->
+        if (!foundIt &&(component.@id=="${id}") ) {
+            rtnObj=component
+            foundIt =true
+        }
+    }
+    return rtnObj
+}
+
+
+task zipLogs() <<{
+    String srcDir = "$srcLogDir"
+    logger.quiet("Zipping the log from: ${srcDir} from puppet client")
+    ant.copy (todir:"${srcDir}", file:"${srcLogInstallXML}")
+    //Copy the production logs
+    copyProductionLogs "${impact360Dir}\\Data","${srcDir}\\productionLogs"
+
+    ant.copy (file: "${projectDir}\\${icertname}_runLocal.log", tofile: "${srcLogDir}\\${icertname}_runLocal.log", verbose: true)
+    ant.copy (file: "${projectDir}\\gradlelogDeploy.log", tofile: "${srcLogDir}\\gradlelogDeploy.log", verbose: true)
+
+    //Check the buildear.log
+    File fBuildear = new File ("C:\\Impact360\\Software\\ProductionServer\\weblogic\\Impact360\\buildear.log")
+    if (fBuildear.exists()){
+        ant.copy (file: "C:\\Impact360\\Software\\ProductionServer\\weblogic\\Impact360\\buildear.log", tofile: "${srcLogDir}\\buildear.log", verbose: true)
+    }
+
+    ant.zip(destfile: "$buildDir/pplog.zip") {
+        fileset(dir: "${srcDir}") {
+            //include(name: '**.xml')
+            exclude(name: ".gradle\\**\\*")
+            exclude(name: "build\\**\\*")
+            exclude(name: "**\\*.zip")
+        }
+
+    }
+}
+
+def copyProductionLogs (String srcDir, String dstDir){
+    // srcDir: C:\\Impact360\\Data
+    ant.copy (todir: "${dstDir}" ){
+        fileset(dir: "${srcDir}") {
+            include(name: "Logs\\**\\*.log")
+        }
+    }
+}
+
+artifactoryPublish.dependsOn zipLogs
+
+
+artifactory {
+    publish {
+        contextUrl = "${artifactory_contextUrl}"	// The base Artifactory URL if not overridden by the publisher/resolver
+        repository {
+            repoKey = 'devops'
+            username = "${artifactory_user}"
+            password = "${artifactory_password}"
+            maven = true
+        }
+    }
+    resolve {
+        contextUrl = "${artifactory_contextUrl}"	// The base Artifactory URL if not overridden by the publisher/resolver
+        repository {
+            repoKey = 'repo'
+            username = "${artifactory_user}"
+            password = "${artifactory_password}"
+            maven = true
+        }
+    }
+}
+
+//*************
