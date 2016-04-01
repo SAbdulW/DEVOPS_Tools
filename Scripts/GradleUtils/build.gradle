@@ -926,6 +926,8 @@ task copyFilesPrepare << {
             exclude name: "**/.git/**"
             exclude name: "**/PAExec/**"
             exclude name: "**/Pstools/**"
+            exclude name: "**/build/**"
+            exclude name: "**/PPLogs/**"
         }
     }
 }
@@ -1148,11 +1150,7 @@ def String printRemoteLog(String certname){
 
 
 ///***         MOVING THE LOG HANDLE HERE FROM PUPPET CLINET GRADLE
-task getInstalledVersions() << {
-    logger.quiet ("GradlePuppetClient: getting the installed versions from the certname ${certname}")
-    readRegistries()
-    //loadYAML()
-}
+
 
 import com.github.sarxos.winreg.HKey;
 import com.github.sarxos.winreg.RegistryException;
@@ -1247,6 +1245,9 @@ task zipLogs() <<{
     if (fBuildear.exists()){
         ant.copy (file: "C:\\Impact360\\Software\\ProductionServer\\weblogic\\Impact360\\buildear.log", tofile: "${srcLogDir}\\buildear.log", verbose: true)
     }
+    //logger.quiet ("GradlePuppetClient: getting the installed versions from the certname ${certname}")
+    logger.quiet ("Zipping: gett and export the registry ")
+    readRegistries()
 
     ant.zip(destfile: "$buildDir/pplog.zip") {
         fileset(dir: "${srcDir}") {
