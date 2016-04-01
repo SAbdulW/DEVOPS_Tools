@@ -1065,6 +1065,11 @@ task runLocalDeploy() << {
     ant.copy (file: "${projectDir}\\${icertname}_runLocal.log", tofile: "C:\\Impact360\\WFOPuppet\\logs\\${icertname}_runLocal.log", verbose: true)
     ant.copy (file: "${projectDir}\\gradlelogDeploy.log", tofile: "C:\\Impact360\\WFOPuppet\\logs\\gradlelogDeploy.log", verbose: true)
 
+    //Check the buildear.log
+    File fBuildear = new File ("C:\\Impact360\\Software\\ProductionServer\\weblogic\\Impact360\\buildear.log")
+    if (fBuildear.exists()){
+        ant.copy (file: "C:\\Impact360\\Software\\ProductionServer\\weblogic\\Impact360\\buildear.log", tofile: "C:\\Impact360\\WFOPuppet\\logs\\buildear.log", verbose: true)
+    }
 
     runLogCollectionLocal( "$certname","$environment")
 
