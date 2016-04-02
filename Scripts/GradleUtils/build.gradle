@@ -466,19 +466,24 @@ def loadPuppetLog (String certName, String env  ){
     String logZipURL="${artifactory_contextUrl}/devops/com/verint/puppet/logs/${env}/${certName}/${currentVersion}/${certName}-${currentVersion}.zip"
     boolean rtnValue = true
     if (waitArtifactReady(logZipURL)) {
-        configurations {
-            logConfig
-        }
 
-        dependencies {
-            logConfig "com.verint.puppet.logs.${env}:${certName}:${currentVersion}@zip"
-        }
+//        configurations {
+//            logConfig
+//        }
+//
+//        dependencies {
+//            logConfig "com.verint.puppet.logs.${env}:${certName}:${currentVersion}@zip"
+//        }
 
         String unzipDirPath = "${projectDir}\\PPLogs"
         def unzipDir = new File("${projectDir}\\PPLogs")
         unzipDir.mkdirs()
         //logger.quiet ("${unzipDirPath}")
-        ant.unzip(src: project.configurations.logConfig.find {it.name.startsWith("${certName}-")}, dest: "${unzipDirPath}")
+        ant.get(src: "${logZipURL}", dest: "${projectDir}\\${certName}.zip", skipexisting: 'true')
+        ant.unzip(src: "${projectDir}\\${certName}.zip", dest: "${unzipDirPath}")
+
+
+       // ant.unzip(src: project.configurations.logConfig.find {it.name.startsWith("${certName}-")}, dest: "${unzipDirPath}")
 
         logger.quiet("\nGradleUtils: ****************************************************************************")
         logger.quiet("GradleUtils: *                      LINKS TO LOG IN ARTIFACTORY                         *")
