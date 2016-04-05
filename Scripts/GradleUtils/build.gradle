@@ -855,7 +855,7 @@ def waitArtifactReady (String aURL) {
     logger.quiet ("-----Waiting for aURL available ${aURL} : -----")
     boolean rtnSuccess = true
     //waits up to 10 minutes (and checks every 500 milliseconds) for a web server on vmIP to serve up the specified URL.
-    ant.waitfor (maxwait:"60", maxwaitunit:"minute", checkevery:"10000", timeoutproperty:"web.timeout") {
+    ant.waitfor (maxwait:"100", maxwaitunit:"minute", checkevery:"10000", timeoutproperty:"web.timeout") {
         http (url:"${aURL}")
     }
     try {
@@ -985,7 +985,7 @@ task runLocalDeployController(dependsOn: 'init') << {
 //    if ("${chkApp}".toBoolean())
 //        waitAppReady "$vmIP"
 
-    noticeLog ("GradleUtils: Stage 5.2 - Extract and fill the installed version to : PPLogs\\installedVersions.json")
+    noticeLog ("GradleUtils: Stage 5.2 - Waiting for the completion of remote execution then extract and fill the installed version to : PPLogs\\installedVersions.json")
 
     if (loadPuppetLog( "$certname","$environment")){
         String errRtnErrorCode = printRemoteLog ("$certname")
@@ -993,7 +993,7 @@ task runLocalDeployController(dependsOn: 'init') << {
         extractInstalledVersion(yamlFiles, new File("${projectDir}\\PPLogs\\registryExport.json"))
 
     }else{
-        throw new GradleException ("For some reason, there is no log, couldn't know wstatus exuection remotely. Build failed")
+        throw new GradleException ("Job runs too long. For some reasons, there is no log, couldn't know status execution remotely. Build failed")
     }
 
     //Now publish the error
