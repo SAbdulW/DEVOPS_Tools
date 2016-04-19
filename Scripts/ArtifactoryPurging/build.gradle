@@ -181,6 +181,7 @@ def List getArtifactsOlderThanXDays(String repo, String pathMatch, int x){
                     "        ,\"created\":{\"\$lt\":\"${selectedDateString}\"}" +
                     "        ,\"updated\":{\"\$lt\":\"${selectedDateString}\"}" +
                     "        ,\"path\":{\"\$match\":\"${pathMatch}*\"}" +
+                    "        ,\"path\":{\"\$nmatch\":\".index\"}" +
                     "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" +
                     "    }"  +
                     ").include(\"name\", \"path\")"
