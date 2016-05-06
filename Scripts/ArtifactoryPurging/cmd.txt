@@ -21,14 +21,14 @@ gradlew.bat artifactoryPT -PcontextURL=http://atlartifactory1:8081/artifactory
 gradlew.bat artifactoryPT -PcontextURL=http://atlartifactory2:8081/artifactory
 
 
-
-
 -- DEV
 gradlew.bat artifactoryPT -PcontextURL=http://atlartifactory:8081/artifactory -i -PpurgingRepos=cf-ci-release -PpurgingDateToKeeps=30 -PpurgingMinimumToKeep=5 -PpurgingPathMatch=com/verint/cf
 
 gradlew.bat artifactorySearchingTask -PcontextURL=http://atlartifactory:8081/artifactory -i -PpurgingRepos=cf-ci-release -PpurgingDateToKeeps=0 -PpurgingMinimumToKeep=0 -PpurgingPathMatch=com/verint/cf
-gradlew.bat artifactoryPurgingTask -PcontextURL=http://atlartifactory:8081/artifactory -i -PpurgingRepos=cf-ci-release -PpurgingDateToKeeps=0 -PpurgingMinimumToKeep=0 -PpurgingPathMatch=com/verint/cf
+gradlew.bat artifactoryPurgingTask -PcontextURL=http://atlartifactory:8081/artifactory -i -PpurgingRepos=automation-release -PpurgingDateToKeeps=7 -PpurgingMinimumToKeep=2 -PpurgingPathMatch=com/verint/automation/actions -PviewOnly=true
 
 
-gradlew.bat artifactoryPurgingTaskForNpmRepo -PcontextURL=http://atlartifactory:8081/artifactory -i -PviewOnly=false
-gradlew.bat artifactoryPurgingTaskForNpmRepo -PcontextURL=http://atlartifactory-backup:8081/artifactory -i -PviewOnly=false
+gradlew.bat artifactoryPurgingTaskForNpmRepo -PcontextURL=http://atlartifactory:8081/artifactory -i -PviewOnly=true
+gradlew.bat artifactoryPurgingTaskForNpmRepo -PcontextURL=http://atlartifactory3:8081/artifactory -i -PviewOnly=true
+
+C:\work\DEVOPS_Tools\Scripts\ArtifactoryPurging>gradlew.bat artifactoryPurgingTask -PcontextURL=http://atlartifactory:8081/artifactory -i -PpurgingRepos=automation-release -PpurgingDateToKeeps=1 -PpurgingMinimumToKeep=2 -PpurgingPathMatch=com/verint/automation/scripts -PviewOnly=false
