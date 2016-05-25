@@ -58,7 +58,7 @@ dependencies {
 // prepare environment, getting the tools
 task init() << {
 
-    logger.quiet ("GradleUtils: Version updated by Nov 25 2015- 1.05")
+    logger.quiet ("GradleUtils: Version updated by May 25 2016- 2.01")
 
     ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("PSTools-")}, dest: "${projectDir}\\Pstools\\")
     ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("paexec")}, dest: "${projectDir}\\PAExec\\")
@@ -304,7 +304,7 @@ def String generateRemoteCmdPsExecFile(String sPrefix,String sCommand, String iV
 
     String strFileName= batchFile.getName()
     String strShortName= strFileName.replaceFirst(~/\.[^\.]+$/, '')
-    String strContent = sCommand + ">>C:\\Impact360\\Data\\Logs\\${sPrefix}_${strShortName}.log"
+    String strContent = sCommand + " 1>> C:\\Impact360\\Data\\Logs\\${sPrefix}_${strShortName}.log 2>&1"
     batchFile.write(strContent)
 
     logger.quiet ("GradleUtils: Batch file content to execute remotely:  (${strFileName}) \n ${strContent}")
@@ -322,7 +322,7 @@ def String generateLocalCmdFile(String sPrefix,String sCommand, String iVmIP, St
 
     String strFileName= batchFile.getName()
     String strShortName= strFileName.replaceFirst(~/\.[^\.]+$/, '')
-    sCommand =  sCommand + ">>C:\\Impact360\\Data\\Logs\\${sPrefix}_${strShortName}.log"
+    sCommand =  sCommand + " 1>> C:\\Impact360\\Data\\Logs\\${sPrefix}_${strShortName}.log 2>&1"
 
     return sCommand;
 
@@ -920,7 +920,7 @@ task copyFilesPrepare << {
 //    File gradleLog = new File("gradlelogDeploy.log")
 //    gradleLog.text = "*****GRADLE DEPLOY LOG *************"
     // Now copy everything to remoret
-    ant.exec(executable: "cmd", failonerror:"true") {
+    ant.exec(executable: "cmd", failonerror:"false") {
         arg line: '/c'
         arg line: "net use \\\\${vmIP}\\C\$ /user:${vmUser} ${vmPw}"
     }
@@ -1131,7 +1131,7 @@ def generateGradleRemote(String strCertName){
     //gradlew.bat -i --refresh-dependencies runPA -PcurrentVersion=15.1.0.10049 -PMasterBuildVersion=15.1.0.10049 -PvmIP=10.156.16.202 -PyamlFiles=puppet.yaml -PdeployEarFile=true -PchkApp=true -PwfoService=WFO_ProductionDomain_ProductionServer "-PstopStartservices=WatchDog,MinerTomcat,RecorderTomcat,Recorder Alarm Service" -PfillVersionRange=false
 
     String sCmd = "cd /D C:\\GradleUtils\n" +
-            "cmd /c gradlew.bat -i runLocalDeploy aP -PcurrentVersion=${currentVersion} -PMasterBuildVersion=${MasterBuildVersion} -PvmIP=${vmIP} -PyamlFiles=${yamlFiles} -PdeployEarFile=${deployEarFile} -PchkApp=${chkApp} -PwfoService=${wfoService} \"-PstopStartservices=${stopStartservices}\" -PfillVersionRange=false -PremoteCmd=localfile -Picertname=${strCertName} > C:\\GradleUtils\\gradlelogDeploy.log"
+            "cmd /c gradlew.bat -i runLocalDeploy aP -PcurrentVersion=${currentVersion} -PMasterBuildVersion=${MasterBuildVersion} -PvmIP=${vmIP} -PyamlFiles=${yamlFiles} -PdeployEarFile=${deployEarFile} -PchkApp=${chkApp} -PwfoService=${wfoService} \"-PstopStartservices=${stopStartservices}\" -PfillVersionRange=false -PremoteCmd=localfile -Picertname=${strCertName} 1> C:\\GradleUtils\\gradlelogDeploy.log 2>&1"
 
     File cmdFile = new File ("${projectDir}\\runGradleLocalDeploy.bat")
     noticeLog ("GradleUtils: GRadle command to be run:\n ${sCmd}")
