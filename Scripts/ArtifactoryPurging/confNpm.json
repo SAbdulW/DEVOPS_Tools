@@ -1,0 +1,25 @@
+{
+"conf" : [
+  {
+    "repoName" : "npm-local",
+    "daysToKeep" : 7,
+    "minimumToKeep" : 5,
+    "pathMatch" : "*",
+    "pathExclude" : ""
+  },
+  {
+    "repoName" : "npm-local-temp",
+    "daysToKeep" : 7,
+    "minimumToKeep" : 5,
+    "pathMatch" : "*",
+    "pathExclude" : ""
+  },
+  {
+    "repoName" : "atlartifactory-npm-local-cache",
+    "daysToKeep" : 7,
+    "minimumToKeep" : 5,
+    "pathMatch" : "*",
+    "pathExclude" : ""
+  }
+]
+}
