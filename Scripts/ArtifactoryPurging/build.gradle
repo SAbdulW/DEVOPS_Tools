@@ -8,16 +8,86 @@ allprojects {
     version = currentVersion
 }
 
-task artifactoryPurgingTask() <<{
+task purgeTask() <<{
+    String conf = new File('./conf.json').text
     logger.quiet("ArtifactoryPurging: ****************************************************************************")
-    logger.quiet("purgingRepos:             ${purgingRepos}")
-    logger.quiet("purgingDateToKeeps:       ${purgingDateToKeeps}")
-    logger.quiet("purgingMinimumToKeep:     ${purgingMinimumToKeep}")
-    logger.quiet("purgingPathMatch:         ${purgingPathMatch}")
-    logger.quiet("viewOnly:                 ${viewOnly}")
+    logger.quiet("viewOnly: ${viewOnly}")
+    logger.quiet("configuration:\r\n${conf}")
     logger.quiet("ArtifactoryPurging: ****************************************************************************")
 
-    artifactoryPurging ("$purgingRepos", "$purgingDateToKeeps", "$purgingMinimumToKeep", "$purgingPathMatch")
+    purge(conf)
+}
+
+def purge (String conf){
+    def obj = new JsonSlurper().parseText(conf)
+    List repoConfList = obj.conf
+
+    repoConfList.each{repoConf ->
+        logger.quiet("\r\n START PROCESSING -> repo: ${repoConf.repoName} - days to keep: ${repoConf.daysToKeep} - minimum to keep: ${repoConf.minimumToKeep} - path match: ${repoConf.pathMatch} - path exclude: ${repoConf.pathExclude}")
+
+        String repoKey = repoConf.repoName
+        int dayToKeep = repoConf.daysToKeep
+        int minimumToKeep = repoConf.minimumToKeep
+        String pathMatch = repoConf.pathMatch
+        String pathExclude = repoConf.pathExclude
+        logger.quiet("Processing repo [$repoKey] with [$dayToKeep] days to keep and minimum of [$minimumToKeep] versions of any artifact to keep and only purge partifacts have path match [$pathMatch]\r\n")
+
+        File fFullL = new File ("$projectDir/${repoKey}_FullList.log")
+        File fDelete = new File ("$projectDir/${repoKey}_DeleteList.log")
+        File fTop = new File ("$projectDir/${repoKey}_TopList.log")
+        File fDoNotPurge = new File ("$projectDir/${repoKey}_DoNotPurgeList.log")
+        fFullL.setText("ALL ARTIFACTS OLDER THAN $dayToKeep DAYS\r\n")
+        fTop.setText("THESE ARTIFACTS ARE THE TOP LATEST TO KEEP FROM PURGING\r\n")
+        fDoNotPurge.setText("THESE ARTIFACTS HAVE 'DO NOT PURGE' PROPERTY SET AND HAVE NOT BEEN PURGED\r\n")
+        if ("${viewOnly}".toBoolean()) {
+            fDelete.setText("THIS IS JUST A DRY RUN. NO REAL PURGING HAPPENING\r\n")
+        }
+        else{
+            fDelete.setText("THESE ARTIFACTS HAVE BEEN PURGED\r\n")
+        }
+
+        // get list of top latest versions of an artifact to keep
+        List topLatestPathList = getXNumberLatestArtifactsPerVersion("$minimumToKeep".toInteger(), repoKey)
+        topLatestPathList.each{ itemPath ->
+            fTop << itemPath + "\r\n"
+        }
+
+        // get list of all artifacts marked as do not purge
+        List doNotPurgeList = getArtifactsTaggedAsDoNotPurge(repoKey, pathMatch)
+        List doNotPurgePathList = []
+        doNotPurgeList.each { item ->
+            doNotPurgePathList.add(item.path)
+            fDoNotPurge << item.path + "\r\n"
+        }
+
+        // get all artifacts OLDER than configured days
+        List candidateList = getArtifactsOlderThanXDays (repoKey, pathMatch, dayToKeep)
+        candidateList.each { item ->
+            fFullL << item.path + "\r\n"
+
+            // check if it should really be purged
+            logger.quiet("Checking artifact before purge: $item.path")
+            if(doNotPurgePathList.any{it == item.path}){
+                logger.quiet("    > It is in DO NOT PURGE list - let it go")
+            }
+            else if (topLatestPathList.any{it == item.path}){
+                logger.quiet("    > It is in TOP MINIMUM TO KEEP list - let it go")
+            }
+            else if (isMatchPurgingExcluded(pathExclude, item.path)){
+                logger.quiet("    > It is in EXCLUDED PATH list - let it go")
+            }
+            else if ("${viewOnly}".toBoolean()) {
+                logger.quiet("    > DRY-RUN DELETING: $item.path")
+                fDelete << item.path + "\r\n"
+            }
+            else{
+                logger.quiet("    > DELETING: $item.path")
+                deleteAnArtifactVersion(item, repoKey, fDelete)
+            }
+        }
+
+        logger.quiet("DONE PROCESSING -> repo: ${repoConf.repoName}\r\n")
+    }
 }
 
 task artifactoryPurgingTaskForNpmRepo() <<{
@@ -90,82 +160,6 @@ def artifactoryPurgingForNpmRepo (String repos, String dayToKeeps, String minimu
     }
 }
 
-def artifactoryPurging (String repos, String dayToKeeps, String minimumToKeeps, String pathMatches){
-    def reposList = repos.split(',')
-    def dayToKeepsList = dayToKeeps.split(',')
-    def minimumToKeepsList = minimumToKeeps.split(',')
-    def pathMatchesList = pathMatches.split(',')
-
-    if ((reposList.length != dayToKeepsList.length)||(reposList.length !=pathMatchesList.length)){
-        logger.quiet ("### ERROR: Wrong configuration, mismatch two lists of repos")
-    }
-    else{
-        for (int i=0; i< reposList.length; i++){
-            String repoKey = reposList[i]
-            String dayToKeep = dayToKeepsList[i]
-            String minimumToKeep = minimumToKeepsList[i]
-            String pathMatch = pathMatchesList[i]
-            logger.quiet("Processing repo [$repoKey] with [$dayToKeep] days to keep and minimum of [$minimumToKeep] versions of any artifact to keep and only purge partifacts have path match [$pathMatch]\r\n")
-
-            File fFullL = new File ("$projectDir/${repoKey}_FullList.log")
-            File fDelete = new File ("$projectDir/${repoKey}_DeleteList.log")
-            File fTop = new File ("$projectDir/${repoKey}_TopList.log")
-            File fDoNotPurge = new File ("$projectDir/${repoKey}_DoNotPurgeList.log")
-            fFullL.setText("ALL ARTIFACTS OLDER THAN $dayToKeep DAYS\r\n")
-            fTop.setText("THESE ARTIFACTS ARE THE TOP LATEST TO KEEP FROM PURGING\r\n")
-            fDoNotPurge.setText("THESE ARTIFACTS HAVE 'DO NOT PURGE' PROPERTY SET AND HAVE NOT BEEN PURGED\r\n")
-            if ("${viewOnly}".toBoolean()) {
-                fDelete.setText("THIS IS JUST A DRY RUN. NO REAL PURGING HAPPENING\r\n")
-            }
-            else{
-                fDelete.setText("THESE ARTIFACTS HAVE BEEN PURGED\r\n")
-            }
-
-            // get list of top latest versions of an artifact to keep
-            List topLatestPathList = getXNumberLatestArtifactsPerVersion("$minimumToKeep".toInteger(), repoKey)
-            topLatestPathList.each{ itemPath ->
-                fTop << itemPath + "\r\n"
-            }
-
-
-            // get list of all artifacts marked as do not purge
-            List doNotPurgeList = getArtifactsTaggedAsDoNotPurge(repoKey, pathMatch)
-            List doNotPurgePathList = []
-            doNotPurgeList.each { item ->
-                doNotPurgePathList.add(item.path)
-                fDoNotPurge << item.path + "\r\n"
-            }
-
-            // get all artifacts OLDER than configured days
-            List candidateList = getArtifactsOlderThanXDays (repoKey, pathMatch, dayToKeep.toInteger())
-            candidateList.each { item ->
-                fFullL << item.path + "\r\n"
-
-                // check if it should really be purged
-                logger.quiet("Checking artifact before purge: $item.path")
-                if(doNotPurgePathList.any{it == item.path}){
-                    logger.quiet("    > It is in DO NOT PURGE list - let it go")
-                }
-                else if (topLatestPathList.any{it == item.path}){
-                    logger.quiet("    > It is in TOP MINIMUM TO KEEP list - let it go")
-                }
-                else if (isMatchPurgingExcluded("${purgingExcluded}", item.path)){
-                    logger.quiet("    > It is in EXCLUDED PATH list - let it go")
-                }
-                else if ("${viewOnly}".toBoolean()) {
-                    logger.quiet("    > DRY-RUN DELETING: $item.path")
-                    fDelete << item.path + "\r\n"
-                }
-                else{
-                    logger.quiet("    > DELETING: $item.path")
-                    deleteAnArtifactVersion(item, repoKey, fDelete)
-                }
-            }
-
-
-        }
-    }
-}
 
 def List getArtifactsOlderThanXDays(String repo, String pathMatch, int x){
     def selectedDate = new Date() - x
@@ -486,13 +480,6 @@ def putToTheMap (Object mapLastItems, String itemPath, String repoKey ){
 
     int lastIndex = itemPath.lastIndexOf("/")
     String itemPathRoot = itemPath.substring(0,lastIndex)
-
-    /*
-    if (repoKey=="devops"){
-        lastIndex = itemPathRoot.lastIndexOf("/")
-        itemPathRoot = itemPathRoot.substring(0,lastIndex)
-    }
-    */
 
     //logger.quiet ("$itemPathRoot:$itemPath")
     List mapLastItem = []
