@@ -1,186 +1,194 @@
 {
-"conf" : [
-  {
-    "repoName" : "devops",
-    "daysToKeep" : 2,
-    "minimumToKeep" : 1,
-    "pathMatch" : "com/verint/puppet/logs",
-    "pathExclude" : ""
-  },
-  {
-    "repoName" : "ci-snapshot",
-    "daysToKeep" : 4,
-    "minimumToKeep" : 2,
-    "pathMatch" : "com/verint",
-    "pathExclude" : "15.1.0."
-  },
-  {
-    "repoName" : "ci-release",
-    "daysToKeep" : 4,
-    "minimumToKeep" : 4,
-    "pathMatch" : "com/verint",
-    "pathExclude" : "15.1.0."
-  },
-  {
-    "repoName" : "cd-passed-pl-archive",
-    "daysToKeep" : 0,
-    "minimumToKeep" : 4,
-    "pathMatch" : "com/verint",
-    "pathExclude" : ""
-  },
-  {
-    "repoName" : "em-ci-release",
-    "daysToKeep" : 5,
-    "minimumToKeep" : 5,
-    "pathMatch" : "com/verint",
-    "pathExclude" : ""
-  },
-  {
-    "repoName" : "em-ci-snapshot",
-    "daysToKeep" : 5,
-    "minimumToKeep" : 2,
-    "pathMatch" : "com/verint",
-    "pathExclude" : ""
-  },
-  {
-    "repoName" : "cf-ci-release",
-    "daysToKeep" : 5,
-    "minimumToKeep" : 2,
-    "pathMatch" : "com/verint",
-    "pathExclude" : ""
-  },
-  {
-    "repoName" : "cf-ci-snapshot",
-    "daysToKeep" : 5,
-    "minimumToKeep" : 2,
-    "pathMatch" : "com/verint",
-    "pathExclude" : ""
-  },
-  {
-    "repoName" : "foundation-ci-release",
-    "daysToKeep" : 5,
-    "minimumToKeep" : 5,
-    "pathMatch" : "com/verint",
-    "pathExclude" : "15.1.0."
-  },
-  {
-    "repoName" : "foundation-ci-snapshot",
-    "daysToKeep" : 5,
-    "minimumToKeep" : 2,
-    "pathMatch" : "com/verint",
-    "pathExclude" : "15.1.0."
-  },
-  {
-    "repoName" : "wfm-ci-release",
-    "daysToKeep" : 5,
-    "minimumToKeep" : 5,
-    "pathMatch" : "com/verint",
-    "pathExclude" : "15.1.0."
-  },
-  {
-    "repoName" : "wfm-ci-snapshot",
-    "daysToKeep" : 5,
-    "minimumToKeep" : 2,
-    "pathMatch" : "com/verint",
-    "pathExclude" : "15.1.0."
-  },
-  {
-    "repoName" : "v11-2-hfr1",
-    "daysToKeep" : 5,
-    "minimumToKeep" : 2,
-    "pathMatch" : "com/verint",
-    "pathExclude" : ""
-  },
-  {
-    "repoName" : "iem-ci-release",
-    "daysToKeep" : 5,
-    "minimumToKeep" : 5,
-    "pathMatch" : "com/verint",
-    "pathExclude" : ""
-  },
-  {
-    "repoName" : "iem-ci-snapshot",
-    "daysToKeep" : 5,
-    "minimumToKeep" : 2,
-    "pathMatch" : "com/verint",
-    "pathExclude" : ""
-  },
-  {
-    "repoName" : "ops-ci-release",
-    "daysToKeep" : 5,
-    "minimumToKeep" : 5,
-    "pathMatch" : "com/verint",
-    "pathExclude" : "15.1.0."
-  },
-  {
-    "repoName" : "ops-ci-snapshot",
-    "daysToKeep" : 5,
-    "minimumToKeep" : 2,
-    "pathMatch" : "com/verint",
-    "pathExclude" : "15.1.0."
-  },
-  {
-    "repoName" : "ci-dev-release",
-    "daysToKeep" : 5,
-    "minimumToKeep" : 5,
-    "pathMatch" : "com/verint",
-    "pathExclude" : "15.1.0."
-  },
-  {
-    "repoName" : "recorder-ci-release",
-    "daysToKeep" : 5,
-    "minimumToKeep" : 5,
-    "pathMatch" : "com/verint",
-    "pathExclude" : ""
-  },
-  {
-    "repoName" : "ci-release-temp",
-    "daysToKeep" : 5,
-    "minimumToKeep" : 5,
-    "pathMatch" : "com/verint",
-    "pathExclude" : ""
-  },
-  {
-    "repoName" : "test-repo",
-    "daysToKeep" : 2,
-    "minimumToKeep" : 1,
-    "pathMatch" : "com/verint",
-    "pathExclude" : ""
-  },
-  {
-    "repoName" : "rec-dev-staging",
-    "daysToKeep" : 5,
-    "minimumToKeep" : 2,
-    "pathMatch" : "com/verint",
-    "pathExclude" : ""
-  },
-  {
-    "repoName" : "RM_AA_PSR",
-    "daysToKeep" : 5,
-    "minimumToKeep" : 5,
-    "pathMatch" : "com/verint",
-    "pathExclude" : "15.1.0."
-  },
-  {
-    "repoName" : "ci-monthlysp-release",
-    "daysToKeep" : 5,
-    "minimumToKeep" : 5,
-    "pathMatch" : "com/verint",
-    "pathExclude" : "15.1.0."
-  },
-  {
-    "repoName" : "automation-release",
-    "daysToKeep" : 1,
-    "minimumToKeep" : 2,
-    "pathMatch" : "com/verint/automation/actions",
-    "pathExclude" : "com/verint/automation/actions/master,com/verint/automation/actions/develop"
-  },
-  {
-    "repoName" : "automation-release",
-    "daysToKeep" : 1,
-    "minimumToKeep" : 2,
-    "pathMatch" : "com/verint/automation/scripts",
-    "pathExclude" : "com/verint/automation/scripts/develop,com/verint/automation/scripts/master"
-  }
-]
+  "conf" : [
+    {
+      "repoName" : "devops",
+      "daysToKeep" : 2,
+      "minimumToKeep" : 1,
+      "pathMatch" : "com/verint/puppet/logs",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "ci-snapshot",
+      "daysToKeep" : 4,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "15.1.0."
+    },
+    {
+      "repoName" : "ci-release",
+      "daysToKeep" : 4,
+      "minimumToKeep" : 4,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "15.1.0."
+    },
+    {
+      "repoName" : "cd-passed-pl-archive",
+      "daysToKeep" : 0,
+      "minimumToKeep" : 4,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "em-ci-release",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "em-ci-snapshot",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "cf-ci-release",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "cf-ci-snapshot",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "foundation-ci-release",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "15.1.0."
+    },
+    {
+      "repoName" : "foundation-ci-snapshot",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "15.1.0."
+    },
+    {
+      "repoName" : "wfm-ci-release",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "15.1.0."
+    },
+    {
+      "repoName" : "wfm-ci-snapshot",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "15.1.0."
+    },
+    {
+      "repoName" : "v11-2-hfr1",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "iem-ci-release",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "iem-ci-snapshot",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "ops-ci-release",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "15.1.0."
+    },
+    {
+      "repoName" : "ops-ci-snapshot",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "15.1.0."
+    },
+    {
+      "repoName" : "ci-dev-release",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "15.1.0."
+    },
+    {
+      "repoName" : "recorder-ci-release",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "ci-release-temp",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "test-repo",
+      "daysToKeep" : 2,
+      "minimumToKeep" : 1,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "rec-dev-staging",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "RM_AA_PSR",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "15.1.0."
+    },
+    {
+      "repoName" : "ci-monthlysp-release",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "15.1.0."
+    },
+    {
+      "repoName" : "automation-release",
+      "daysToKeep" : 1,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint/automation/actions",
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.1.1.2000", "end" : "15.1.1.5999"},
+        {"start" : "15.1.1.6000", "end" : "15.1.1.9999"}
+      ]
+    },
+    {
+      "repoName" : "automation-release",
+      "daysToKeep" : 1,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint/automation/scripts",
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.1.1.2000", "end" : "15.1.1.5999"},
+        {"start" : "15.1.1.6000", "end" : "15.1.1.9999"}
+      ]
+    }
+  ]
 }

@@ -15,6 +15,22 @@ task purgeTask() <<{
     logger.quiet("configuration:\r\n${conf}")
     logger.quiet("ArtifactoryPurging: ****************************************************************************")
 
+    /*
+    def obj = new JsonSlurper().parseText(conf)
+    List repoConfList = obj.conf
+    repoConfList.each { repoConf ->
+        logger.quiet("\r\nSTART PROCESSING -> repo: ${repoConf.repoName} - days to keep: ${repoConf.daysToKeep} - minimum to keep: ${repoConf.minimumToKeep} - path match: ${repoConf.pathMatch} - path exclude: ${repoConf.pathExclude}")
+        if(repoConf.versionRanges != null){
+            repoConf.versionRanges.each{ range ->
+                logger.quiet("start: ${range.start} - end: ${range.end}")
+            }
+        }
+        else{
+            logger.quiet("This repo does not have version range")
+        }
+    }
+    */
+
     purge(conf)
 }
 
@@ -23,7 +39,7 @@ def purge (String conf){
     List repoConfList = obj.conf
 
     repoConfList.each{repoConf ->
-        logger.quiet("\r\n START PROCESSING -> repo: ${repoConf.repoName} - days to keep: ${repoConf.daysToKeep} - minimum to keep: ${repoConf.minimumToKeep} - path match: ${repoConf.pathMatch} - path exclude: ${repoConf.pathExclude}")
+        logger.quiet("\r\nSTART PROCESSING -> repo: ${repoConf.repoName} - days to keep: ${repoConf.daysToKeep} - minimum to keep: ${repoConf.minimumToKeep} - path match: ${repoConf.pathMatch} - path exclude: ${repoConf.pathExclude}")
 
         String repoKey = repoConf.repoName
         int dayToKeep = repoConf.daysToKeep
@@ -46,13 +62,27 @@ def purge (String conf){
         }
 
         // get list of top latest versions of an artifact to keep
-        List topLatestPathList = getXNumberLatestArtifactsPerVersion("$minimumToKeep".toInteger(), repoKey)
-        topLatestPathList.each{ itemPath ->
-            fTop << itemPath + "\r\n"
+        List topLatestPathList = []
+        if(repoConf.versionRanges != null){
+            repoConf.versionRanges.each{ range ->
+                logger.quiet("start: ${range.start} - end: ${range.end}")
+                List topLatestPathInRangeList = getXNumberLatestArtifactsPerVersionRange(minimumToKeep, repoKey, range.start, range.end)
+                topLatestPathInRangeList.each{ itemPath ->
+                    topLatestPathList.add(itemPath)
+                    fTop << itemPath + "\r\n"
+                }
+            }
+        }
+        else{
+            logger.quiet("This repo does not have version range")
+            topLatestPathList = getXNumberLatestArtifactsPerVersion(minimumToKeep, repoKey)
+            topLatestPathList.each{ itemPath ->
+                fTop << itemPath + "\r\n"
+            }
         }
 
         // get list of all artifacts marked as do not purge
-        List doNotPurgeList = getArtifactsTaggedAsDoNotPurge(repoKey, pathMatch)
+        List doNotPurgeList = getArtifactsTaggedAsDoNotPurge(repoKey)
         List doNotPurgePathList = []
         doNotPurgeList.each { item ->
             doNotPurgePathList.add(item.path)
@@ -131,7 +161,7 @@ def purgeNpm (String conf){
         }
 
         // get all artifacts OLDER than configured days
-        List candidateList = getArtifactsOlderThanXDays (repoKey, pathMatch, dayToKeep)
+        List candidateList = getArtifactsOlderThanXDays(repoKey, pathMatch, dayToKeep)
         candidateList.each { item ->
             fFullL << item.path + "/" + item.name + "\r\n"
 
@@ -173,13 +203,13 @@ def List getArtifactsOlderThanXDays(String repo, String pathMatch, int x){
                     "        ,\"path\":{\"\$nmatch\":\".npm/*\"}" +
                     "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" +
                     "    }"  +
-                    ").include(\"name\", \"path\")"
+                    ").include(\"name\", \"path\",\"size\")"
 
     List resultsList  = search(aqlQuery)
     return resultsList
 }
 
-def List getArtifactsTaggedAsDoNotPurge(String repo, String pathMatch){
+def List getArtifactsTaggedAsDoNotPurge(String repo){
     String aqlQuery =
             "items.find" +
                     "(" +
@@ -363,6 +393,112 @@ def List getXNumberLatestArtifactsPerVersion(int topElement, String repoKey){
     return topItemsToKeep
 }
 
+def List getXNumberLatestArtifactsPerVersionRange(int topElement, String repoKey, String start, String end){
+    def mapAllItems = [:]
+    List topItemsToKeep = []
+
+    // get all artifacts from this repo, then put them into a map
+    // [rootPath: [version1, version2, ...], rootPath:[version1, version2,...], ...]
+    List resultsList = getArtifactsOlderThanXDays(repoKey, "*", 0)
+    resultsList.each { resultItem ->
+        String itemPath = resultItem."path";
+        mapAllItems= putToTheMap(mapAllItems, itemPath, repoKey)
+    }
+
+    // for each item, we need to process the version in format of a.b.c.d
+    // to take out the top of each distinguished version to keep
+    mapAllItems.each { itemPathRoot, listItems ->
+        List distinctVersionList = []
+        listItems.each{ itemPath ->
+            // first, parse the version
+            int lastIndex = itemPath.lastIndexOf("/")
+            String itemVersion = itemPath.substring(lastIndex + 1, itemPath.size())
+
+            lastIndex = itemVersion.lastIndexOf(".")
+            if(lastIndex > 0){
+                String abc = itemVersion.substring(0, lastIndex)
+
+                if(!distinctVersionList.any {it == abc}) {
+                    distinctVersionList.add(abc)
+                }
+            }
+        }
+
+        // now we got the list of distinct version list of this root artifact
+        // next we need to build an order map of all versions for each distinct version
+        distinctVersionList.each{ versionPrefix ->
+            def artifactList = [:]
+            listItems.each{ itemPath ->
+                // first, parse the version
+                int lastIndex = itemPath.lastIndexOf("/")
+                String itemVersion = itemPath.substring(lastIndex + 1, itemPath.size())
+
+                lastIndex = itemVersion.lastIndexOf(".")
+                if(lastIndex > 0){
+                    String abc = itemVersion.substring(0, lastIndex)
+
+                    // second, get the build number
+                    String d = itemVersion.substring(lastIndex + 1, itemVersion.size())
+
+                    // compare and put in this map if
+                    // make sure the build number is interger otherwise just ignore them - don't keep e.g. SNAPSHOT
+                    if( versionPrefix == abc && d.isInteger()){
+                        artifactList.put(Integer.parseInt(d), itemPath)
+                    }
+                }
+            }
+
+            // now sort it, DESC
+            def sortedMap = artifactList.sort { -it.key }
+
+            // and now take the top
+            def mapToKeep = sortedMap.take(topElement)
+
+            // last, add all keep items to the final list
+            mapToKeep.each{key, value ->
+                topItemsToKeep.add(value)
+            }
+        }
+    }
+
+    // additionally, we need to process version range
+    String startRelease = parseVersion2GetRelease(start)
+    String startBuildNumber = parseVersion2GetBuildNumber(start)
+    String endRelease = parseVersion2GetRelease(end)
+    String endBuildNumber = parseVersion2GetBuildNumber(end)
+    if (startRelease == endRelease && startBuildNumber.isInteger() && endBuildNumber.isInteger() && startBuildNumber.toInteger() < endBuildNumber.toInteger()){
+        mapAllItems.each { itemPathRoot, listItems ->
+            // put all items belong to this version range into a map with the key is the build number (for sorting) and value is the item path
+            def allItemsInVersionRangeList = [:]
+            listItems.each { itemPath ->
+                // first, parse the version
+                int lastIndex = itemPath.lastIndexOf("/")
+                String itemVersion = itemPath.substring(lastIndex + 1, itemPath.size())
+
+                String abc = parseVersion2GetRelease(itemVersion)
+                String d = parseVersion2GetBuildNumber(itemVersion)
+                if (abc == startRelease && d.isInteger() && d.toInteger() >= startBuildNumber.toInteger() && d.toInteger() <= endBuildNumber.toInteger()) {
+                    allItemsInVersionRangeList.put(d.toInteger(), itemPath)
+                }
+            }
+
+            // now, sort this list DESC to get the top ones
+            def sortedMap = allItemsInVersionRangeList.sort { -it.key }
+
+            // and now take the top
+            def mapToKeep = sortedMap.take(topElement)
+
+            // last, add all keep items to the final list
+            mapToKeep.each{key, value ->
+                topItemsToKeep.add(value)
+            }
+        }
+
+    }
+
+    return topItemsToKeep
+}
+
 def List search(String aql ){
     logger.quiet("Artifactory query: $aql")
 
@@ -509,6 +645,28 @@ def putToTheMapNpm (Object mapLastItems, String itemPath, String itemName, Strin
     }
 
     return mapLastItems
+}
+
+def parseVersion2GetRelease(String version){
+    int lastIndex = version.lastIndexOf(".")
+    String abc,d
+    if(lastIndex > 0){
+        abc = version.substring(0, lastIndex)
+        d = version.substring(lastIndex + 1, version.size())
+    }
+
+    return abc
+}
+
+def parseVersion2GetBuildNumber(String version){
+    int lastIndex = version.lastIndexOf(".")
+    String abc,d
+    if(lastIndex > 0){
+        abc = version.substring(0, lastIndex)
+        d = version.substring(lastIndex + 1, version.size())
+    }
+
+    return d
 }
 
 task wrapper(type: Wrapper) {
