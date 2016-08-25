@@ -184,6 +184,15 @@ def purgeNpm (String conf){
     }
 }
 
+task emptyTrashCanTask() <<{
+    logger.quiet("ArtifactoryPurging: ****************************************************************************")
+    logger.quiet(" Trash Can cleanup")
+    logger.quiet("ArtifactoryPurging: ****************************************************************************")
+
+    logger.quiet("START cleaning up Tash Can ...")
+    def String result = executeEmptyTrashCan();
+    logger.quiet("DONE cleaning up Tash Can. Status: $result")
+}
 
 def List getArtifactsOlderThanXDays(String repo, String pathMatch, int x){
     def selectedDate = new Date() - x
@@ -541,6 +550,32 @@ def String executeAQL(String query){
     String rtnText = tempArtifactsList.text
     tempArtifactsList.delete()
     aqlQueryFile.delete()
+
+    return rtnText
+}
+
+def String executeEmptyTrashCan(){
+    String filePath =""
+    File tempArtifactsList = File.createTempFile("aqlResult",".result");
+    filePath = tempArtifactsList.getAbsolutePath()
+    filePath = filePath.replaceAll("\\\\","/")
+
+    String sCmd = "curl -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$contextURL/api/trash/empty\"  -o \"$filePath\""
+    logger.quiet("Execute AQL: ${sCmd}")
+
+    try {
+        exec {
+            commandLine 'sh', '-c', sCmd
+        }
+    }
+    catch (Exception e) {
+        logger.quiet ("ArtifactoryPurging: some " + e.toString())
+
+    }
+
+    //def inputJSON = new JsonSlurper().parseText(tempArtifactsList.text)
+    String rtnText = tempArtifactsList.text
+    tempArtifactsList.delete()
 
     return rtnText
 }
