@@ -778,8 +778,11 @@ def boolean isMatchPurgingExcluded(String purgingExcluded, String uriToCheck){
 }
 
 def putToTheMap (Object mapLastItems, String itemPath, String repoKey ){
-
     int lastIndex = itemPath.lastIndexOf("/")
+    if(lastIndex <= 0){
+        return mapLastItems
+    }
+
     String itemPathRoot = itemPath.substring(0,lastIndex)
 
     //logger.quiet ("$itemPathRoot:$itemPath")
