@@ -1251,8 +1251,10 @@ def getXMLComponent(Object parsedXML, String id){
 
 task zipLogs() <<{
     String srcDir = "$srcLogDir"
+
     logger.quiet("Zipping the log from: ${srcDir} from puppet client")
-    ant.copy (todir:"${srcDir}", file:"${srcLogInstallXML}")
+
+    ant.copy (todir:"${srcDir}", file:"${srcLogInstallXML}", failonerror: false)
     //Copy the production logs
     copyProductionLogs "${impact360Dir}\\Data","${srcDir}\\productionLogs"
 
@@ -1262,7 +1264,7 @@ task zipLogs() <<{
     //Check the buildear.log
     File fBuildear = new File ("C:\\Impact360\\Software\\ProductionServer\\weblogic\\Impact360\\buildear.log")
     if (fBuildear.exists()){
-        ant.copy (file: "C:\\Impact360\\Software\\ProductionServer\\weblogic\\Impact360\\buildear.log", tofile: "${srcLogDir}\\buildear.log", verbose: true)
+        ant.copy (file: "C:\\Impact360\\Software\\ProductionServer\\weblogic\\Impact360\\buildear.log", tofile: "${srcLogDir}\\buildear.log", verbose: true, failonerror: false)
     }
     //logger.quiet ("GradlePuppetClient: getting the installed versions from the certname ${certname}")
     logger.quiet ("Zipping: gett and export the registry ")
