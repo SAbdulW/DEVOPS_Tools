@@ -1,0 +1,6 @@
+---
+wfoComponents:
+   - ComponentName: Online Help
+     ComponentGAV: 'com.verint.olh.OnlineHelp.components:Online%20Help:[RELEASE]'
+     ComponentRepo: ci-release
+     ComponentPC: true
