@@ -1,0 +1,18 @@
+---
+wfoComponents:
+   - ComponentName: Framework Foundation
+     ComponentGAV: 'com.verint.foundation.components:Framework%20Foundation:[RELEASE]'
+     ComponentRepo: ci-release
+     ComponentInstallOptions: IMSA_NAME=systemadmin,IMSA_PASSWORD=!veRinT$5
+   - ComponentName: Enterprise Manager
+     ComponentGAV: 'com.verint.em.components:Enterprise%20Manager:[RELEASE]'
+     ComponentRepo: ci-release
+   - ComponentName: Backoffice Operations
+     ComponentGAV: 'com.verint.ops.am.components:Backoffice%20Operations:[RELEASE]'
+     ComponentRepo: ci-snapshot
+   - ComponentName: WFM Common
+     ComponentGAV: 'com.verint.wfm.common.components:WFM%20Common:[RELEASE]'
+     ComponentRepo: ci-release
+   - ComponentName: Performance Management
+     ComponentGAV: 'com.verint.pm.performancemanagement.components:Performance%20Management:[RELEASE]'
+     ComponentRepo: ci-release
