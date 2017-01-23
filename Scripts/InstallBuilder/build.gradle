@@ -43,8 +43,8 @@ apply plugin: 'artifactory'
 apply plugin: 'vebutu.install-builder'
 
 ext.libConfigPath= "$rootDir/libConfigPath"
-
 ext.supportedGradleVersion = '2.4'
+
 
 installBuilder {
     kbNumber="${KbNumber}"
@@ -95,22 +95,19 @@ artifactory {
 
 import java.net.*;
 import java.io.*;
-
-
-
-
-
-
 //*******************************
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 
-task getKBNumber << {
-    Object jsonObj = kbGenService ("create")
-    printKBData(jsonObj)
+task GetKB (dependsOn: getKB)<< {
+    println ("jsonKBData.KBNumber : ${zKBNumber}")
+    println ("jsonObject: KBJson : ${zKBJSON}")
+    exportKBOutput(zKBJSON)
+}
 
-    kbGenService ("createsimple")
-
+task CreateKBBuffer (dependsOn: createKBBuffer)<< {
+    println ("jsonObject: KBJson : ${zKBBufferJSON}")
+    exportKBOutput(zKBBufferJSON)
 }
 
 task testKB (dependsOn: getKB)<< {
@@ -127,92 +124,23 @@ task testKBBuffer (dependsOn: createKBBuffer)<< {
     //printKBData(zKBJSON)
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+def exportKBOutput(Object jsonKBData){
+    File saveDir =new File("${this.project.buildDir}")
+    saveDir.mkdirs()
+    String saveFileName =  "${saveDir.getCanonicalPath()}/${jsonFileName}"
+    File outFile = new File (saveFileName)
+    String strKBNumbers = jsonKBData.KBNumber
+    strKBNumbers = strKBNumbers.replace("[","")
+    strKBNumbers = strKBNumbers.replace("]","")
+    strKBNumbers = strKBNumbers.replace(";",",")
+    outFile.text = "{\n" +
+            "  \"KBNumbers\": \"${strKBNumbers}\"\n" +
+            "}"
+    println ("JSON Content:\n${outFile.text}")
+}
 
 
 def printKBData(Object jsonKBData){
-
-    //def prettyJson = JsonOutput.prettyPrint(jsonKBData.toString())
-    //println ("${prettyJson}")
-
     println ("${jsonKBData}")
 
     println ("jsonKBData.KBNumber : ${jsonKBData.KBNumber}")
@@ -228,9 +156,88 @@ def printKBData(Object jsonKBData){
     println ("jsonKBData.Email : ${jsonKBData.Email}")
     println ("jsonKBData.BuildNumber : ${jsonKBData.BuildNumber}")
     //println ("jsonKBData.AbortOnProcessErorr : ${jsonKBData.AbortOnProcessErorr}")
-
-
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def kbGenService(String serviceName){
     def strURL =generateURL(serviceName)
