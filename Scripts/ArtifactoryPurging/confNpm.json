@@ -2,8 +2,8 @@
 "conf" : [
   {
     "repoName" : "npm-local",
-    "daysToKeep" : 7,
-    "minimumToKeep" : 5,
+    "daysToKeep" : 14,
+    "minimumToKeep" : 15,
     "pathMatch" : "*",
     "pathExclude" : ""
   },
