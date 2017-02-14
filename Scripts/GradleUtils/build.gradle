@@ -437,6 +437,7 @@ def createYAML (String strReplaceWith, String sourcePathYAML, String destPathYAM
     File destFile =  new File (destPathYAML);
     String srcFilePath = sourceFile.getCanonicalPath()
     String destFilePath = destFile.getCanonicalPath()
+    String strArtifactoryRepo = "${componentRepoDefault}"
 
     String sourceContent = sourceFile.getText("UTF-8")
 
@@ -447,6 +448,8 @@ def createYAML (String strReplaceWith, String sourcePathYAML, String destPathYAM
 
         sourceContent=sourceContent.replaceAll("HTHTMasterBuildVersionHT",strReplaceWith)
     }
+
+    sourceContent = "artifactory_repo   : '${strArtifactoryRepo}'\n\n" + sourceContent
 
     logger.quiet ("GradleUtils: updatedContent YAML at ${destFilePath} \n${sourceContent}")
     destFile.write(sourceContent,"UTF-8")
