@@ -449,7 +449,8 @@ def createYAML (String strReplaceWith, String sourcePathYAML, String destPathYAM
         sourceContent=sourceContent.replaceAll("HTHTMasterBuildVersionHT",strReplaceWith)
     }
 
-    sourceContent = "artifactory_repo   : '${strArtifactoryRepo}'\n\n" + sourceContent
+    String strToBeReplaceWith = "---\nartifactory_repo   : '${strArtifactoryRepo}'\n\n"
+    sourceContent=sourceContent.replaceAll("---",strToBeReplaceWith)
 
     logger.quiet ("GradleUtils: updatedContent YAML at ${destFilePath} \n${sourceContent}")
     destFile.write(sourceContent,"UTF-8")
