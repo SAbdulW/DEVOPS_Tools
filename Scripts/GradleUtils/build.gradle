@@ -674,7 +674,7 @@ def fillSpecificVersionYAML (String iYamlFile){
             }
         }
 
-        if (sComponentRepo=="") sComponentRepo="${componentRepoDefault}"
+        if (sComponentRepo=="") sComponentRepo="${defaultRepoKey}"
 
         sCurrentVersion = "${currentVersion}"
 
