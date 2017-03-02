@@ -110,6 +110,12 @@ task CreateKBBuffer (dependsOn: createKBBuffer)<< {
     exportKBOutput(zKBBufferJSON)
 }
 
+task UpdateKBDefect (dependsOn: updateKBDefect)<< {
+    println ("jsonObject: KBJson : ${zKBUpdateJSON}")
+    exportResultOutput(zKBUpdateJSON)
+}
+
+
 task testKB (dependsOn: getKB)<< {
     println ("jsonKBData.KBNumber : ${zKBNumber}")
     println ("jsonObject: KBJson : ${zKBJSON}")
@@ -123,7 +129,20 @@ task testKBBuffer (dependsOn: createKBBuffer)<< {
 
     //printKBData(zKBJSON)
 }
-
+def exportResultOutput(Object jsonKBData){
+    File saveDir =new File("${this.project.buildDir}")
+    saveDir.mkdirs()
+    String saveFileName =  "${saveDir.getCanonicalPath()}/${jsonFileName}"
+    File outFile = new File (saveFileName)
+    String strKBNumbers = jsonKBData
+    strKBNumbers = strKBNumbers.replace("[","")
+    strKBNumbers = strKBNumbers.replace("]","")
+    strKBNumbers = strKBNumbers.replace(";",",")
+    outFile.text = "{\n" +
+            "  \"Result\": \"${strKBNumbers}\"\n" +
+            "}"
+    println ("JSON Content:\n${outFile.text}")
+}
 def exportKBOutput(Object jsonKBData){
     File saveDir =new File("${this.project.buildDir}")
     saveDir.mkdirs()
