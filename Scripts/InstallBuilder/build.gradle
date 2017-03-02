@@ -139,7 +139,7 @@ def exportResultOutput(Object jsonKBData){
     strKBNumbers = strKBNumbers.replace("]","")
     strKBNumbers = strKBNumbers.replace(";",",")
     outFile.text = "{\n" +
-            "  \"Result\": \"${strKBNumbers}\"\n" +
+            "  \"KBNumbers\": \"${strKBNumbers}\"\n" +
             "}"
     println ("JSON Content:\n${outFile.text}")
 }
