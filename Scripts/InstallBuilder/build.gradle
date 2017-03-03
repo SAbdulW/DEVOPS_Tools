@@ -115,6 +115,18 @@ task UpdateKBDefect (dependsOn: updateKBDefect)<< {
     exportResultOutput(zKBUpdateJSON)
 }
 
+task GetKBList4WFOPackage (dependsOn: getKBList4WFOPackage)<< {
+    println ("jsonObject: KBJson : ${zKB4WFOJSON}")
+
+    zKB4WFOJSON.each {comObject ->
+        println ("jsonKBData.KBNumber : ${comObject.KBNumber}")
+        println ("jsonObject: Subsystem : ${comObject.Subsystem}")
+        println ("jsonObject: MSIPath : ${comObject.MSIPath}")
+
+    }
+
+    exportResultOutput(zKB4WFOJSON)
+}
 
 task testKB (dependsOn: getKB)<< {
     println ("jsonKBData.KBNumber : ${zKBNumber}")
@@ -129,6 +141,7 @@ task testKBBuffer (dependsOn: createKBBuffer)<< {
 
     //printKBData(zKBJSON)
 }
+
 def exportResultOutput(Object jsonKBData){
     File saveDir =new File("${this.project.buildDir}")
     saveDir.mkdirs()
