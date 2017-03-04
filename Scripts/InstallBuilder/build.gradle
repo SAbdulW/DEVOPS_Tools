@@ -125,7 +125,7 @@ task GetKBList4WFOPackage (dependsOn: getKBList4WFOPackage)<< {
 
     }
 
-    exportResultOutput(zKB4WFOJSON)
+    exportKB4WFOOutput(zKB4WFOJSON)
 }
 
 task testKB (dependsOn: getKB)<< {
@@ -141,6 +141,19 @@ task testKBBuffer (dependsOn: createKBBuffer)<< {
 
     //printKBData(zKBJSON)
 }
+
+def exportKB4WFOOutput(Object jsonKBData){
+    File saveDir =new File("${this.project.buildDir}")
+    saveDir.mkdirs()
+    String saveFileName =  "${saveDir.getCanonicalPath()}/${jsonFileName}"
+    File outFile = new File (saveFileName)
+    String strKBNumbers = jsonKBData
+    outFile.text = "{\n" +
+            "  \"KBNumbers\": \"${strKBNumbers}\"\n" +
+            "}"
+    println ("JSON Content:\n${outFile.text}")
+}
+
 
 def exportResultOutput(Object jsonKBData){
     File saveDir =new File("${this.project.buildDir}")
