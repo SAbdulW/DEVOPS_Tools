@@ -59,6 +59,7 @@ installBuilder {
     msiPath="${MSIPath}"
     type="${Type}"
     email="${Email}"
+    targetRelease="${TargetRelease}"
     abortOnProcessError="${AbortOnProcessError}"
 }
 
