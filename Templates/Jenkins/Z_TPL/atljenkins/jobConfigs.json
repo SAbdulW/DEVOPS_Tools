@@ -1,0 +1,187 @@
+{ 
+ "viewName": "/job/Z_DEVOPS/job/Z_TPL/view/Z_TPL", 
+ "jobList": "/job/Z_DEVOPS/job/Z_TPL/job/Z_Test_(Commit%20Build)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL010_(AssignMachine)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL020_(Puppet)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL032_(RAFTests)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL090_(ArtifactoryPromotion)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL091_(ArtifactoryPromotion)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL080_(RemoteCall)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL085_(RemoteCall)/##/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL011_(AssignMachine)/",
+ "firstJobName": "Z_Test_(Commit Build)", 
+ "jobs":{"Z_Test_(Commit Build)": {
+    "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_Test_(Commit%20Build)/",
+    "customWorkspace": "${DevRootPath}",
+    "buildParams": {
+        "Branch": "dev",
+        "DevRootPath": "D:/gitroot/Z_TPL",
+        "Where_to_run_the_build": "ATL-WFO-Slaves",
+        "RepoURL": "git@scgit:testing",
+        "KeepTheFixtureWhenDone": "false",
+        "PromoteOnSuccess": "false",
+        "envID_Remove": "base02",
+        "ProvisioningRoot": "Fixture/11.2.1.x/Green",
+        "PendingPoolFolder": "Pending",
+        "RunningPoolFolder": "Running",
+        "SelectedFixture": "(latest)",
+        "TypesOfClone": "Linked"
+      },
+    "buildTrigger": {
+
+      }
+},
+"Z_TPL010_(AssignMachine)": {
+    "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL010_(AssignMachine)/",
+    "customWorkspace": "$DevRootPath",
+    "buildParams": {
+        "DevRootPath": "${WORKSPACE}",
+        "Node_To_Run": "ATL-WFO-Slaves",
+        "ProvisioningRoot": "Fixture/11.2.1.x/Green",
+        "PendingPoolFolder": "Pending",
+        "RunningPoolFolder": "Running",
+        "ParkingPoolFolder": "Parking",
+        "RetryTime": "6m",
+        "LeaseTime": "1",
+        "PeriodicTime": "2",
+        "KeepTheFixtureWhenDone": "false",
+        "Assign_Config_Branch": "origin/WFO_POC",
+        "Assign_Config_Folder": "AssignMachine"
+      },
+    "buildTrigger": {
+
+      }
+},
+"Z_TPL020_(Puppet)": {
+    "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL020_(Puppet)/",
+    "customWorkspace": "$DevRootPath/ci_global",
+    "buildParams": {
+        "DevRootPath": "D:/gitroot/Z_TPL",
+        "Node_To_Run": "ATL-WFO-Slaves",
+        "PuppetEnv": "ci_wfo_env",
+        "PuppetServer": "atlpuppetmaster.lab.local",
+        "VmIp": "10.200.50.00",
+        "TestMachineAdmin": "systemadmin",
+        "VmPw": "!veRinT$5",
+        "YamlFiles": "../../../ci/puppet.yaml",
+        "deployEarFile": "true",
+        "CheckIfWFOLoginPageIsUp": "true",
+        "stopStartservices": "WatchDog,MinerTomcat",
+        "wfoService": "WFO_ProductionDomain_ProductionServer"
+      },
+    "buildTrigger": {
+
+      }
+},
+"Z_TPL032_(RAFTests)": {
+    "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL032_(RAFTests)/",
+    "customWorkspace": "${DevRootPath}",
+    "buildParams": {
+        "DevRootPath": "D:/ws",
+        "VmIp": "#10.156.16.125",
+        "DnsName": "ATLCONW12GL001",
+        "ToolsRepo": "DEVOPS_Tools",
+        "ToolsBranch": "origin/ci_wfo_env",
+        "ConfigRepo": "DEVOPS_Configs",
+        "ConfigBranch": "origin/Generic",
+        "SourceScriptFolder": "DEVOPS_Configs/IntegrationTests/RAF/Generic/*",
+        "ScriptLocator": "raf/Regression Automation Framework/workflows/BasicInt.script",
+        "RafParams": "",
+        "RafScriptsVersion": "11.2.1.0",
+        "RafProductsVersion": "11.2.1.4",
+        "WhereToRunRaf": "ATL-FTW-Slaves"
+      },
+    "buildTrigger": {
+
+      }
+},
+"Z_TPL090_(ArtifactoryPromotion)": {
+    "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL090_(ArtifactoryPromotion)/",
+    "customWorkspace": "${DevRootPath}/ArtifactoryPromotion90",
+    "buildParams": {
+        "MasterBuildVersion": "11.2.1.1",
+        "sourceRepos": "wfm-ci-snapshot,ci-snapshot",
+        "targetRepos": "wfm-ci-release,ci-release",
+        "teamGroupPrefixes": "com/verint/wfm,com/verint/wfm",
+        "artifactoryContextURL": "http://atlartifactory:8081/artifactory",
+        "DevRootPath": "D:/gitroot/ArtifactoryPromotion/WFM11.2SP1/",
+        "checkPipelineGreen": "true",
+        "WhereToRun": "ATL-WFO-Slaves",
+        "JobsToIgnore": "Z_TPL090,Flow_TPL,FTW_Wrapper_Flow,ArtifactoryPromotion"
+      },
+    "buildTrigger": {
+
+      }
+},
+"Z_TPL091_(ArtifactoryPromotion)": {
+    "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL091_(ArtifactoryPromotion)/",
+    "customWorkspace": "${DevRootPath}/ArtifactoryPromotion91",
+    "buildParams": {
+        "DevRootPath": "D:/gitroot/Z_TPL",
+        "sourceRepos": "ci-release",
+        "targetRepos": "ci-release-temp",
+        "checkPipelineGreen": "true",
+        "PromoteOnSuccess": "false",
+        "installedVersionFiles": "../ci_global/Scripts/GradleUtils/PPLogs/installedVersions.json",
+        "Node_To_Run": "ATL-WFO-Slaves",
+        "JobsToIgnore": "Z_TPL091,Flow_TPL"
+      },
+    "buildTrigger": {
+
+      }
+},
+"Z_TPL080_(RemoteCall)": {
+    "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL080_(RemoteCall)/",
+    "customWorkspace": "/etc/vebutu/jkws/${envID}",
+    "buildParams": {
+        "MasterBuildVersion": "15.1.1",
+        "VmIp": "10.156.6.53",
+        "VmPw": "!veRinT$5",
+        "VmUser": "systemadmin",
+        "artifactoryContextURL": "http://atlartifactory:8081/artifactory",
+        "envID": "base01",
+        "playbook": "playbook.yaml",
+        "playbookAsIs": "playbookAsIs.yaml"
+      },
+    "buildTrigger": {
+
+      }
+},
+"Z_TPL085_(RemoteCall)": {
+    "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL085_(RemoteCall)/",
+    "customWorkspace": "D:/gitroot/Z_TPL/Z_TPL085",
+    "buildParams": {
+        "MasterBuildVersion": "15.1.1.1",
+        "VmIp": "10.156.6.53",
+        "VmPw": "!veRinT$5",
+        "VmUser": "systemadmin",
+        "artifactoryContextURL": "http://atlartifactory:8081/artifactory",
+        "paexecCmd": "ipconfig",
+        "runTasks": "runPaExecCmd"
+      },
+    "buildTrigger": {
+
+      }
+},
+"Z_TPL011_(AssignMachine)": {
+    "jobURL": "/job/Z_DEVOPS/job/Z_TPL/job/Z_TPL011_(AssignMachine)/",
+    "customWorkspace": "$DevRootPath",
+    "buildParams": {
+        "ProvisioningRoot": "Fixture/11.2.1.x/Green",
+        "PendingPoolFolder": "Pending",
+        "RunningPoolFolder": "Running",
+        "ParkingPoolFolder": "Parking",
+        "DevRootPath": "Z_TPL011",
+        "RetryTime": "6m",
+        "LeaseTime": "8",
+        "PeriodicTime": "2",
+        "KeepTheFixtureWhenDone": "false",
+        "Assign_Config_Branch": "origin/WFO_POC",
+        "Assign_Config_Folder": "AssignMachine",
+        "TypesOfClone": "Linked",
+        "SelectedFixture": "(latest)"
+      },
+    "buildTrigger": {
+
+      }
+}
+},
+"plugins": {	    "buildParams": "hudson.model.ParametersDefinitionProperty",
+	    "buildTrigger": "hudson.plugins.parameterizedtrigger.BuildTriggerConfig",
+	    "artifactory": "org.jfrog.hudson.gradle.ArtifactoryGradleConfigurator",
+	    "buildBloker": "hudson.plugins.buildblocker.BuildBlockerProperty"
+
+  }
+}

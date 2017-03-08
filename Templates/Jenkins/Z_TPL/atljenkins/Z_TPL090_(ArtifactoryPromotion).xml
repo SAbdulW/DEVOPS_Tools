@@ -1,0 +1,608 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>This one is used to promote a version from multiple repos, to multiples repos with multiple prefixes connected by ##</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.4.1">
+      <useBuildBlocker>false</useBuildBlocker>
+    </hudson.plugins.buildblocker.BuildBlockerProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>MasterBuildVersion</name>
+          <description>Version to promote</description>
+          <defaultValue>11.2.1.1</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>sourceRepos</name>
+          <description>List source of repos - For example, if your project produce the artifact to wfm-ci-snapshot (for normal artifacts) and ci-snapshot (msi) 
+Then the value should be: wfm-ci-snapshot,ci-snapshot</description>
+          <defaultValue>wfm-ci-snapshot,ci-snapshot</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>targetRepos</name>
+          <description>List of target repos - If you want to promote artifacts to wfm-ci-release (from wfm-ci-snapshot above for normal artifacts) and ci-release (from ci-snapshot for msi)
+The the value should be: wfm-ci-release,ci-release accordingly</description>
+          <defaultValue>wfm-ci-release,ci-release</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>teamGroupPrefixes</name>
+          <description>Use comma for seperating the list of prefixes for each set of repo, using ## to seperate the prefix in the that list
+This is helpful when you have the share repo and only want to promote your artifacts. It should have difference prefixes.
+Sometime, you can have msi (for example) published to one shared repo but in difference groupid, then you can do this by putting value like 
+com/verint/foundation,com/verint/sr/foundation##com/verint/sr/foundation2
+</description>
+          <defaultValue>com/verint/wfm,com/verint/wfm</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>artifactoryContextURL</name>
+          <description>the artifactory that the artifacts hosted</description>
+          <defaultValue>http://atlartifactory:8081/artifactory</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>DevRootPath</name>
+          <description></description>
+          <defaultValue>D:\gitroot\ArtifactoryPromotion\WFM11.2SP1\</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>checkPipelineGreen</name>
+          <description>If you can&apos;t check the pipeline, uncheck this box, will get promote anytime</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition plugin="nodelabelparameter@1.5.1">
+          <name>WhereToRun</name>
+          <description></description>
+          <defaultValue>ATL-WFO-Slaves</defaultValue>
+          <allNodesMatchingLabel>false</allNodesMatchingLabel>
+          <triggerIfResult>allCases</triggerIfResult>
+          <nodeEligibility class="org.jvnet.jenkins.plugins.nodelabelparameter.node.AllNodeEligibility"/>
+        </org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>JobsToIgnore</name>
+          <description>Put the Jobs that you want to ignore. You can put partial string of the Job name. To put multiple strings, put a comma inbetween</description>
+          <defaultValue>Z_TPL090,Flow_TPL,FTW_Wrapper_Flow,ArtifactoryPromotion</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <jenkins.plugins.slack.SlackNotifier_-SlackJobProperty plugin="slack@1.7">
+      <teamDomain></teamDomain>
+      <token></token>
+      <room></room>
+      <startNotification>false</startNotification>
+      <notifySuccess>false</notifySuccess>
+      <notifyAborted>false</notifyAborted>
+      <notifyNotBuilt>false</notifyNotBuilt>
+      <notifyUnstable>false</notifyUnstable>
+      <notifyFailure>false</notifyFailure>
+      <notifyBackToNormal>false</notifyBackToNormal>
+      <notifyRepeatedFailure>false</notifyRepeatedFailure>
+      <includeTestSummary>false</includeTestSummary>
+      <showCommitList>false</showCommitList>
+    </jenkins.plugins.slack.SlackNotifier_-SlackJobProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.3.4">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>git@atlgit:SC_DevKit</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>origin/artifactoryPromotion</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <browser class="hudson.plugins.git.browser.KilnGit">
+      <url></url>
+    </browser>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>true</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>true</blockBuildWhenUpstreamBuilding>
+  <jdk>(Default)</jdk>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <customWorkspace>${DevRootPath}\ArtifactoryPromotion90</customWorkspace>
+  <builders>
+    <org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder plugin="conditional-buildstep@1.3.3">
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+      <runCondition class="org.jenkins_ci.plugins.run_condition.logic.Not" plugin="run-condition@1.0">
+        <condition class="org.jenkins_ci.plugins.run_condition.core.BooleanCondition">
+          <token>${isPipelineGreen}</token>
+        </condition>
+      </runCondition>
+      <conditionalbuilders>
+        <hudson.tasks.Shell>
+          <command>echo &quot;Pipeline is not green&quot;
+exit 1</command>
+        </hudson.tasks.Shell>
+      </conditionalbuilders>
+    </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>
+    <hudson.plugins.gradle.Gradle plugin="gradle@1.24">
+      <description></description>
+      <switches></switches>
+      <tasks>artifactoryPromote -PpromoteVersion=$MasterBuildVersion -PteamGroupPrefixes=$teamGroupPrefixes -PsourceRepos=$sourceRepos -PtargetRepos=$targetRepos -PcontextURL=$artifactoryContextURL</tasks>
+      <rootBuildScriptDir>${workspace}</rootBuildScriptDir>
+      <buildFile></buildFile>
+      <gradleName>(Default)</gradleName>
+      <useWrapper>true</useWrapper>
+      <makeExecutable>false</makeExecutable>
+      <fromRootBuildScriptDir>true</fromRootBuildScriptDir>
+      <useWorkspaceAsHome>true</useWorkspaceAsHome>
+    </hudson.plugins.gradle.Gradle>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.14.1">
+      <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
+        <timeoutMinutes>60</timeoutMinutes>
+      </strategy>
+      <operationList>
+        <hudson.plugins.build__timeout.operations.WriteDescriptionOperation>
+          <description>Build timed out (after {0} minutes). Marking the build as failed.</description>
+        </hudson.plugins.build__timeout.operations.WriteDescriptionOperation>
+        <hudson.plugins.build__timeout.operations.FailOperation/>
+      </operationList>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+    <org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder plugin="versionnumber@1.4.1">
+      <versionNumberString>${MasterBuildVersion}</versionNumberString>
+      <projectStartDate>1969-12-31 05:00:00.0 UTC</projectStartDate>
+      <environmentVariableName>MasterBuildVersion</environmentVariableName>
+      <oBuildsToday>-1</oBuildsToday>
+      <oBuildsThisMonth>-1</oBuildsThisMonth>
+      <oBuildsThisYear>-1</oBuildsThisYear>
+      <oBuildsAllTime>-1</oBuildsAllTime>
+      <skipFailedBuilds>false</skipFailedBuilds>
+      <useAsBuildDisplayName>true</useAsBuildDisplayName>
+    </org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder>
+    <EnvInjectBuildWrapper plugin="envinject@1.90">
+      <info>
+        <groovyScriptContent>    /**
+     * Created by RTrachma on 10/27/2015.
+     */
+
+
+
+    import hudson.model.AbstractBuild;
+    import hudson.model.AbstractProject;
+
+    import groovy.transform.Field
+    import hudson.model.Action
+    import hudson.model.Cause
+    import hudson.model.Hudson
+    import hudson.model.Result;
+    import hudson.model.Run;
+
+    import hudson.model.Cause.UpstreamCause
+
+    import java.lang.reflect.Array;
+
+    /**
+     * @author Ron.Keidar
+     *
+     */
+
+    enum JobStatus {
+        PENDING, BUILDING, ABORTED,UNSTABLE,FAILURE,SUCCESS,NOT_BUILT
+    }
+
+
+    int buildNumber
+    instance = Hudson.getInstance()
+
+    String projectName //=&apos;z6&apos;
+    def List&lt;String&gt; jobsToIgnoreArr
+    def String jobsToIgnore
+    /*Job is holding all the jobs in the pipeline*/
+    //LinkedHashMap jobs
+    println &apos;==================== START ==========================&apos;
+    jobs=[:]
+    projectName = &quot;${JOB_NAME}&quot;;
+    buildNumber = Integer.parseInt(&quot;${BUILD_NUMBER}&quot;)
+    jobsToIgnore = &quot;${JobsToIgnore}&quot;.toString()
+    jobsToIgnoreArr = jobsToIgnore.split(&apos;,&apos;)
+    println jobsToIgnoreArr.size()
+    isCompleted = isBuildComplete(projectName,buildNumber,jobsToIgnoreArr)
+
+
+    map = CheckJobsStatus()
+println(map)
+    return map
+
+    def  CheckJobsStatus( ){
+        map=[:]
+        def isPipeLineGreen=true
+        jobs.each {key,value  -&gt;
+            JobBuild jb = value
+            println(&quot;Checking status of - &quot; + key + &quot;Build status ${jb.buildStatus}  isPipelineJob= ${jb.isPipelineJob}  jobToIgnore=${jb.jobToIgnore}&quot; )
+
+        //    println jb.isPipelineJob
+            if (jb.isPipelineJob  ) {
+              // println  (jb.jobToIgnore + &quot;    isPipeLineGreen= ${isPipeLineGreen}&quot;)
+                println(&quot;1 - &quot; + key + &quot;Build status ${jb.buildStatus}  isPipelineJob= ${jb.isPipelineJob}  jobToIgnore=${jb.jobToIgnore}&quot; )
+                    if (jb.jobToIgnore == false) {
+                try {
+                    println &quot;${key} Build status ${jb.buildStatus} &quot;+ &quot;    isPipeLineGreen=${isPipeLineGreen}&quot;
+                }
+                catch(Exception ex) {println(  &quot;Build status is not available&quot;)}
+                //map.put(jb.key, jb.buildStatus)
+                if ( jb.buildStatus==null | jb.buildStatus != JobStatus.SUCCESS) {
+                    println &quot;Status failed !!!! ${key} Build status ${jb.buildStatus} &quot;
+                    isPipeLineGreen = false
+
+                }
+            }
+            }
+        }
+        map.put(&quot;isPipelineGreen&quot;,isPipeLineGreen)
+        return map
+    }
+
+    def  IsThisJobInTheIgnoreList(String projectName ,  jobsToIgnoreArr){
+
+        println &apos;jobsToIgnoreArr = &apos; + jobsToIgnoreArr
+        if (jobsToIgnoreArr==[] ){
+            println &quot;No ignore jobs&quot;
+            return false
+        }
+        result=false
+        jobsToIgnoreArr.each{
+            println &apos;Checking if \&quot;&apos; + projectName + &quot;\&quot; contains --&quot; + it + &apos;--&apos;
+            if (( it   != &quot;&quot; )) {
+
+                if (projectName.contains(it)) {
+                    println projectName + &quot;will be ignored based on request = &quot; + it
+                    result = true
+                }
+            }
+        }
+        return result
+
+    }
+    def boolean isBuildComplete(String projectName,int buildNumber,jobsToIgnoreArr){
+        try {
+            println(&apos;Checking if build is complete&apos;)
+            key = updateJobMetadata(projectName, buildNumber,jobsToIgnoreArr,true)
+
+            rootKey = getUpstreamJobs(key,jobsToIgnoreArr)
+            println(&apos;Rootkey = &apos; + rootKey)
+            getDownStreamJobs(rootKey,jobsToIgnoreArr)
+        }
+        catch (Exception ex)
+        {
+            println ex.message
+            println &apos;Wait for the next pull, this job is still running&apos;
+            println ex.message
+            return false
+        }
+        return true
+    }
+
+
+
+
+
+
+
+    def String getUpstreamJobs(String key,jobsToIgnoreArr){
+        println &apos;in getUpstreamJobs&apos;
+        JobBuild jb = jobs.get(key)
+        println &apos;check parent now&apos;
+        jb.parent= getParent(jb,jobsToIgnoreArr)
+        println jb.parent  + &apos; was found as the parent of &apos; + key
+        jb.isPipelineJob=true
+        jobs.put(jb.key,jb)
+
+        if (jb.parent== key)  {
+            //   println(&quot;Project ${key} does not have any parent &quot;)
+            return key
+        }
+
+        return getUpstreamJobs(jb.parent,jobsToIgnoreArr)
+
+    }
+
+    def String setChilds(String key) {
+
+        return key
+
+
+    }
+
+    def String  updateJobMetadata(  String fullName, int buildNumber, List&lt;String&gt; jobsToIgnoreArr){
+
+        return updateJobMetadata(   fullName,  buildNumber, jobsToIgnoreArr, false)
+    }
+    def String  updateJobMetadata(  String fullName, int buildNumber,List&lt;String&gt; jobsToIgnoreArr, boolean  isPipelineJob){
+
+        //   println(&apos;Updating project &apos; + fullName)
+        def  JobBuild jb
+        try {
+            key = getKey(fullName,buildNumber)
+            println(&apos;Updating matadata for &apos; + fullName + &apos; Build &apos;+ buildNumber.toString())
+            jb= getJobMetaData(fullName,buildNumber)
+            project=jb.project
+            jb.jobToIgnore=IsThisJobInTheIgnoreList(fullName,jobsToIgnoreArr)
+            if(project == null ){
+                throw new Exception(&quot;This project does not exits&quot;)}
+
+            if (isPipelineJob == true) {
+                println &quot;Update job with Pipeline Job&quot;
+                jb.projectName=project.fullName
+                jb.isPipelineJob==true}
+            jb.projectUrl=project.url
+            println &quot;Getting project ${jb.projectName} number ${buildNumber} information &quot;
+            Run r =  project.getBuildByNumber(buildNumber)
+            if(r == null ){
+                jb.buildStatus = JobStatus.PENDING
+                throw new Exception(jb.projectName + &quot; project did not started yet or Does not exist anymore !!!!&quot;)
+            }
+            else {
+
+                def Result result = r.getResult()
+                println &quot;Project ${jb.projectName} number ${buildNumber} status= ${result} &quot;
+                switch (result) {
+                    case Result.ABORTED:
+                        jb.buildStatus = JobStatus.ABORTED
+                        break
+                    case Result.FAILURE:
+                        jb.buildStatus = JobStatus.FAILURE;
+                        break
+                    case Result.SUCCESS:
+                        jb.buildStatus = JobStatus.SUCCESS;
+                        break
+                    case Result.UNSTABLE:
+                        jb.buildStatus = JobStatus.UNSTABLE;
+                        break
+                    case Result.NOT_BUILT:
+                        jb.buildStatus = JobStatus.NOT_BUILT;
+                        break
+                    default:
+
+                        break
+                }
+                jb.build = (AbstractBuild) r
+                jb.run = r
+                //     println jb.projectName + &apos;Status = &apos; + jb.buildStatus
+                if (r.isBuilding() || r.isInProgress()) {
+                    println(&quot;The current build is still in progress&quot;)
+                }
+            }
+
+        }
+        catch(Exception ex) {
+            println(&apos;Filed to update matadatea for: &apos;+ fullName + ex)
+            throw ex
+        }
+
+
+
+
+        jobs.put(key,  jb)
+        println key + &quot; -was updated status=${jb.buildStatus}   jobToIgnore= ${jb.jobToIgnore} isPipelineJob= ${jb.isPipelineJob}&quot;
+        return key
+
+    }
+    def String  getKey(String projectName,int buildNumber) {
+
+        return &quot;${projectName}---${buildNumber}&quot;
+    }
+
+    def JobBuild getJobMetaData(String projectName,int buildNumber) {
+    //println &apos;in getJobMetaData&apos;
+        key=getKey(projectName,buildNumber)
+        JobBuild jb= new JobBuild()
+        if (jobs.containsKey(key)){
+            jb=jobs.get(key)
+        }
+        else{
+
+
+            jb.projectName=projectName
+            jb.buildNumber=buildNumber
+            jb.key = key
+            jb.project = (AbstractProject)instance.getItemByFullName(jb.projectName,AbstractProject.class)
+            jb.isPipelineJob=false
+            if (!jb.project == null)      jobs.put(key,jb)
+        }
+
+        return jb
+    }
+
+    def String  getParent(JobBuild jb,jobsToIgnoreArr) {
+        //   println(&apos;in1 getParent &apos;)
+        String parentKey = jb.key
+        def int parentBuildNumber
+        def AbstractProject parent
+        //   def List&lt;String&gt;  parentList = new ArrayList&lt;String&gt;();
+        println &apos;Checking parent of &apos; + jb.key
+
+        try {
+            if (jb.buildStatus == JobStatus.PENDING) {
+                printlb(&quot;No active parent was found for ${jb.projectName}&quot;)
+                return getKey(jb.projectName, jb.buildNumber)
+            }
+
+            //  curRun = curProject.getBuildByNumber(curBuildNumber)
+            //   curBuild = (AbstractBuild) curRun
+            println(&apos;Start interate causs  &apos;)
+
+
+            for (Cause c : jb.run.getCauses()) {
+                try {
+                    if (c instanceof UpstreamCause) {
+                        Cause.UpstreamCause upCause = (Cause.UpstreamCause) c;
+                        String upProjectName = upCause.getUpstreamProject();
+                        println &apos;Parent Job = &apos; + upProjectName
+                        parentBuildNumber = upCause.getUpstreamBuild();
+                        parent = instance.getItemByFullName(upProjectName, AbstractProject.class);
+                        // This can be null if this parent was started by a non-parent (ie, promotion action)
+
+                        if (parent == null) {
+                            println &apos;No parent project was found &apos;
+                            continue
+                        };  // This is not a Parent
+                        upBuild = (AbstractBuild) parent.getBuildByNumber(parentBuildNumber);
+                        if (upBuild == null) {
+                            println &apos;Could not found build &apos; + parentBuildNumber
+                            continue;
+                        }
+                        parentKey = updateJobMetadata(upProjectName, parentBuildNumber,jobsToIgnoreArr)
+
+                        jb.parent = parentKey
+    //            jobs.put(jb.key,jb)  //update parent name  = parentKey
+                    }
+                }
+                catch (Exception ex) {
+
+                    println(&apos;Failed to check cause :&apos; + ex.message)
+                    throw ex
+
+                }
+            }
+            //   println(&apos;Finished interate causs  &apos;)
+            return parentKey
+        }
+        catch (Exception ex1){
+            println &apos;Failed getting parent&apos;
+            throw ex1
+        }
+    }
+
+
+
+
+    def public JobStatus getDownStreamJobs(String  key,jobsToIgnoreArr) {
+
+        def JobStatus downstreamStatus = JobStatus.SUCCESS
+        childsList = getChilds(key,jobsToIgnoreArr)
+
+        for (String childKey in childsList){
+
+            downstreamStatus=getDownStreamJobs(childKey,jobsToIgnoreArr)
+           // if (!downstreamStatus== JobStatus.SUCCESS ) {
+            JobBuild jb = jobs.get(key)
+            jb.isPipelineJob=true
+            println &apos;Job &apos; +  jb.build  +  &apos; status is &apos; + jb.buildStatus
+            jobs.putAt(key,jb)
+               // break
+          //  }
+
+
+        }
+        return downstreamStatus
+
+    }
+    def public List&lt;String&gt; getChilds(String  key, jobsToIgnoreArr ) {
+        def List&lt;String&gt; childList=[]
+        JobBuild jb = jobs.get(key)
+
+        if (jb==null){
+            println &apos;This key has null value =&gt;&apos; + key
+            return null
+        }
+
+
+
+        childList.addAll( getTriggeredActions(jb,jobsToIgnoreArr))
+
+
+        def childs= jb.build.getProject().getDownstreamProjects()
+
+
+
+        for (Iterator&lt;AbstractProject&gt; iterator = childs.iterator(); iterator.hasNext();) {
+            AbstractProject childProject = iterator.next();
+            childBuildsMap = childProject._getRuns()
+
+            for ( childBuildNumber in childBuildsMap ) {
+
+
+                build =(Run)childBuildNumber
+
+                childKey = getKey( build.getParent().fullName,build.number)
+                updateJobMetadata(  build.getParent().fullName,build.number, jobsToIgnoreArr )
+                optionalParent = getParent(getJobMetaData(  build.getParent().fullName,build.number),jobsToIgnoreArr)
+                if (optionalParent == key){
+                    childList.add(childKey)
+                    println &quot;${childKey}   ${key} is a pipeline Job&quot;
+                    SetAsPipelineJob(childKey)
+
+
+                    break
+                }
+            }
+    //        println childProject.fullName
+        }
+
+    //    jb.childs=childList
+    //    jobs.put(key,jb)
+    //
+        return  childList
+    }
+    def List&lt;String&gt; getTriggeredActions(JobBuild jb ,jobsToIgnoreArr){
+        //Get triggered steps
+    //println &apos;actions&apos;+jb.run.getActions()
+        def  List&lt;String&gt; childs = []
+
+    //    println &apos;status=&apos; +jb.run.getBuildStatusSummary().toString()
+    //    actions=jb.run.getBuildStatusSummary().properties
+        actions=jb.build.getActions( hudson.plugins.parameterizedtrigger.BuildInfoExporterAction)
+        for (Action action in actions)
+        {
+            props = action.getProperties()
+
+
+            //Projects that were not triggered for some reason
+
+            ArrayList triggeredProjects = props.get(&apos;triggeredProjects&apos;)
+            triggeredProjects.each {
+                println (&apos;-----------triggeredProjects = &apos; + it)
+                AbstractProject triggeredProject= it
+                projectName=triggeredProject.fullName
+                SetAsPipelineJob(projectKey)
+            }
+
+            ///Update Jobs that were triggered and run
+            ArrayList triggeredBuilds = props.get(&apos;triggeredBuilds&apos;)
+            triggeredBuilds.each {
+                println (&apos;-----------triggeredBuilds = &apos; + it)
+                Run triggeredBuild = it
+                projectName=((AbstractBuild)triggeredBuild).getProject().fullName
+                projectKey =updateJobMetadata(projectName,triggeredBuild.number,jobsToIgnoreArr )
+                childs.add(projectKey)
+                SetAsPipelineJob(projectKey)
+            }
+
+        }
+        return childs
+    }
+def SetAsPipelineJob(String key){
+    println &quot;${key}   is set as a pipeline Job&quot;
+    JobBuild jb = jobs.get(key)
+    jb.isPipelineJob=true
+    jobs.putAt(key,jb)
+}
+    public class   JobBuild {
+
+        Boolean isPipelineJob,jobToIgnore;
+        String key,projectName, projectUrl,upProjectName,parent,status;
+        List&lt;String&gt; childs;
+        int depth, childNumber,buildNumber,parentBuildNumber;
+        List&lt;Integer&gt; parentChildSize;
+        AbstractProject project;
+        AbstractBuild build;
+        Run run;
+        JobStatus buildStatus;
+    }
+</groovyScriptContent>
+        <loadFilesFromMaster>false</loadFilesFromMaster>
+      </info>
+    </EnvInjectBuildWrapper>
+  </buildWrappers>
+</project>

@@ -1,0 +1,369 @@
+{
+  "conf" : [
+    {
+      "repoName" : "devops",
+      "daysToKeep" : 2,
+      "minimumToKeep" : 1,
+      "pathMatch" : "com/verint/puppet/logs",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "ci-snapshot",
+      "daysToKeep" : 4,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.1.0.15000", "end" : "15.1.0.15999"},
+        {"start" : "15.1.0.16000", "end" : "15.1.0.16999"},
+        {"start" : "15.1.0.17000", "end" : "15.1.0.17999"},
+        {"start" : "15.1.0.31000", "end" : "15.1.0.31999"},
+        {"start" : "15.1.0.35000", "end" : "15.1.0.35999"},
+        {"start" : "15.1.0.36000", "end" : "15.1.0.36999"},
+        {"start" : "15.1.0.37000", "end" : "15.1.0.37999"},
+
+        {"start" : "11.2.0.0", "end" : "11.2.0.29999"},
+        {"start" : "11.2.0.30000", "end" : "11.2.0.39999"},
+        {"start" : "11.2.0.40000", "end" : "11.2.0.49999"},
+        {"start" : "11.2.0.50000", "end" : "11.2.0.59999"}
+      ]
+    },
+    {
+      "repoName" : "ci-release",
+      "daysToKeep" : 4,
+      "minimumToKeep" : 4,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.1.0.15000", "end" : "15.1.0.15999"},
+        {"start" : "15.1.0.16000", "end" : "15.1.0.16999"},
+        {"start" : "15.1.0.17000", "end" : "15.1.0.17999"},
+        {"start" : "15.1.0.31000", "end" : "15.1.0.31999"},
+        {"start" : "15.1.0.35000", "end" : "15.1.0.35999"},
+        {"start" : "15.1.0.36000", "end" : "15.1.0.36999"},
+        {"start" : "15.1.0.37000", "end" : "15.1.0.37999"},
+
+        {"start" : "11.2.0.0", "end" : "11.2.0.29999"},
+        {"start" : "11.2.0.30000", "end" : "11.2.0.39999"},
+        {"start" : "11.2.0.40000", "end" : "11.2.0.49999"},
+        {"start" : "11.2.0.50000", "end" : "11.2.0.59999"}
+      ]
+    },
+    {
+      "repoName" : "cd-passed-pl-archive",
+      "daysToKeep" : 0,
+      "minimumToKeep" : 4,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "em-ci-release",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "em-ci-snapshot",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "cf-ci-release",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "cf-ci-snapshot",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "foundation-ci-release",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.1.0.15000", "end" : "15.1.0.15999"},
+        {"start" : "15.1.0.16000", "end" : "15.1.0.16999"},
+        {"start" : "15.1.0.17000", "end" : "15.1.0.17999"},
+        {"start" : "15.1.0.31000", "end" : "15.1.0.31999"},
+        {"start" : "15.1.0.35000", "end" : "15.1.0.35999"},
+        {"start" : "15.1.0.36000", "end" : "15.1.0.36999"},
+        {"start" : "15.1.0.37000", "end" : "15.1.0.37999"},
+
+        {"start" : "11.2.0.0", "end" : "11.2.0.29999"},
+        {"start" : "11.2.0.30000", "end" : "11.2.0.39999"},
+        {"start" : "11.2.0.40000", "end" : "11.2.0.49999"},
+        {"start" : "11.2.0.50000", "end" : "11.2.0.59999"}
+      ]
+    },
+    {
+      "repoName" : "foundation-ci-snapshot",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.1.0.15000", "end" : "15.1.0.15999"},
+        {"start" : "15.1.0.16000", "end" : "15.1.0.16999"},
+        {"start" : "15.1.0.17000", "end" : "15.1.0.17999"},
+        {"start" : "15.1.0.31000", "end" : "15.1.0.31999"},
+        {"start" : "15.1.0.35000", "end" : "15.1.0.35999"},
+        {"start" : "15.1.0.36000", "end" : "15.1.0.36999"},
+        {"start" : "15.1.0.37000", "end" : "15.1.0.37999"},
+
+        {"start" : "11.2.0.0", "end" : "11.2.0.29999"},
+        {"start" : "11.2.0.30000", "end" : "11.2.0.39999"},
+        {"start" : "11.2.0.40000", "end" : "11.2.0.49999"},
+        {"start" : "11.2.0.50000", "end" : "11.2.0.59999"}
+      ]
+    },
+    {
+      "repoName" : "wfm-ci-release",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.1.0.15000", "end" : "15.1.0.15999"},
+        {"start" : "15.1.0.16000", "end" : "15.1.0.16999"},
+        {"start" : "15.1.0.17000", "end" : "15.1.0.17999"},
+        {"start" : "15.1.0.31000", "end" : "15.1.0.31999"},
+        {"start" : "15.1.0.35000", "end" : "15.1.0.35999"},
+        {"start" : "15.1.0.36000", "end" : "15.1.0.36999"},
+        {"start" : "15.1.0.37000", "end" : "15.1.0.37999"},
+
+        {"start" : "11.2.0.0", "end" : "11.2.0.29999"},
+        {"start" : "11.2.0.30000", "end" : "11.2.0.39999"},
+        {"start" : "11.2.0.40000", "end" : "11.2.0.49999"},
+        {"start" : "11.2.0.50000", "end" : "11.2.0.59999"}
+      ]
+    },
+    {
+      "repoName" : "wfm-ci-snapshot",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.1.0.15000", "end" : "15.1.0.15999"},
+        {"start" : "15.1.0.16000", "end" : "15.1.0.16999"},
+        {"start" : "15.1.0.17000", "end" : "15.1.0.17999"},
+        {"start" : "15.1.0.31000", "end" : "15.1.0.31999"},
+        {"start" : "15.1.0.35000", "end" : "15.1.0.35999"},
+        {"start" : "15.1.0.36000", "end" : "15.1.0.36999"},
+        {"start" : "15.1.0.37000", "end" : "15.1.0.37999"},
+
+        {"start" : "11.2.0.0", "end" : "11.2.0.29999"},
+        {"start" : "11.2.0.30000", "end" : "11.2.0.39999"},
+        {"start" : "11.2.0.40000", "end" : "11.2.0.49999"},
+        {"start" : "11.2.0.50000", "end" : "11.2.0.59999"}
+      ]
+    },
+    {
+      "repoName" : "v11-2-hfr1",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "iem-ci-release",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "iem-ci-snapshot",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "ops-ci-release",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.1.0.15000", "end" : "15.1.0.15999"},
+        {"start" : "15.1.0.16000", "end" : "15.1.0.16999"},
+        {"start" : "15.1.0.17000", "end" : "15.1.0.17999"},
+        {"start" : "15.1.0.31000", "end" : "15.1.0.31999"},
+        {"start" : "15.1.0.35000", "end" : "15.1.0.35999"},
+        {"start" : "15.1.0.36000", "end" : "15.1.0.36999"},
+        {"start" : "15.1.0.37000", "end" : "15.1.0.37999"},
+
+        {"start" : "11.2.0.0", "end" : "11.2.0.29999"},
+        {"start" : "11.2.0.30000", "end" : "11.2.0.39999"},
+        {"start" : "11.2.0.40000", "end" : "11.2.0.49999"},
+        {"start" : "11.2.0.50000", "end" : "11.2.0.59999"}
+      ]
+    },
+    {
+      "repoName" : "ops-ci-snapshot",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.1.0.15000", "end" : "15.1.0.15999"},
+        {"start" : "15.1.0.16000", "end" : "15.1.0.16999"},
+        {"start" : "15.1.0.17000", "end" : "15.1.0.17999"},
+        {"start" : "15.1.0.31000", "end" : "15.1.0.31999"},
+        {"start" : "15.1.0.35000", "end" : "15.1.0.35999"},
+        {"start" : "15.1.0.36000", "end" : "15.1.0.36999"},
+        {"start" : "15.1.0.37000", "end" : "15.1.0.37999"},
+
+        {"start" : "11.2.0.0", "end" : "11.2.0.29999"},
+        {"start" : "11.2.0.30000", "end" : "11.2.0.39999"},
+        {"start" : "11.2.0.40000", "end" : "11.2.0.49999"},
+        {"start" : "11.2.0.50000", "end" : "11.2.0.59999"}
+      ]
+    },
+    {
+      "repoName" : "ci-dev-release",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.1.0.15000", "end" : "15.1.0.15999"},
+        {"start" : "15.1.0.16000", "end" : "15.1.0.16999"},
+        {"start" : "15.1.0.17000", "end" : "15.1.0.17999"},
+        {"start" : "15.1.0.31000", "end" : "15.1.0.31999"},
+        {"start" : "15.1.0.35000", "end" : "15.1.0.35999"},
+        {"start" : "15.1.0.36000", "end" : "15.1.0.36999"},
+        {"start" : "15.1.0.37000", "end" : "15.1.0.37999"},
+
+        {"start" : "11.2.0.0", "end" : "11.2.0.29999"},
+        {"start" : "11.2.0.30000", "end" : "11.2.0.39999"},
+        {"start" : "11.2.0.40000", "end" : "11.2.0.49999"},
+        {"start" : "11.2.0.50000", "end" : "11.2.0.59999"}
+      ]
+    },
+    {
+      "repoName" : "recorder-ci-release",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "ci-release-temp",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "test-repo",
+      "daysToKeep" : 2,
+      "minimumToKeep" : 1,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "rec-dev-staging",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "RM_AA_PSR",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.1.0.15000", "end" : "15.1.0.15999"},
+        {"start" : "15.1.0.16000", "end" : "15.1.0.16999"},
+        {"start" : "15.1.0.17000", "end" : "15.1.0.17999"},
+        {"start" : "15.1.0.31000", "end" : "15.1.0.31999"},
+        {"start" : "15.1.0.35000", "end" : "15.1.0.35999"},
+        {"start" : "15.1.0.36000", "end" : "15.1.0.36999"},
+        {"start" : "15.1.0.37000", "end" : "15.1.0.37999"},
+
+        {"start" : "11.2.0.0", "end" : "11.2.0.29999"},
+        {"start" : "11.2.0.30000", "end" : "11.2.0.39999"},
+        {"start" : "11.2.0.40000", "end" : "11.2.0.49999"},
+        {"start" : "11.2.0.50000", "end" : "11.2.0.59999"}
+      ]
+    },
+    {
+      "repoName" : "ci-monthlysp-release",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.1.0.15000", "end" : "15.1.0.15999"},
+        {"start" : "15.1.0.16000", "end" : "15.1.0.16999"},
+        {"start" : "15.1.0.17000", "end" : "15.1.0.17999"},
+        {"start" : "15.1.0.31000", "end" : "15.1.0.31999"},
+        {"start" : "15.1.0.35000", "end" : "15.1.0.35999"},
+        {"start" : "15.1.0.36000", "end" : "15.1.0.36999"},
+        {"start" : "15.1.0.37000", "end" : "15.1.0.37999"},
+
+        {"start" : "11.2.0.0", "end" : "11.2.0.29999"},
+        {"start" : "11.2.0.30000", "end" : "11.2.0.39999"},
+        {"start" : "11.2.0.40000", "end" : "11.2.0.49999"},
+        {"start" : "11.2.0.50000", "end" : "11.2.0.59999"}
+      ]
+    },
+    {
+      "repoName" : "automation-release",
+      "daysToKeep" : 1,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint/automation/actions",
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.1.1.2000", "end" : "15.1.1.5999"},
+        {"start" : "15.1.1.6000", "end" : "15.1.1.9999"}
+      ]
+    },
+    {
+      "repoName" : "automation-release",
+      "daysToKeep" : 1,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint/automation/scripts",
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.1.1.2000", "end" : "15.1.1.5999"},
+        {"start" : "15.1.1.6000", "end" : "15.1.1.9999"}
+      ]
+    },
+    {
+      "repoName" : "sustaining",
+      "daysToKeep" : 7,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.1.0.15000", "end" : "15.1.0.15999"},
+        {"start" : "15.1.0.16000", "end" : "15.1.0.16999"},
+        {"start" : "15.1.0.17000", "end" : "15.1.0.17999"},
+        {"start" : "15.1.0.31000", "end" : "15.1.0.31999"},
+        {"start" : "15.1.0.35000", "end" : "15.1.0.35999"},
+        {"start" : "15.1.0.36000", "end" : "15.1.0.36999"},
+        {"start" : "15.1.0.37000", "end" : "15.1.0.37999"},
+
+        {"start" : "11.2.0.0", "end" : "11.2.0.29999"},
+        {"start" : "11.2.0.30000", "end" : "11.2.0.39999"},
+        {"start" : "11.2.0.40000", "end" : "11.2.0.49999"},
+        {"start" : "11.2.0.50000", "end" : "11.2.0.59999"}
+      ]
+    }
+  ]
+}
