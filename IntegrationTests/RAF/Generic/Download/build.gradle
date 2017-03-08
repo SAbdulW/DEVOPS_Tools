@@ -3,7 +3,7 @@ buildscript {
                 repositories {
                                 maven {
                                                 //url "${artifactory_contextUrl}/remote-repos"
-                                                url "${artifactory_contextUrl}/plugins-release"
+                                                url "${artifactory_contextUrl}plugins-release"
                                                 credentials {
                                                                 username = "${artifactory_user}"
                                                                 password = "${artifactory_password}"
@@ -23,7 +23,7 @@ apply plugin: 'maven'
 repositories {
         //Resolving the artifact from the release repo, the one promoted by team
         maven {
-            url "${artifactory_contextUrl}/automation-release/"
+            url "${artifactory_contextUrl}automation-release/"
             credentials {
                 username = "${artifactory_user}"
                 password = "${artifactory_password}"
@@ -38,9 +38,9 @@ configurations {
 }
 
 dependencies {
-                rafConfig (group: 'com.verint.automation', name: 'RegressionAutomationFramework', version: "${rafVersion}", ext: 'zip')
-                rafScripts (group: 'com.verint.automation', name: 'TestsScripts', version: "${rafScriptsVersion}", ext: 'zip')
-                rafProducts (group: 'com.verint.automation', name: 'raf_products', version: "${rafProductsVersion}", ext: 'zip')
+                rafConfig (group: 'com.verint.automation', name: 'RegressionAutomationFramework', version: '2.6.0.833', ext: 'zip')
+                rafScripts (group: 'com.verint.automation', name: 'TestsScripts', version: '11.2.1.0', ext: 'zip')
+                rafProducts (group: 'com.verint.automation', name: 'raf_products', version: '11.2.1.1', ext: 'zip')
 }
 
 
@@ -68,13 +68,9 @@ task unzipPruducts(type:Copy) {
                 }
                 into LibDir    
 }
-task installRaf {
-	ant.unzip(src: project.configurations.rafConfig.find {it.name.startsWith("RegressionAutomationFramework")}, dest: "${rafdir}")
-	ant.unzip(src: project.configurations.rafScripts.find {it.name.startsWith("TestsScripts")}, dest: "${rafdir}/Regression Automation Framework/workflows")
-	ant.unzip(src: project.configurations.rafProducts.find {it.name.startsWith("raf_products")}, dest: "${rafdir}/Regression Automation Framework/lib")
-//  unzipRaf.execute()
-//  unzipPruducts.execute()
-//  unzipScripts.execute()
-
-	ant.replace(file: "${rafdir}/Regression Automation Framework/RAFReport.xsl", token: "<h3>Summary:</h3>", value: "<h3>Build #${currentVersion} - Summary:</h3>")
+task installRaf{
+ unzipRaf.execute() 
+  unzipPruducts.execute() 
+  unzipScripts.execute() 
 }
+

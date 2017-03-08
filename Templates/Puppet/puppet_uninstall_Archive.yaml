@@ -1,6 +1,0 @@
----
-wfoComponents:        
-   - ComponentName: Archive Database
-     ComponentGAV: 'com.verint.archivedb.components:SetupArchive:[RELEASE]'
-     ComponentRepo: ci-snapshot
-     ComponentActionReceive: uninstall

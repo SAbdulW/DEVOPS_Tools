@@ -19,7 +19,3 @@ Thumbs.db
 obj/
 [Rr]elease*/
 _ReSharper*/
-Scripts/GradleUtils/versionRequest/build/
-Scripts/GradleUtils/.gradle/
-Scripts/InstallBuilder/.gradle/
-Scripts/InstallBuilder/.idea/
