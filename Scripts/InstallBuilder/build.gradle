@@ -150,10 +150,11 @@ def exportKB4WFOOutput(Object jsonKBData){
     String saveFileName =  "${saveDir.getCanonicalPath()}/${jsonFileName}"
     File outFile = new File (saveFileName)
     String strKBNumbers =new JsonBuilder( jsonKBData).toPrettyString()
-
-    outFile.text = "{\n" +
-            "  \"KBNumbers\": \"${strKBNumbers}\"\n" +
-            "}"
+    outFile.text=   strKBNumbers
+//
+//    outFile.text = "{\n" +
+//            "  \"KBNumbers\": \"${strKBNumbers}\"\n" +
+//            "}"
     println ("JSON Content:\n${outFile.text}")
 }
 
