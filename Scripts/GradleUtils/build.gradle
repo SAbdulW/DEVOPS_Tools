@@ -287,13 +287,13 @@ def String generateRemoteCmd(String sPrefix, String sCommand, String iVmIP, Stri
 
 def String generateRemoteCmdPsExecNonInteractive(String sCommand, String iVmIP, String iUser, String iPw){
 
-    String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -s -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -h -d ${sCommand}"
+    String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -i -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -h -d ${sCommand}"
     return strExecCmd;
 }
 
 def String generateRemoteCmdPsExec(String sCommand, String iVmIP, String iUser, String iPw){
 
-    String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -s -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -h ${sCommand}"
+    String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -i -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -h ${sCommand}"
     return strExecCmd;
 }
 
@@ -309,7 +309,7 @@ def String generateRemoteCmdPsExecFile(String sPrefix,String sCommand, String iV
 
     logger.quiet ("GradleUtils: Batch file content to execute remotely:  (${strFileName}) \n ${strContent}")
 
-    String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -s -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -c \"${batchFile.getAbsolutePath()}\""
+    String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -i -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -c \"${batchFile.getAbsolutePath()}\""
 
     return strExecCmd;
 
