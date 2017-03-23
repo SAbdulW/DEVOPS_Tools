@@ -197,6 +197,12 @@ task runPuppetAgent(dependsOn: 'init') << {
 
 }
 
+task  extractInstalledVersionToFile ()<< {
+    def String[] yamlFiles = "${yamlFiles}".split(',');
+    yamlValidation (yamlFiles)
+    extractInstalledVersion(yamlFiles, new File("${registryExportFile}"))
+}
+
 task deployEar(dependsOn: 'init') << {
     runDeployEar (vmIP, vmUser,  vmPw)
 }
