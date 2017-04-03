@@ -5,7 +5,7 @@ wfoComponents:
      ComponentRepo: ci-release
      ComponentActionReceive: both
    - ComponentName: Enterprise Manager
-     ComponentGAV: 'com.verint.em.components:Enterprise%%20Manager:[RELEASE]'
+     ComponentGAV: 'com.verint.em.components:Enterprise%20Manager:[RELEASE]'
      ComponentRepo: ci-release
      ComponentActionReceive: both
    - ComponentName: Recorder Manager
