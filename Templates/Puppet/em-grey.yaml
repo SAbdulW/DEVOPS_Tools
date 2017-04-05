@@ -1,14 +1,14 @@
 ---
 wfoComponents:
-   - ComponentName: Impact 360 Enterprise Manager HotFix KB130044 HotFix KB130044
+   - ComponentName: I360 Enterprise Manager HotFix KB130044
      ComponentGAV: 'com.verint.em.kbs:KB130044:[RELEASE]'
-     ComponentRepo: em-ci-snapshot
+     ComponentRepo: ci-release
      ComponentActionReceive: both
-   - ComponentName: I360 Enterprise Manager Agent KB130045 HotFix KB130045
+   - ComponentName: I360 Enterprise Manager Agent HotFix KB130045
      ComponentGAV: 'com.verint.em.kbs:KB130045:[RELEASE]'
-     ComponentRepo: em-ci-snapshot
+     ComponentRepo: ci-release
      ComponentActionReceive: both
-   - ComponentName: I360 Recorder Manager KB130046 HotFix KB130046
+   - ComponentName: I360 Recorder Manager HotFix KB130046
      ComponentGAV: 'com.verint.em.kbs:KB130046:[RELEASE]'
-     ComponentRepo: em-ci-snapshot
+     ComponentRepo: ci-release
      ComponentActionReceive: both
