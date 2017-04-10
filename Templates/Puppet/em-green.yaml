@@ -1,14 +1,17 @@
 ---
 wfoComponents:
-   - ComponentName: Enterprise Manager Agent
+   - ComponentName: I360 Enterprise Manager Agent
      ComponentGAV: 'com.verint.em.components:EMA:[RELEASE]'
      ComponentRepo: ci-release
+     ComponentPC: true
      ComponentActionReceive: both
    - ComponentName: Enterprise Manager
      ComponentGAV: 'com.verint.em.components:Enterprise%20Manager:[RELEASE]'
      ComponentRepo: ci-release
+     ComponentPC: true
      ComponentActionReceive: both
    - ComponentName: Recorder Manager
      ComponentGAV: 'com.verint.em.components:RM:[RELEASE]'
      ComponentRepo: ci-release
+     ComponentPC: true
      ComponentActionReceive: both
