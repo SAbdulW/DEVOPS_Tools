@@ -9,8 +9,8 @@
     },
     {
       "repoName" : "ci-snapshot",
-      "daysToKeep" : 4,
-      "minimumToKeep" : 2,
+      "daysToKeep" : 3,
+      "minimumToKeep" : 1,
       "pathMatch" : "com/verint",
       "pathExclude" : "",
       "versionRanges" : [
@@ -31,7 +31,7 @@
     {
       "repoName" : "ci-release",
       "daysToKeep" : 4,
-      "minimumToKeep" : 4,
+      "minimumToKeep" : 2,
       "pathMatch" : "com/verint",
       "pathExclude" : "",
       "versionRanges" : [
@@ -367,6 +367,13 @@
     },
     {
       "repoName" : "gate1-int",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "gate1-master",
       "daysToKeep" : 5,
       "minimumToKeep" : 2,
       "pathMatch" : "com/verint",
