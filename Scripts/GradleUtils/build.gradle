@@ -293,15 +293,15 @@ def String generateRemoteCmd(String sPrefix, String sCommand, String iVmIP, Stri
 
 def String generateRemoteCmdPsExecNonInteractive(String sCommand, String iVmIP, String iUser, String iPw){
 
-    String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -s -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -h -d ${sCommand}"
-	//String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h -d ${sCommand}"
+    //String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -s -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -h -d ${sCommand}"
+	String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h -d ${sCommand}"
     return strExecCmd;
 }
 
 def String generateRemoteCmdPsExec(String sCommand, String iVmIP, String iUser, String iPw){
 
-    String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -s -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -h ${sCommand}"
-	//String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCommand}"
+    //String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -s -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -h ${sCommand}"
+	String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCommand}"
     return strExecCmd;
 }
 
