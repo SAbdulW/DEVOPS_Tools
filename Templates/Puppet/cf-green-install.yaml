@@ -1,0 +1,7 @@
+---
+wfoComponents:
+   - ComponentName: Customer Feedback
+     ComponentGAV: 'com.verint.cf.components:Customer%20Feedback:[RELEASE]'
+     ComponentRepo: cf-ci-release
+     ComponentPC: true
+     ComponentActionReceive: install
