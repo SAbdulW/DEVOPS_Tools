@@ -46,17 +46,17 @@ wfoComponents:
      ComponentPC: true
      ComponentActionReceive: install
    - ComponentName: Recording Compliance Reporting
-     ComponentGAV: 'com.verint.cf.components:Recorder%20Reporting:[RELEASE]'
+     ComponentGAV: 'com.verint.recorder.reporting.base.components:Recorder%20Reporting:[RELEASE]'
      ComponentRepo: ci-release
      ComponentPC: true
      ComponentActionReceive: install
    - ComponentName: Recording Compliance Reporting Languages
-     ComponentGAV: 'com.verint.cf.components:Recorder%20Reporting%20Languages:[RELEASE]'
+     ComponentGAV: 'com.verint.recorder.reporting.lang.components:Recorder%20Reporting%20Languages:[RELEASE]'
      ComponentRepo: ci-release
      ComponentPC: true
      ComponentActionReceive: install
    - ComponentName: Recording Compliance ETL
-     ComponentGAV: 'com.verint.cf.components:Recorder%20Reporting%20ETL:[RELEASE]'
+     ComponentGAV: 'com.verint.recorder.reporting.etl.components:Recorder%20Reporting%20ETL:[RELEASE]'
      ComponentRepo: ci-release
      ComponentPC: true
      ComponentActionReceive: install
