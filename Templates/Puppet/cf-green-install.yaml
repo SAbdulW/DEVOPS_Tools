@@ -15,3 +15,48 @@ wfoComponents:
      ComponentRepo: cf-ci-release
      ComponentPC: true
      ComponentActionReceive: install
+   - ComponentName: I360 Customer Feedback Cache Database
+     ComponentGAV: 'com.verint.cf.components:SSCACHEDB:[RELEASE]'
+     ComponentRepo: cf-ci-release
+     ComponentPC: true
+     ComponentActionReceive: install
+   - ComponentName: I360 CF Survey Server App
+     ComponentGAV: 'com.verint.cf.components:SurveyServerApp:[RELEASE]'
+     ComponentRepo: cf-ci-release
+     ComponentPC: true
+     ComponentActionReceive: install
+   - ComponentName: I360 CF Survey Server Role
+     ComponentGAV: 'com.verint.cf.components:SurveyServerRole:[RELEASE]'
+     ComponentRepo: cf-ci-release
+     ComponentPC: true
+     ComponentActionReceive: install
+   - ComponentName: Teleflow Server Post Installation
+     ComponentGAV: 'com.verint.cf.components:TeleflowServerPost:[RELEASE]'
+     ComponentRepo: cf-ci-release
+     ComponentPC: true
+     ComponentActionReceive: install
+   - ComponentName: I360 CF Reports
+     ComponentGAV: 'com.verint.cf.components:Report:[RELEASE]'
+     ComponentRepo: cf-ci-release
+     ComponentPC: true
+     ComponentActionReceive: install
+   - ComponentName: CF Reporting Languages
+     ComponentGAV: 'com.verint.cf.components:CFReportingLanguages:[RELEASE]'
+     ComponentRepo: cf-ci-release
+     ComponentPC: true
+     ComponentActionReceive: install
+   - ComponentName: Recording Compliance Reporting
+     ComponentGAV: 'com.verint.cf.components:Recorder%20Reporting:[RELEASE]'
+     ComponentRepo: ci-release
+     ComponentPC: true
+     ComponentActionReceive: install
+   - ComponentName: Recording Compliance Reporting Languages
+     ComponentGAV: 'com.verint.cf.components:Recorder%20Reporting%20Languages:[RELEASE]'
+     ComponentRepo: ci-release
+     ComponentPC: true
+     ComponentActionReceive: install
+   - ComponentName: Recording Compliance ETL
+     ComponentGAV: 'com.verint.cf.components:Recorder%20Reporting%20ETL:[RELEASE]'
+     ComponentRepo: ci-release
+     ComponentPC: true
+     ComponentActionReceive: install
