@@ -45,18 +45,3 @@ wfoComponents:
      ComponentRepo: cf-ci-release
      ComponentPC: false
      ComponentActionReceive: uninstall
-   - ComponentName: Recording Compliance Reporting
-     ComponentGAV: 'com.verint.recorder.reporting.base.components:Recorder%20Reporting:[RELEASE]'
-     ComponentRepo: ci-release
-     ComponentPC: false
-     ComponentActionReceive: uninstall
-   - ComponentName: Recording Compliance Reporting Languages
-     ComponentGAV: 'com.verint.recorder.reporting.lang.components:Recorder%20Reporting%20Languages:[RELEASE]'
-     ComponentRepo: ci-release
-     ComponentPC: false
-     ComponentActionReceive: uninstall
-   - ComponentName: Recording Compliance ETL
-     ComponentGAV: 'com.verint.recorder.reporting.etl.components:Recorder%20Reporting%20ETL:[RELEASE]'
-     ComponentRepo: ci-release
-     ComponentPC: false
-     ComponentActionReceive: uninstall
