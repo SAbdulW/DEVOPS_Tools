@@ -5,3 +5,13 @@ wfoComponents:
      ComponentRepo: cf-ci-release
      ComponentPC: false
      ComponentActionReceive: uninstall
+   - ComponentName: I360 CF ETL
+     ComponentGAV: 'com.verint.cf.components:ETL:[RELEASE]'
+     ComponentRepo: cf-ci-release
+     ComponentPC: false
+     ComponentActionReceive: uninstall
+   - ComponentName: CF Integration Server Plugins
+     ComponentGAV: 'com.verint.cf.components:CFIntegrationServerPlugins:[RELEASE]'
+     ComponentRepo: cf-ci-release
+     ComponentPC: false
+     ComponentActionReceive: uninstall
