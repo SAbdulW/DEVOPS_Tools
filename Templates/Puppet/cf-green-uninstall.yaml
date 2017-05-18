@@ -25,8 +25,3 @@ wfoComponents:
      ComponentRepo: cf-ci-release
      ComponentPC: false
      ComponentActionReceive: uninstall
-   - ComponentName: CF Survey Server Role
-     ComponentGAV: 'com.verint.cf.components:SurveyServerRole:[RELEASE]'
-     ComponentRepo: cf-ci-release
-     ComponentPC: false
-     ComponentActionReceive: uninstall
