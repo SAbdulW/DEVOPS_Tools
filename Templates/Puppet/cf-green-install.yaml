@@ -15,11 +15,6 @@ wfoComponents:
      ComponentRepo: cf-ci-release
      ComponentPC: true
      ComponentActionReceive: install
-   - ComponentName: I360 Customer Feedback Cache Database
-     ComponentGAV: 'com.verint.cf.components:SSCACHEDB:[RELEASE]'
-     ComponentRepo: cf-ci-release
-     ComponentPC: true
-     ComponentActionReceive: install
    - ComponentName: I360 CF Survey Server App
      ComponentGAV: 'com.verint.cf.components:SurveyServerApp:[RELEASE]'
      ComponentRepo: cf-ci-release
