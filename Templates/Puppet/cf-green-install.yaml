@@ -25,11 +25,6 @@ wfoComponents:
      ComponentRepo: cf-ci-release
      ComponentPC: true
      ComponentActionReceive: install
-   - ComponentName: Teleflow Server Post Installation
-     ComponentGAV: 'com.verint.cf.components:TeleflowServerPost:[RELEASE]'
-     ComponentRepo: cf-ci-release
-     ComponentPC: true
-     ComponentActionReceive: install
    - ComponentName: I360 CF Reports
      ComponentGAV: 'com.verint.cf.components:Report:[RELEASE]'
      ComponentRepo: cf-ci-release
