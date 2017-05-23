@@ -367,15 +367,29 @@
     },
     {
       "repoName" : "gate1-int",
-      "daysToKeep" : 5,
-      "minimumToKeep" : 2,
+      "daysToKeep" : 2,
+      "minimumToKeep" : 1,
       "pathMatch" : "com/verint",
       "pathExclude" : ""
     },
     {
       "repoName" : "gate1-master",
-      "daysToKeep" : 5,
-      "minimumToKeep" : 2,
+      "daysToKeep" : 2,
+      "minimumToKeep" : 1,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "gate0-int",
+      "daysToKeep" : 2,
+      "minimumToKeep" : 1,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "gate2-master",
+      "daysToKeep" : 2,
+      "minimumToKeep" : 1,
       "pathMatch" : "com/verint",
       "pathExclude" : ""
     }
