@@ -851,7 +851,8 @@ def boolean containsPrefixes(String srcString, String prefixes) {
     return hasIt
 }
 
-def waitAppReady (String vmIP) {
+def waitAppReady (String vmIP_NA) {
+    def vmIP="127.0.0.1"
     logger.quiet ("-----Start wait login page-----")
 	logger.quiet ("Try load login page: http://${vmIP}/wfo/control/signin")
     //waits up to 10 minutes (and checks every 500 milliseconds) for a web server on vmIP to serve up the specified URL.
