@@ -935,7 +935,7 @@ task copyFilesPrepare << {
     // Now copy everything to remoret
     ant.exec(executable: "cmd", failonerror:"false") {
         arg line: '/c'
-        arg line: "net use \\\\${vmIP}\\C\$ /user:${vmIP}\\${vmUser} ${vmPw}"             
+        arg line: "net use \\\\${vmIP}\\C\$ /user:${vmUser} ${vmPw}"
     }
 
     ant.copy (todir: "\\\\${vmIP}\\C\$\\GradleUtils",overwrite:true, verbose: true){
