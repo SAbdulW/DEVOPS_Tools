@@ -1,0 +1,7 @@
+---
+wfoComponents:
+   - ComponentName: I360 Customer Feedback HotFix KB130108
+     ComponentGAV: 'com.verint.cf.kbs.CFModule:KB130108:[RELEASE]'
+     ComponentRepo: cf-ci-release
+     ComponentPC: true
+     ComponentActionReceive: install
