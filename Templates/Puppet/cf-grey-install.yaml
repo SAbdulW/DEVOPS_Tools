@@ -1,6 +1,6 @@
 ---
 wfoComponents:
-   - ComponentName: Impact 360 Customer Feedback HotFix KB130108 HotFix KB130108
+   - ComponentName: Customer Feedback Hotfix KB130108
      ComponentGAV: 'com.verint.cf.kbs.CFModule:KB130108:[RELEASE]'
      ComponentRepo: cf-ci-release
      ComponentPC: true
