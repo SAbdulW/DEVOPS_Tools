@@ -1,7 +1,7 @@
 ---
 wfoComponents:
-   - ComponentName: Customer Feedback Hotfix KB130108
-     ComponentGAV: 'com.verint.cf.kbs.CFModule:KB130108:[RELEASE]'
+   - ComponentName: Customer Feedback Hotfix KB130288
+     ComponentGAV: 'com.verint.cf.kbs.CFModule:KB130288:[RELEASE]'
      ComponentRepo: cf-ci-release
      ComponentPC: true
      ComponentActionReceive: install
