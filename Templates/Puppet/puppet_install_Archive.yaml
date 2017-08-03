@@ -4,4 +4,4 @@ wfoComponents:
      ComponentGAV: 'com.verint.archivedb.components:SetupArchive:[RELEASE]'
      ComponentRepo: ci-snapshot
      ComponentActionReceive: install
-	 ComponentPC: true
+     ComponentPC: true
