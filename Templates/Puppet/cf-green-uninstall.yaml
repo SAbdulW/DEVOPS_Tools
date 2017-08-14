@@ -1,0 +1,37 @@
+---
+wfoComponents:
+   - ComponentName: Customer Feedback
+     ComponentGAV: 'com.verint.cf.components:Customer%20Feedback:[RELEASE]'
+     ComponentRepo: cf-ci-release
+     ComponentPC: false
+     ComponentActionReceive: uninstall
+   - ComponentName: I360 CF ETL
+     ComponentGAV: 'com.verint.cf.components:ETL:[RELEASE]'
+     ComponentRepo: cf-ci-release
+     ComponentPC: false
+     ComponentActionReceive: uninstall
+   - ComponentName: CF Integration Server Plugins
+     ComponentGAV: 'com.verint.cf.components:CFIntegrationServerPlugins:[RELEASE]'
+     ComponentRepo: cf-ci-release
+     ComponentPC: false
+     ComponentActionReceive: uninstall
+   - ComponentName: CF Survey Server App
+     ComponentGAV: 'com.verint.cf.components:SurveyServerApp:[RELEASE]'
+     ComponentRepo: cf-ci-release
+     ComponentPC: false
+     ComponentActionReceive: uninstall
+   - ComponentName: CF Survey Server Role
+     ComponentGAV: 'com.verint.cf.components:SurveyServerRole:[RELEASE]'
+     ComponentRepo: cf-ci-release
+     ComponentPC: false
+     ComponentActionReceive: uninstall
+   - ComponentName: I360 CF Reports
+     ComponentGAV: 'com.verint.cf.components:Report:[RELEASE]'
+     ComponentRepo: cf-ci-release
+     ComponentPC: false
+     ComponentActionReceive: uninstall
+   - ComponentName: CF Reporting Languages
+     ComponentGAV: 'com.verint.cf.components:CFReportingLanguages:[RELEASE]'
+     ComponentRepo: cf-ci-release
+     ComponentPC: false
+     ComponentActionReceive: uninstall

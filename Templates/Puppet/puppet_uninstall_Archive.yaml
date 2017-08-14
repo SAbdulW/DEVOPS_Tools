@@ -4,3 +4,4 @@ wfoComponents:
      ComponentGAV: 'com.verint.archivedb.components:SetupArchive:[RELEASE]'
      ComponentRepo: ci-snapshot
      ComponentActionReceive: uninstall
+     ComponentUninstallOptions: DROPDATABASE=True

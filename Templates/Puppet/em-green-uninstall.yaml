@@ -1,0 +1,17 @@
+---
+wfoComponents:
+   - ComponentName: Enterprise Manager Agent
+     ComponentGAV: 'com.verint.em.components:EMA:[RELEASE]'
+     ComponentRepo: ci-release
+     ComponentPC: false
+     ComponentActionReceive: uninstall
+   - ComponentName: Enterprise Manager
+     ComponentGAV: 'com.verint.em.components:Enterprise%20Manager:[RELEASE]'
+     ComponentRepo: ci-release
+     ComponentPC: false
+     ComponentActionReceive: uninstall
+   - ComponentName: Recorder Manager
+     ComponentGAV: 'com.verint.em.components:RM:[RELEASE]'
+     ComponentRepo: ci-release
+     ComponentPC: false
+     ComponentActionReceive: uninstall
