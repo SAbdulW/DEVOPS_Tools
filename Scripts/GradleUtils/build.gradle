@@ -1195,18 +1195,30 @@ def readRegistries( ){
     //String tree = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
     //String value = reg.readString(HKey.HKLM, tree, "ProductName");
     String branch = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
+	String branch64 = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
+	List<String> allKeys = new ArrayList<String>();		// list for all keys (32 and 64)
     List<String> keys = reg.readStringSubKeys(HKey.HKLM, branch);
+	List<String> keys64 = reg.readStringSubKeys(HKey.HKLM, branch64); // adding key for 64
+	allKeys.addAll(keys);		// adding 32 keys
+	allKeys.addAll(keys64);		// adding 64
     def registryDiffFile = new File ("$srcLogDir\\ServerVersionInstalledMismatch.log")
     registryDiffFile.write "List of mismatch of registry and ServerVersionInformation.xml\n"
 
     def fullRegistryFile = new File ("$srcLogDir\\registryExport.json")
     String fullRegistryContent = ""
     String jsonItemHeader=""
-    for (String key : keys) {
-        String valueDisplayName = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayName");
+    for (String key : allKeys) {
+        
+		String valueDisplayName = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayName");
         String valueDisplayVersion = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayVersion");
         String valuePublisher = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "Publisher");
-
+		logger.quiet("GradleUtils Test: key: ${key} AND valueDisplayName: ${valueDisplayName}");
+		if (valueDisplayName == null){
+			String valueDisplayName = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayName");
+			String valueDisplayVersion = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayVersion");
+			String valuePublisher = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "Publisher");
+		}
+		logger.quiet("GradleUtils Test: key: ${key} AND valueDisplayName: ${valueDisplayName}");		
         def component = getXMLComponent(parsedXmlObj,key)
 
         if (component !=null){
