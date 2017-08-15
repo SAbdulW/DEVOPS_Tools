@@ -514,6 +514,7 @@ def loadPuppetLog (String certName, String env  ){
 import org.yaml.snakeyaml.Yaml
 import groovy.json.JsonSlurper
 import groovy.util.XmlSlurper
+import java.util.regex.*;
 
 def extractInstalledVersion (String [] yamlFiles, File jsRegistry){
 
@@ -1243,14 +1244,16 @@ def readRegistries( ){
                     "    \"Publisher\": \"${valuePublisher}\"\n" +
                     "  }"
         }
-
-
     }
 	
 	
 	for (String key : keys64) {
         
-		logger.quiet("GradleUtils Test: looking for key: ${key} for 32bit");
+		logger.quiet("GradleUtils Test: looking for key: ${key} for 64bit");
+		//static Pattern escaper = Pattern.compile("([^a-zA-z0-9])");
+        key =  key.replaceAll( /([^a-zA-Z0-9])/, '\\\\$1' )
+		//key = key.replaceAll('$' , '\$');
+		logger.quiet("GradleUtils Test: key after replacement : ${key}");
 		valueDisplayName = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayName");
 		valueDisplayVersion = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayVersion");
 		valuePublisher = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "Publisher");
