@@ -1207,19 +1207,13 @@ def readRegistries( ){
     def fullRegistryFile = new File ("$srcLogDir\\registryExport.json")
     String fullRegistryContent = ""
     String jsonItemHeader=""
-    for (String key : allKeys) {
-        
+    for (String key : keys) {
+        logger.quiet("GradleUtils Test: looking for key: ${key} in Wow6432Node");
 		String valueDisplayName = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayName");
         String valueDisplayVersion = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayVersion");
         String valuePublisher = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "Publisher");
 		logger.quiet("GradleUtils Test: key: ${key} AND valueDisplayName: ${valueDisplayName}");
-		if (valueDisplayName == null){
-			logger.quiet("GradleUtils Test: key: ${key} AND valueDisplayName: ${valueDisplayName} not found in Wow6432Node");
-			valueDisplayName = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayName");
-			valueDisplayVersion = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayVersion");
-			valuePublisher = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "Publisher");
-			logger.quiet("GradleUtils Test: key: ${key} AND valueDisplayName: ${valueDisplayName}");	
-		}			
+	
         def component = getXMLComponent(parsedXmlObj,key)
 
         if (component !=null){
@@ -1252,7 +1246,48 @@ def readRegistries( ){
 
 
     }
+	
+	
+	for (String key : keys64) {
+        
+		logger.quiet("GradleUtils Test: looking for key: ${key} for 32bit");
+		valueDisplayName = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayName");
+		valueDisplayVersion = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayVersion");
+		valuePublisher = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "Publisher");
+		logger.quiet("GradleUtils Test: key: ${key} AND valueDisplayName: ${valueDisplayName}");				
+        def component = getXMLComponent(parsedXmlObj,key)
 
+        if (component !=null){
+            if ((component.@name != valueDisplayName) || (component.@version != valueDisplayVersion)){
+                registryDiffFile << "Component id=${key} ServerVeversion (${component.@name}, ${component.@version}) != Registry (${valueDisplayName},${valueDisplayVersion})\n"
+                logger.quiet("Component id=${key} ServerVeversion (${component.@name}, ${component.@version}) != Registry (${valueDisplayName},${valueDisplayVersion})")
+            }
+        }else {
+            if (valuePublisher!=null && valuePublisher.contains("Impact")){
+                registryDiffFile << "**************Not exist id=${key} Registry (${valueDisplayName},${valueDisplayVersion}) Publisher: ${valuePublisher}\n"
+                logger.quiet("**************Not exist id=${key} Registry (${valueDisplayName},${valueDisplayVersion}) Publisher: ${valuePublisher}")
+            }
+        }
+
+        if (fullRegistryContent=="") {
+            fullRegistryContent ="  \"${key}\": {\n" +
+                    "    \"ComponentName\": \"${valueDisplayName}\",\n" +
+                    "    \"InstalledVersion\": \"${valueDisplayVersion}\",\n" +
+                    "    \"Key\": \"${key}\",\n" +
+                    "    \"Publisher\": \"${valuePublisher}\"\n" +
+                    "  }"
+        }else{
+            fullRegistryContent =fullRegistryContent +",\n  \"${key}\": {\n" +
+                    "    \"ComponentName\": \"${valueDisplayName}\",\n" +
+                    "    \"InstalledVersion\": \"${valueDisplayVersion}\",\n" +
+                    "    \"Key\": \"${key}\",\n" +
+                    "    \"Publisher\": \"${valuePublisher}\"\n" +
+                    "  }"
+        }
+
+
+    }
+	
     fullRegistryFile.write "{\n${fullRegistryContent}\n}"
 
 }
