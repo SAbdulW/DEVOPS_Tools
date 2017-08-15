@@ -1208,11 +1208,16 @@ def readRegistries( ){
     def fullRegistryFile = new File ("$srcLogDir\\registryExport.json")
     String fullRegistryContent = ""
     String jsonItemHeader=""
+	
+	String valueDisplayName = "";
+	String valueDisplayVersion = "";
+	String valuePublisher = "";
+	
     for (String key : keys) {
         logger.quiet("GradleUtils Test: looking for key: ${key} in Wow6432Node");
-		String valueDisplayName = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayName");
-        String valueDisplayVersion = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayVersion");
-        String valuePublisher = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "Publisher");
+		valueDisplayName = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayName");
+        valueDisplayVersion = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayVersion");
+        valuePublisher = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "Publisher");
 		logger.quiet("GradleUtils Test: key: ${key} AND valueDisplayName: ${valueDisplayName}");
 	
         def component = getXMLComponent(parsedXmlObj,key)
@@ -1251,7 +1256,7 @@ def readRegistries( ){
         
 		logger.quiet("GradleUtils Test: looking for key: ${key} for 64bit");
 		//static Pattern escaper = Pattern.compile("([^a-zA-z0-9])");
-        key =  key.replaceAll( /([^a-zA-Z0-9])/, '\\\\$1' )
+        //key =  key.replaceAll( /([^a-zA-Z0-9])/, '\\\\$1' )
 		//key = key.replaceAll('$' , '\$');
 		logger.quiet("GradleUtils Test: key after replacement : ${key}");
 		valueDisplayName = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayName");
