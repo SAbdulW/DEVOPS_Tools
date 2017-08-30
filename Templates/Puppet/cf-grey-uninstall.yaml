@@ -5,13 +5,3 @@ wfoComponents:
      ComponentRepo: cf-ci-release
      ComponentPC: false
      ComponentActionReceive: uninstall
-   - ComponentName: I360 Survey Server App HotFix KB130291
-     ComponentGAV: 'com.verint.cf.kbs.CFSurveyServersApp:KB130291:[RELEASE]'
-     ComponentRepo: cf-ci-release
-     ComponentPC: false
-     ComponentActionReceive: uninstall
-   - ComponentName: I360 Teleflow HotFix KB130293
-     ComponentGAV: 'com.verint.cf.kbs.CFTeleflowServer:KB130293:[RELEASE]'
-     ComponentRepo: cf-ci-release
-     ComponentPC: false
-     ComponentActionReceive: uninstall
