@@ -1375,7 +1375,7 @@ def copyProductionLogs (String srcDir, String dstDir){
 
 
 def updateEnvParamInYaml(String strPath){
-    File fYaml = new File ("strPath")
+    File fYaml = new File ("${strPath}")
     String sourceContent = fYaml.text
 
     String strDataDir=System.getenv("IMPACT360SOFTWAREDIR")
