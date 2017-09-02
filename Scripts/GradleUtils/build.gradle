@@ -887,7 +887,7 @@ def waitImpact360DirInfoReady(String sFileName ){
     boolean rtnSuccess = true
     //waits up to 10 minutes (and checks every 500 milliseconds) for a web server on vmIP to serve up the specified URL.
     ant.waitfor (maxwait:"10", maxwaitunit:"minute", checkevery:"10000", timeoutproperty:"file.timeout") {
-        available (file="${sFileName}")
+        available (file:"${sFileName}")
     }
     try {
         ant.fail (message:"Can't find", if:"file.timeout")
