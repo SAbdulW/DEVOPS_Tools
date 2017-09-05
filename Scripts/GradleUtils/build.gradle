@@ -712,8 +712,8 @@ def updateRequestedVersion (String sComponentGAV, String sComponentRepo, String 
 
 def loadJsonObject(File jsonFile) {
     logger.info (jsonFile.text)
-
-    def InputJSON = new JsonSlurper().parseText(jsonFile.text)
+    String sourceContent = sourceFile.getText("UTF-8")
+    def InputJSON = new JsonSlurper().parseText(sourceContent)
 
     return InputJSON
 }
@@ -1450,7 +1450,6 @@ def createEnvJsonFile(String strPath){
     File fJson = new File (strPath)
     fJson.text = strContent
     logger.quiet(fJson.text)
-    logger.info(fJson.text)
 }
 
 def renameEnvJsonFile (String envJsonPathTemp, String  envJsonPath){
