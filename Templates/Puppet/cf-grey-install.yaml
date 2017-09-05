@@ -15,7 +15,7 @@ wfoComponents:
      ComponentRepo: cf-ci-release
      ComponentPC: true
      ComponentActionReceive: both
-   - ComponentName: Customer Feedback Hotfix KB130288
+   - ComponentName: I360 Customer Feedback Hotfix KB130288
      ComponentGAV: 'com.verint.cf.kbs.CFModule:KB130288:[RELEASE]'
      ComponentRepo: cf-ci-release
      ComponentPC: true
