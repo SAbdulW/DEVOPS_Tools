@@ -1447,8 +1447,12 @@ def createEnvJsonFile(String strPath){
             "  \"IMPACT360DATADIR\": \"${strDataDir}\"\n" +
             "  \n" +
             "}"
-    File fJson = new File (strPath)
-    fJson.text = strContent
+    File fJsonTemp = new File("env.json.temp")
+    fJsonTemp.text = strContent
+
+
+    File fJson = new File (strPath).write(fJsonTemp,'UTF-8')
+
     logger.quiet(fJson.text)
 }
 
