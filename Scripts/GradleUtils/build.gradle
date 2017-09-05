@@ -711,7 +711,7 @@ def updateRequestedVersion (String sComponentGAV, String sComponentRepo, String 
 
 
 def loadJsonObject(File jsonFile) {
-    logger.info (jsonFile.text)
+    logger.info ("loadJsonObject: ${jsonFile.text}")
     String sourceContent = jsonFile.getText("UTF-8")
     def InputJSON = new JsonSlurper().parseText(sourceContent)
 
@@ -1014,14 +1014,24 @@ task runLocalDeployController(dependsOn: 'init') << {
     runDeployFromTestBench("$vmIP","$vmUser","$vmPw")
 
     String sFileName="\\\\${vmIP}\\C\$\\GradleUtils\\${envJsonFileName}"
-    waitImpact360DirInfoReady(sFileName)
-    Object envJson = loadJsonObject(new File(sFileName))
+
+    String envDataPath ="\\\\${vmIP}\\C\$\\GradleUtils\\${envDataFileName}"
+    String envSoftPath ="\\\\${vmIP}\\C\$\\GradleUtils\\${envSoftFileName}"
+
+    waitImpact360DirInfoReady(envDataPath)
+    waitImpact360DirInfoReady(envSoftPath)
+
+    String strImpact360DataDir= new File(envDataPath).text
+    String strImpact360SoftDir= new File(envSoftPath).text
+
+    logger.info ("Impact360Dir got from client: strImpact360DataDir=${strImpact360DataDir} , strImpact360SoftDir=${strImpact360SoftDir} ")
+
     yamlIndex = 0;
     yamlSuffix = "";
 
     for (String yamlSrcPath : yamlFiles){
         logger.quiet ("GradleUtils: Update  = ${yamlSrcPath}")
-        updateEnvParamInYaml( "${yamlDestPath}\\${certname}${yamlSuffix}.yaml", envJson)
+        updateEnvParamInYaml( "${yamlDestPath}\\${certname}${yamlSuffix}.yaml", strImpact360DataDir, strImpact360SoftDir)
         yamlIndex ++;
         yamlSuffix = "_${yamlIndex}"
     }
@@ -1059,13 +1069,10 @@ task runLocalDeploy() << {
 
     noticeLog("GradleUtils: Creating envJson\n"         ,fLogStatus)
 
-    String envJsonPath = "${projectDir}\\${envJsonFileName}"
+    String envDataPath = "${projectDir}\\${envDataFileName}"
+    String envSoftPath = "${projectDir}\\${envSoftFileName}"
 
-    String envJsonPathTemp = "${projectDir}\\temp_${envJsonFileName}"
-
-    createEnvJsonFile envJsonPathTemp
-    renameEnvJsonFile envJsonPathTemp,envJsonPath
-
+    createEnvJsonFiles(envDataPath,envSoftPath)
 
 
     noticeLog("GradleUtils: Execution in the Testbench\n"         ,fLogStatus)
@@ -1418,12 +1425,12 @@ def copyProductionLogs (String srcDir, String dstDir){
 }
 
 
-def updateEnvParamInYaml(String strPath, Object jsonObj){
+def updateEnvParamInYaml(String strPath, String strImpact360DataDir, String strImpact360SoftDir){
     File fYaml = new File ("${strPath}")
     String sourceContent = fYaml.text
 
-    String strDataDir=env.IMPACT360DATADIR
-    String strSoftwareDir=env.IMPACT360SOFTWAREDIR
+    String strDataDir=strImpact360DataDir
+    String strSoftwareDir=strImpact360SoftDir
     if (strDataDir=="" || !strDataDir) strDataDir="${impact360DataDir}"
     if (strSoftwareDir=="" || !strSoftwareDir) strSoftwareDir = "${impact360SoftwareDir}"
 
@@ -1451,6 +1458,21 @@ def createEnvJsonFile(String strPath){
     fJson.write(strContent,'UTF-8')
     logger.quiet(fJson.text)
 }
+
+def createEnvJsonFiles(String strDataPath, String strSoftPath){
+
+    String strDataDir=System.getenv("IMPACT360DATADIR")
+    String strSoftwareDir=System.getenv("IMPACT360SOFTWAREDIR")
+
+    File fData = new File(strDataPath)
+    fData.text = strDataDir
+
+    File fSoft = new File(strSoftPath)
+    fSoft.text = strSoftwareDir
+
+}
+
+
 
 def renameEnvJsonFile (String envJsonPathTemp, String  envJsonPath){
     ant.copy (file: "${envJsonPathTemp}", tofile: "${envJsonPath}", verbose: true)
