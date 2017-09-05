@@ -1024,6 +1024,10 @@ task runLocalDeployController(dependsOn: 'init') << {
     String strImpact360DataDir= new File(envDataPath).text
     String strImpact360SoftDir= new File(envSoftPath).text
 
+    strImpact360DataDir =strImpact360DataDir.replaceAll("\\", "\\\\")
+    strImpact360SoftDir =strImpact360SoftDir.replaceAll("\\", "\\\\")
+
+
     logger.info ("Impact360Dir got from client: strImpact360DataDir=${strImpact360DataDir} , strImpact360SoftDir=${strImpact360SoftDir} ")
 
     yamlIndex = 0;
