@@ -711,6 +711,8 @@ def updateRequestedVersion (String sComponentGAV, String sComponentRepo, String 
 
 
 def loadJsonObject(File jsonFile) {
+    logger.info (jsonFile.text)
+
     def InputJSON = new JsonSlurper().parseText(jsonFile.text)
 
     return InputJSON
@@ -1058,7 +1060,13 @@ task runLocalDeploy() << {
     noticeLog("GradleUtils: Creating envJson\n"         ,fLogStatus)
 
     String envJsonPath = "${projectDir}\\${envJsonFileName}"
-    createEnvJsonFile envJsonPath
+
+    String envJsonPathTemp = "${projectDir}\\temp_${envJsonFileName}"
+
+    createEnvJsonFile envJsonPathTemp
+    renameEnvJsonFile envJsonPathTemp,envJsonPath
+
+
 
     noticeLog("GradleUtils: Execution in the Testbench\n"         ,fLogStatus)
 
@@ -1442,6 +1450,11 @@ def createEnvJsonFile(String strPath){
     File fJson = new File (strPath)
     fJson.text = strContent
     logger.quiet(fJson.text)
+    logger.info(fJson.text)
+}
+
+def renameEnvJsonFile (String envJsonPathTemp, String  envJsonPath){
+    ant.copy (file: "${envJsonPathTemp}", tofile: "${envJsonPath}", verbose: true)
 }
 
 artifactoryPublish.dependsOn zipLogs
