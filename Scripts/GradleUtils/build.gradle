@@ -720,7 +720,6 @@ def updateRequestedVersion (String sComponentGAV, String sComponentRepo, String 
 
 
 def loadJsonObject(File jsonFile) {
-    logger.info ("loadJsonObject: ${jsonFile.text}")
     String sourceContent = jsonFile.getText("UTF-8")
     def InputJSON = new JsonSlurper().parseText(sourceContent)
 
