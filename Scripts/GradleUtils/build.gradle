@@ -310,9 +310,12 @@ def String generateRemoteCmdPsExecFile(String sPrefix,String sCommand, String iV
     //GEnerate the bat file
     File batchFile = File.createTempFile("puppet",".bat");
 
+    String strDataDir=System.getenv("IMPACT360DATADIR")
+    if (!strDataDir) strDataDir="${impact360DataDir}"
+
     String strFileName= batchFile.getName()
     String strShortName= strFileName.replaceFirst(~/\.[^\.]+$/, '')
-    String strContent = sCommand + " 1>> C:\\Impact360\\Data\\Logs\\${sPrefix}_${strShortName}.log 2>&1"
+    String strContent = sCommand + " 1>> ${strDataDir}\\Logs\\${sPrefix}_${strShortName}.log 2>&1"
     batchFile.write(strContent)
 
     logger.quiet ("GradleUtils: Batch file content to execute remotely:  (${strFileName}) \n ${strContent}")
@@ -327,10 +330,12 @@ def String generateLocalCmdFile(String sPrefix,String sCommand, String iVmIP, St
 
     //GEnerate the bat file
     File batchFile = File.createTempFile("puppet",".bat");
+    String strDataDir=System.getenv("IMPACT360DATADIR")
+    if (!strDataDir) strDataDir="${impact360DataDir}"
 
     String strFileName= batchFile.getName()
     String strShortName= strFileName.replaceFirst(~/\.[^\.]+$/, '')
-    sCommand =  sCommand + " 1>> C:\\Impact360\\Data\\Logs\\${sPrefix}_${strShortName}.log 2>&1"
+    sCommand =  sCommand + " 1>> ${strDataDir}\\Logs\\${sPrefix}_${strShortName}.log 2>&1"
 
     return sCommand;
 
@@ -357,7 +362,11 @@ def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvir
 def runDeployEar (String iVmIP, String iUser, String iPw) {
     String sCmd
     // CommandLine to execute in the agent
-    sCmd = "%windir%\\system32\\cscript.exe c:\\impact360\\software\\WFODeployer\\DeployWfo.vbs WLSAdmin pumpkin1 true true"
+    String strSoftwareDir=System.getenv("IMPACT360SOFTWAREDIR")
+    if (!strSoftwareDir) strSoftwareDir = "${impact360SoftwareDir}"
+
+
+    sCmd = "%windir%\\system32\\cscript.exe ${strSoftwareDir}\\WFODeployer\\DeployWfo.vbs WLSAdmin pumpkin1 true true"
 
     String rtnCode = runRemote ("runDeployEar",sCmd, iVmIP,iUser,iPw)
     logger.quiet ("Ear Deployment: exitCode (${rtnCode})")
@@ -711,7 +720,8 @@ def updateRequestedVersion (String sComponentGAV, String sComponentRepo, String 
 
 
 def loadJsonObject(File jsonFile) {
-    def InputJSON = new JsonSlurper().parseText(jsonFile.text)
+    String sourceContent = jsonFile.getText("UTF-8")
+    def InputJSON = new JsonSlurper().parseText(sourceContent)
 
     return InputJSON
 }
@@ -881,6 +891,23 @@ def waitArtifactReady (String aURL) {
     return    rtnSuccess
 }
 
+def waitImpact360DirInfoReady(String sFileName ){
+
+    logger.quiet ("-----Waiting for sFileName available ${sFileName} : -----")
+    boolean rtnSuccess = true
+    //waits up to 10 minutes (and checks every 500 milliseconds) for a web server on vmIP to serve up the specified URL.
+    ant.waitfor (maxwait:"10", maxwaitunit:"minute", checkevery:"10000", timeoutproperty:"file.timeout") {
+        available (file:"${sFileName}")
+    }
+    try {
+        ant.fail (message:"Can't find", if:"file.timeout")
+    }catch (Exception e){
+        rtnSuccess = false
+    }
+
+    return    rtnSuccess
+}
+
 def yamlValidation(String [] yamlFiles){
     yamlFiles.each { yamlFile ->
         def yaml = new Yaml()
@@ -994,6 +1021,35 @@ task runLocalDeployController(dependsOn: 'init') << {
 
     runDeployFromTestBench("$vmIP","$vmUser","$vmPw")
 
+    String sFileName="\\\\${vmIP}\\C\$\\GradleUtils\\${envJsonFileName}"
+
+    String envDataPath ="\\\\${vmIP}\\C\$\\GradleUtils\\${envDataFileName}"
+    String envSoftPath ="\\\\${vmIP}\\C\$\\GradleUtils\\${envSoftFileName}"
+
+    waitImpact360DirInfoReady(envDataPath)
+    waitImpact360DirInfoReady(envSoftPath)
+
+    String strImpact360DataDir= new File(envDataPath).text
+    String strImpact360SoftDir= new File(envSoftPath).text
+
+    strImpact360DataDir =strImpact360DataDir.replaceAll("\\\\", "\\\\\\\\");
+    strImpact360SoftDir =strImpact360SoftDir.replaceAll("\\\\", "\\\\\\\\");
+
+    logger.info ("Impact360Dir got from client: strImpact360DataDir=${strImpact360DataDir} , strImpact360SoftDir=${strImpact360SoftDir} ")
+
+    yamlIndex = 0;
+    yamlSuffix = "";
+
+    for (String yamlSrcPath : yamlFiles){
+        logger.quiet ("GradleUtils: Update  = ${yamlSrcPath}")
+        updateEnvParamInYaml( "${yamlDestPath}\\${certname}${yamlSuffix}.yaml", strImpact360DataDir, strImpact360SoftDir)
+        yamlIndex ++;
+        yamlSuffix = "_${yamlIndex}"
+    }
+
+
+
+
 
     //WAIT for the result
 
@@ -1021,6 +1077,14 @@ task runLocalDeploy() << {
 
     File fLogStatus = new File ("${projectDir}\\${icertname}_runLocal.log")
     fLogStatus.text ="*******************DEPLLOY GRADLE LOG **********\n"
+
+    noticeLog("GradleUtils: Creating envJson\n"         ,fLogStatus)
+
+    String envDataPath = "${projectDir}\\${envDataFileName}"
+    String envSoftPath = "${projectDir}\\${envSoftFileName}"
+
+    createEnvJsonFiles(envDataPath,envSoftPath)
+
 
     noticeLog("GradleUtils: Execution in the Testbench\n"         ,fLogStatus)
 
@@ -1056,6 +1120,8 @@ task runLocalDeploy() << {
     for (String yamlSrcPath : yamlFiles){
         if ((errRtnErrorCode=="2") ||(errRtnErrorCode=="")) {
             logger.quiet ("GradleUtils: run the setting for Yaml = ${yamlSrcPath}")
+            logger.quiet ("GradleUtils: Update the Yaml file at ${yamlDestPath}\\${certname}${yamlSuffix}.yaml")
+
             errRtnErrorCode=runPuppetAgentCommand("$puppetServer", "${certname}${yamlSuffix}","$environment","$vmIP","$vmUser","$vmPw")
             logger.quiet ("GradleUtils: ErrorCode - ${yamlSrcPath} - ${errRtnErrorCode}")
             yamlIndex ++;
@@ -1128,7 +1194,7 @@ def runLogCollectionLocal (String strCertName, String strEnv){
     //C:\Impact360\WFOPuppet\install\gradle\gradlew.bat runG aP -Pcertname=ci_wfo_env_1459267658362 -Penvironment=ci_wfo_env > C:\Impact360\WFOPuppet\logs\gradlelog.log
 
     String sCmd
-    sCmd = "C:\\Impact360\\WFOPuppet\\install\\gradle\\gradlew.bat runG aP -Pcertname=${strCertName} -Penvironment=${strEnv}"
+    sCmd = "${srcRootDir}\\WFOPuppet\\install\\gradle\\gradlew.bat runG aP -Pcertname=${strCertName} -Penvironment=${strEnv}"
 
     String rtnCode = runRemote ("runLogCollectionLocal",sCmd, "$vmIP","$vmUser","$vmPw")
 
@@ -1144,7 +1210,8 @@ def runLogCollectionLocal (String strCertName, String strEnv){
 def generateGradleRemote(String strCertName){
     //gradlew.bat -i --refresh-dependencies runPA -PcurrentVersion=15.1.0.10049 -PMasterBuildVersion=15.1.0.10049 -PvmIP=10.156.16.202 -PyamlFiles=puppet.yaml -PdeployEarFile=true -PchkApp=true -PwfoService=WFO_ProductionDomain_ProductionServer "-PstopStartservices=WatchDog,MinerTomcat,RecorderTomcat,Recorder Alarm Service" -PfillVersionRange=false
 
-    String sCmd = "cd /D C:\\GradleUtils\n" +
+    String sCmd = "if not exist ${srcRootDir} mkdir ${srcRootDir} \n" +
+            "cd /D C:\\GradleUtils\n" +
             "cmd /c gradlew.bat -i runLocalDeploy aP -PcurrentVersion=${currentVersion} -PMasterBuildVersion=${MasterBuildVersion} -PvmIP=${vmIP} -PyamlFiles=${yamlFiles} -PdeployEarFile=${deployEarFile} -PchkApp=${chkApp} -PwfoService=${wfoService} \"-PstopStartservices=${stopStartservices}\" -PfillVersionRange=false -PremoteCmd=localfile -Picertname=${strCertName} 1> C:\\GradleUtils\\gradlelogDeploy.log 2>&1"
 
     File cmdFile = new File ("${projectDir}\\runGradleLocalDeploy.bat")
@@ -1191,7 +1258,12 @@ import com.github.sarxos.winreg.WindowsRegistry;
 // List of function that we can use
 
 def readRegistries( ){
-    def parsedXmlObj =loadXML ("${srcLogInstallXML}")
+    String strDataDir=System.getenv("IMPACT360DATADIR")
+    String strSoftwareDir=System.getenv("IMPACT360SOFTWAREDIR")
+    if (!strDataDir) strDataDir="${impact360DataDir}"
+    if (!strSoftwareDir) strSoftwareDir = "${impact360SoftwareDir}"
+
+    def parsedXmlObj =loadXML ("${strSoftwareDir}\\${srcLogInstallXML}")
     WindowsRegistry reg = WindowsRegistry.getInstance();
     //String tree = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
     //String value = reg.readString(HKey.HKLM, tree, "ProductName");
@@ -1320,20 +1392,24 @@ def getXMLComponent(Object parsedXML, String id){
 
 task zipLogs() <<{
     String srcDir = "$srcLogDir"
+    String strDataDir=System.getenv("IMPACT360DATADIR")
+    String strSoftwareDir=System.getenv("IMPACT360SOFTWAREDIR")
+    if (!strDataDir) strDataDir="${impact360DataDir}"
+    if (!strSoftwareDir) strSoftwareDir = "${impact360SoftwareDir}"
 
     logger.quiet("Zipping the log from: ${srcDir} from puppet client")
 
-    ant.copy (todir:"${srcDir}", file:"${srcLogInstallXML}", failonerror: false)
+    ant.copy (todir:"${srcDir}", file:"${strSoftwareDir}\\${srcLogInstallXML}", failonerror: false)
     //Copy the production logs
-    copyProductionLogs "${impact360Dir}\\Data","${srcDir}\\productionLogs"
+    copyProductionLogs "${strDataDir}","${srcDir}\\productionLogs"
 
     ant.copy (file: "${projectDir}\\${icertname}_runLocal.log", tofile: "${srcLogDir}\\${icertname}_runLocal.log", verbose: true)
     ant.copy (file: "${projectDir}\\gradlelogDeploy.log", tofile: "${srcLogDir}\\gradlelogDeploy.log", verbose: true)
 
     //Check the buildear.log
-    File fBuildear = new File ("C:\\Impact360\\Software\\ProductionServer\\weblogic\\Impact360\\buildear.log")
+    File fBuildear = new File ("${strSoftwareDir}\\ProductionServer\\weblogic\\Impact360\\buildear.log")
     if (fBuildear.exists()){
-        ant.copy (file: "C:\\Impact360\\Software\\ProductionServer\\weblogic\\Impact360\\buildear.log", tofile: "${srcLogDir}\\buildear.log", verbose: true, failonerror: false)
+        ant.copy (file: "${strSoftwareDir}\\ProductionServer\\weblogic\\Impact360\\buildear.log", tofile: "${srcLogDir}\\buildear.log", verbose: true, failonerror: false)
     }
     //logger.quiet ("GradlePuppetClient: getting the installed versions from the certname ${certname}")
     logger.quiet ("Zipping: gett and export the registry ")
@@ -1357,6 +1433,60 @@ def copyProductionLogs (String srcDir, String dstDir){
             include(name: "Logs\\**\\*.log")
         }
     }
+}
+
+
+def updateEnvParamInYaml(String strPath, String strImpact360DataDir, String strImpact360SoftDir){
+    File fYaml = new File ("${strPath}")
+    String sourceContent = fYaml.text
+
+    String strDataDir=strImpact360DataDir
+    String strSoftwareDir=strImpact360SoftDir
+    if (strDataDir=="" || !strDataDir) strDataDir="${impact360DataDir}"
+    if (strSoftwareDir=="" || !strSoftwareDir) strSoftwareDir = "${impact360SoftwareDir}"
+
+    String strToBeReplaceWith = "---\ndata_dir   : '${strDataDir}'\n" +
+            "software_dir   : '${strSoftwareDir}'\n\n"
+    sourceContent=sourceContent.replaceAll("---",strToBeReplaceWith)
+
+    fYaml.text = sourceContent
+
+    logger.quiet(fYaml.text)
+
+}
+
+def createEnvJsonFile(String strPath){
+
+    String strDataDir=System.getenv("IMPACT360DATADIR")
+    String strSoftwareDir=System.getenv("IMPACT360SOFTWAREDIR")
+
+    String strContent = "{\n" +
+            "  \"IMPACT360SOFTWAREDIR\": \"${strSoftwareDir}\",\n" +
+            "  \"IMPACT360DATADIR\": \"${strDataDir}\"\n" +
+            "  \n" +
+            "}"
+    File fJson = new File(strPath)
+    fJson.write(strContent,'UTF-8')
+    logger.quiet(fJson.text)
+}
+
+def createEnvJsonFiles(String strDataPath, String strSoftPath){
+
+    String strDataDir=System.getenv("IMPACT360DATADIR")
+    String strSoftwareDir=System.getenv("IMPACT360SOFTWAREDIR")
+
+    File fData = new File(strDataPath)
+    fData.text = strDataDir
+
+    File fSoft = new File(strSoftPath)
+    fSoft.text = strSoftwareDir
+
+}
+
+
+
+def renameEnvJsonFile (String envJsonPathTemp, String  envJsonPath){
+    ant.copy (file: "${envJsonPathTemp}", tofile: "${envJsonPath}", verbose: true)
 }
 
 artifactoryPublish.dependsOn zipLogs
