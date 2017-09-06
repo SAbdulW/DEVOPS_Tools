@@ -1,7 +1,17 @@
 ---
 wfoComponents:
-   - ComponentName: I360 Customer Feedback Hotfix KB130288
-     ComponentGAV: 'com.verint.cf.kbs.CFModule:KB130288:[RELEASE]'
+   - ComponentName: I360 CF ETL HotFix KB130286
+     ComponentGAV: 'com.verint.cf.kbs.CFETL:KB130286:[RELEASE]'
+     ComponentRepo: cf-ci-release
+     ComponentPC: true
+     ComponentActionReceive: both
+   - ComponentName: I360 Survey Server App HotFix KB130291
+     ComponentGAV: 'com.verint.cf.kbs.CFSurveyServersApp:KB130291:[RELEASE]'
+     ComponentRepo: cf-ci-release
+     ComponentPC: true
+     ComponentActionReceive: both
+   - ComponentName: I360 Teleflow HotFix KB130293
+     ComponentGAV: 'com.verint.cf.kbs.CFTeleflowServer:KB130293:[RELEASE]'
      ComponentRepo: cf-ci-release
      ComponentPC: true
      ComponentActionReceive: both
