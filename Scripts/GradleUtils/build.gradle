@@ -310,9 +310,12 @@ def String generateRemoteCmdPsExecFile(String sPrefix,String sCommand, String iV
     //GEnerate the bat file
     File batchFile = File.createTempFile("puppet",".bat");
 
+    String strDataDir=System.getenv("IMPACT360DATADIR")
+    if (!strDataDir) strDataDir="${impact360DataDir}"
+
     String strFileName= batchFile.getName()
     String strShortName= strFileName.replaceFirst(~/\.[^\.]+$/, '')
-    String strContent = sCommand + " 1>> C:\\Impact360\\Data\\Logs\\${sPrefix}_${strShortName}.log 2>&1"
+    String strContent = sCommand + " 1>> ${strDataDir}\\Logs\\${sPrefix}_${strShortName}.log 2>&1"
     batchFile.write(strContent)
 
     logger.quiet ("GradleUtils: Batch file content to execute remotely:  (${strFileName}) \n ${strContent}")
@@ -327,10 +330,12 @@ def String generateLocalCmdFile(String sPrefix,String sCommand, String iVmIP, St
 
     //GEnerate the bat file
     File batchFile = File.createTempFile("puppet",".bat");
+    String strDataDir=System.getenv("IMPACT360DATADIR")
+    if (!strDataDir) strDataDir="${impact360DataDir}"
 
     String strFileName= batchFile.getName()
     String strShortName= strFileName.replaceFirst(~/\.[^\.]+$/, '')
-    sCommand =  sCommand + " 1>> C:\\Impact360\\Data\\Logs\\${sPrefix}_${strShortName}.log 2>&1"
+    sCommand =  sCommand + " 1>> ${strDataDir}\\Logs\\${sPrefix}_${strShortName}.log 2>&1"
 
     return sCommand;
 
@@ -357,7 +362,11 @@ def runPuppetAgentCommand (String iPuppetServer, String iCertName, String iEnvir
 def runDeployEar (String iVmIP, String iUser, String iPw) {
     String sCmd
     // CommandLine to execute in the agent
-    sCmd = "%windir%\\system32\\cscript.exe c:\\impact360\\software\\WFODeployer\\DeployWfo.vbs WLSAdmin pumpkin1 true true"
+    String strSoftwareDir=System.getenv("IMPACT360SOFTWAREDIR")
+    if (!strSoftwareDir) strSoftwareDir = "${impact360SoftwareDir}"
+
+
+    sCmd = "%windir%\\system32\\cscript.exe ${strSoftwareDir}\\WFODeployer\\DeployWfo.vbs WLSAdmin pumpkin1 true true"
 
     String rtnCode = runRemote ("runDeployEar",sCmd, iVmIP,iUser,iPw)
     logger.quiet ("Ear Deployment: exitCode (${rtnCode})")
@@ -1252,8 +1261,8 @@ import com.github.sarxos.winreg.WindowsRegistry;
 def readRegistries( ){
     String strDataDir=System.getenv("IMPACT360DATADIR")
     String strSoftwareDir=System.getenv("IMPACT360SOFTWAREDIR")
-    if (strDataDir) strDataDir="${impact360DataDir}"
-    if (strSoftwareDir) strSoftwareDir = "${impact360SoftwareDir}"
+    if (!strDataDir) strDataDir="${impact360DataDir}"
+    if (!strSoftwareDir) strSoftwareDir = "${impact360SoftwareDir}"
 
     def parsedXmlObj =loadXML ("${strSoftwareDir}\\${srcLogInstallXML}")
     WindowsRegistry reg = WindowsRegistry.getInstance();
@@ -1386,8 +1395,8 @@ task zipLogs() <<{
     String srcDir = "$srcLogDir"
     String strDataDir=System.getenv("IMPACT360DATADIR")
     String strSoftwareDir=System.getenv("IMPACT360SOFTWAREDIR")
-    if (strDataDir) strDataDir="${impact360DataDir}"
-    if (strSoftwareDir) strSoftwareDir = "${impact360SoftwareDir}"
+    if (!strDataDir) strDataDir="${impact360DataDir}"
+    if (!strSoftwareDir) strSoftwareDir = "${impact360SoftwareDir}"
 
     logger.quiet("Zipping the log from: ${srcDir} from puppet client")
 
