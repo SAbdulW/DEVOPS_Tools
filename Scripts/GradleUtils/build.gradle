@@ -628,7 +628,7 @@ def getVersionInstalledFromRegistryJson (Object jsonObject, String componentName
         if ((regComponentName == componentName) && !found) {
             rtnVersion =  registryItemValue."InstalledVersion"
             found = true
-            logger.quite("FOUND: ${rtnVersion}")
+            logger.quiet("FOUND: ${rtnVersion}")
         }
     }
     logger.quiet("CHAU - search Registry file for: ${componentName} - Found: ${rtnVersion}")
