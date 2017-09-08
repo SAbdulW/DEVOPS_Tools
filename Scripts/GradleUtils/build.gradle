@@ -625,14 +625,15 @@ def getVersionInstalledFromRegistryJson (Object jsonObject, String componentName
         logger.quiet("" + registryItem.getValue())
         def registryItemValue = registryItem.getValue()
         String regComponentName =registryItemValue."ComponentName"
-        if ((regComponentName == componentName) && !found) {
+        if ((regComponentName.toUpperCase() == componentName.toUpperCase()) && !found) {
             rtnVersion =  registryItemValue."InstalledVersion"
             found = true
             logger.quiet("FOUND: ${rtnVersion}")
+            return rtnVersion
         }
     }
     logger.quiet("CHAU - search Registry file for: ${componentName} - Found: ${rtnVersion}")
-    return      rtnVersion
+    return rtnVersion
 }
 
 def getVersionInstalledFromSVIXML (Object xmlObject, String componentName){
