@@ -620,15 +620,18 @@ def extractInstalledVersion (String [] yamlFiles, File jsRegistry){
 def getVersionInstalledFromRegistryJson (Object jsonObject, String componentName){
     def found = false;
     String rtnVersion = ""
+    logger.quiet("CHAU - search Registry file for: $(componentName)")
     jsonObject.each { registryItem ->
-        //logger.quiet("" + registryItem.getValue())
+        logger.quiet("" + registryItem.getValue())
         def registryItemValue = registryItem.getValue()
         String regComponentName =registryItemValue."ComponentName"
         if ((regComponentName == componentName) && !found) {
             rtnVersion =  registryItemValue."InstalledVersion"
             found = true
+            logger.quite("FOUND: $(rtnVersion)")
         }
     }
+    logger.quiet("CHAU - search Registry file for: $(componentName) - Found: $(rtnVersion)")
     return      rtnVersion
 }
 
