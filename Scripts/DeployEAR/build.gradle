@@ -95,7 +95,10 @@ def getJsonObjectFromFile(String jsonFileLocation) {
 	return InputJSON
 }
 
-
+task mainTest << {
+	String strVersion =  getInstalledVersionFromRegistry(componentName, vmIP, vmUser, vmPw)
+	logger.quiet ("Version of ${componentName} : ${strVersion} " )
+}
 
 task copyEAR() {
 	doFirst {
@@ -128,3 +131,27 @@ task updatePOM() {
 
 copyEAR.dependsOn updatePOM
 artifactoryPublish.dependsOn copyEAR
+
+
+def getInstalledVersionFromRegistry(String strComponentName, String strVmIP, String strVmUser, String strVmPwd){
+
+	def String strJsonText = "{\n" +
+			"    \"componentID\": \"${strComponentName}\"\n" +
+			"}"
+	def jsonFile = pwd() + "\\$regInfo.dat"
+	writeFile file: jsonFile, text: strJsonText
+	def psFile = pwd() + "\\util\\GetInstalledVersionFromRegistry.ps1"
+	def psScript = "-File ${psFile} -vmIP ${strVmIP} -vmUser ${strVmUser} -vmPwd ${strVmPwd} -jsonPath ${jsonFile}"
+	logger.info ("Running ${psFile} script ...")
+	def resultCode = bat(script: "powershell $psScript", returnStatus: true)
+	if (resultCode != 0) {
+		logger.error ( "[zDevLib:verifyInstalledKBList]: GetInstalledVersionFromRegistry powershell script exit with error: ${resultCode}")
+		throw new Exception ("Error in executing powwershell")
+	}
+	def resultText = readFile("${jsonFile}").toString()
+	def jsonData = new JsonSlurper().parseText(resultText)
+
+
+	return jsonData.ComponentVersion
+
+}
