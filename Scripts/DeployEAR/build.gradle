@@ -138,19 +138,37 @@ def getInstalledVersionFromRegistry(String strComponentName, String strVmIP, Str
 	def String strJsonText = "{\n" +
 			"    \"componentID\": \"${strComponentName}\"\n" +
 			"}"
-	def jsonFile = pwd() + "\\$regInfo.dat"
-	writeFile file: jsonFile, text: strJsonText
-	def psFile = pwd() + "\\util\\GetInstalledVersionFromRegistry.ps1"
-	def psScript = "-File ${psFile} -vmIP ${strVmIP} -vmUser ${strVmUser} -vmPwd ${strVmPwd} -jsonPath ${jsonFile}"
+	def File jsonFile = new File("regInfo.info")
+	jsonFile.text = strJsonText
+	def psFile = "util\\GetInstalledVersionFromRegistry.ps1"
+	def psScript = "powershell.exe -File ${psFile} -vmIP ${strVmIP} -vmUser ${strVmUser} -vmPwd ${strVmPwd} -componentName \"${strComponentName}\" -jsonOutFileName \"regInfo.info\""
 	logger.info ("Running ${psFile} script ...")
-	def resultCode = bat(script: "powershell $psScript", returnStatus: true)
-	if (resultCode != 0) {
-		logger.error ( "[zDevLib:verifyInstalledKBList]: GetInstalledVersionFromRegistry powershell script exit with error: ${resultCode}")
-		throw new Exception ("Error in executing powwershell")
-	}
-	def resultText = readFile("${jsonFile}").toString()
-	def jsonData = new JsonSlurper().parseText(resultText)
+	logger.info ("Running script: ${psScript} ")
 
+	def proc = "cmd /c ${psScript}".execute();
+	
+	def outputStream = new StringBuffer();
+	logger.info ("PSCall Result Version:" + proc.waitForProcessOutput(outputStream, System.err));
+	
+	logger.info  ("PSCall:" + outputStream.toString());
+	logger.info  ("PSCall Result Value:" + proc.exitValue());	
+	
+	if (proc.exitValue()) {
+		error "\u001B[31m ****** Failed to get registry information of  ${strComponentName}! ******"
+		throw new Exception("Failed to get registry information of  ${strComponentName}!");
+	}
+
+//	def resultCode = bat(script: "powershell $psScript", returnStatus: true)
+//	if (resultCode != 0) {
+//		logger.error ( "[zDevLib:verifyInstalledKBList]: GetInstalledVersionFromRegistry powershell script exit with error: ${resultCode}")
+//		throw new Exception ("Error in executing powwershell")
+//	}
+
+	def String resultText = jsonFile.text
+
+	logger.info ("DeployEAR.getInstalledVersionFromRegistry: result :\n ${resultText}")
+
+	def jsonData = new JsonSlurper().parseText(resultText)
 
 	return jsonData.ComponentVersion
 
