@@ -37,14 +37,14 @@ repositories {
 	}
 }
 
-fisVersion=getInstalledVersionFromRegistry(componentName, vmIP, vmUser, vmPw)
-
 dependencies {
 	if ("${iServerVersion}".trim()!="") {
 		compile(group: 'com.verint.iserver.frameworkintegrationserver.components', name: 'Framework Integration Server', version: "${iServerVersion}")
 	}else{
+		fisVersion=getInstalledVersionFromRegistry(componentName, vmIP, vmUser, vmPw)
 		compile(group: 'com.verint.iserver.frameworkintegrationserver.components', name: 'Framework Integration Server', version: "${fisVersion}")
 	}
+
 }
 
 def wfoEAR = file("${buildDir}\\${EARName}.ear")
