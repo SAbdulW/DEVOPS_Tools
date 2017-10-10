@@ -37,6 +37,8 @@ repositories {
 	}
 }
 
+fisVersion=getInstalledVersionFromRegistry(componentName, vmIP, vmUser, vmPw)
+
 dependencies {
 	if ("${iServerVersion}".trim()!="") {
 		compile(group: 'com.verint.iserver.frameworkintegrationserver.components', name: 'Framework Integration Server', version: "${iServerVersion}")
