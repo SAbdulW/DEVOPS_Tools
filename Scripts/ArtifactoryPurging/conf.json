@@ -444,10 +444,10 @@
     },
     {
       "repoName" : "gate1-master",
-      "daysToKeep" : 2,
-      "minimumToKeep" : 1,
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
       "pathMatch" : "com/verint",
-      "pathExclude" : "",
+      "pathExclude" : "com/verint/iserver",
       "versionRanges" : [
         {"start" : "15.1.0.0", "end" : "15.1.0.14999"},
         {"start" : "15.1.0.15000", "end" : "15.1.0.15999"},
