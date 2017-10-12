@@ -37,14 +37,14 @@ repositories {
 	}
 }
 
+if ("${iServerVersion}".trim()=="") {
+	iServerVersion = getInstalledVersionFromRegistry(componentName, vmIP, vmUser, vmPw)
+}
+
 dependencies {
 	if ("${iServerVersion}".trim()!="") {
 		compile(group: 'com.verint.iserver.frameworkintegrationserver.components', name: 'Framework Integration Server', version: "${iServerVersion}")
-	}else{
-		fisVersion=getInstalledVersionFromRegistry(componentName, vmIP, vmUser, vmPw)
-		compile(group: 'com.verint.iserver.frameworkintegrationserver.components', name: 'Framework Integration Server', version: "${fisVersion}")
 	}
-
 }
 
 def wfoEAR = file("${buildDir}\\${EARName}.ear")
@@ -104,13 +104,15 @@ task mainTest << {
 
 task copyEAR() {
 	doFirst {
-		ant.exec(executable: "cmd", failonerror:"false") {
-			arg line: '/c'
-			arg line: "net use \\\\${vmIP}\\C\$ /user:${vmUser} ${vmPw}"
-		}
-		logger.info ("DeployEAR: copying file from " + "\\\\${vmIP}\\C\$\\Impact360\\Software\\ProductionServer\\weblogic\\Impact360\\wfoSuite.ear" + " To: ${buildDir}\\wfoSuite.ear")
+		if ("${copyEar}".toBoolean()) {
+			ant.exec(executable: "cmd", failonerror: "false") {
+				arg line: '/c'
+				arg line: "net use \\\\${vmIP}\\C\$ /user:${vmUser} ${vmPw}"
+			}
+			logger.info("DeployEAR: copying file from " + "\\\\${vmIP}\\C\$\\Impact360\\Software\\ProductionServer\\weblogic\\Impact360\\wfoSuite.ear" + " To: ${buildDir}\\wfoSuite.ear")
 
-		ant.copy (file: "\\\\${vmIP}\\C\$\\Impact360\\Software\\ProductionServer\\weblogic\\Impact360\\wfoSuite.ear", tofile: "${buildDir}\\wfoSuite.ear",overwrite:true, verbose: true, force: true)
+			ant.copy(file: "\\\\${vmIP}\\C\$\\Impact360\\Software\\ProductionServer\\weblogic\\Impact360\\wfoSuite.ear", tofile: "${buildDir}\\wfoSuite.ear", overwrite: true, verbose: true, force: true)
+		}
 	}
 }
 task updatePOM() {
