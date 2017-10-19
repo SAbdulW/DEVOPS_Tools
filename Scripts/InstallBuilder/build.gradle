@@ -106,6 +106,10 @@ task GetKB (dependsOn: getKB)<< {
     println ("jsonObject: KBJson : ${zKBJSON}")
     exportKBOutput(zKBJSON)
 }
+task CreateBundle << {
+    println ("In Gradle Create Bundle")
+
+}
 
 task CreateKBBuffer (dependsOn: createKBBuffer)<< {
     println ("jsonObject: KBJson : ${zKBBufferJSON}")
