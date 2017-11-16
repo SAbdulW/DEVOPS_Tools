@@ -36,7 +36,7 @@ repositories {
 }
 
 def fArtifact = file("${fileLocation}")
-def fArtifactEmptyPOM = file("${buildDir}\\${artifactId}.pom")
+def fArtifactEmptyPOM = file("${artifactId}.pom")
 fArtifactEmptyPOM.text = emptyPomText()
 
 artifacts {
