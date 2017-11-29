@@ -10,7 +10,7 @@
     {
       "repoName" : "ci-snapshot",
       "daysToKeep" : 2,
-      "minimumToKeep" : 1,
+      "minimumToKeep" : 2,
       "pathMatch" : "com/verint",
       "pathExclude" : "",
       "versionRanges" : [
