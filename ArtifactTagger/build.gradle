@@ -1,0 +1,161 @@
+import groovy.json.JsonSlurper
+
+ext.supportedGradleVersion = '2.3'
+task wrapper(type: Wrapper) {
+    gradleVersion = supportedGradleVersion
+}
+
+allprojects {
+    apply plugin: 'idea'
+    group = 'com.verint.artifactmodifier'
+    version = currentVersion
+}
+
+task run() <<{
+    String conf = new File('./conf.json').text
+    logger.quiet("Artifact Tagger: ****************************************************************************")
+    logger.quiet("viewOnly: ${viewOnly}")
+    logger.quiet("configuration:\r\n${conf}")
+    logger.quiet("Artifact Tagger: ****************************************************************************")
+
+    process(conf)
+}
+
+def process (String conf){
+    def obj = new JsonSlurper().parseText(conf)
+    List repoConfList = obj.conf
+
+    repoConfList.each{repoConf ->
+        logger.quiet("\r\nSTART PROCESSING -> repo: ${repoConf.repoName} - path match: ${repoConf.pathMatch} - path exclude: ${repoConf.pathExclude}")
+
+        String repoKey = repoConf.repoName
+        String pathMatch = repoConf.pathMatch
+        String pathExclude = repoConf.pathExclude
+
+        File fFullL = new File ("$projectDir/${repoKey}_FullList.log")
+        fFullL.setText("ALL ARTIFACTS\r\n")
+
+        // get all artifacts
+        List candidateList = getListOfMSI (repoKey, pathMatch, 1)
+        candidateList.each { item ->
+            fFullL << item.path + "/" + item.name + "\r\n"
+            downloadMSI(repoKey, item.path, item.name)
+            File msiFile = new File("./${item.name}")
+            def msi = null
+            if(msiFile.exists()){
+                msi = extractMSIInfo(item.name)
+                logger.quiet ("${item.name} :: " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID)
+                msiFile.delete()
+                fFullL << "----> " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID + "\r\n"
+            }
+            else{
+                logger.quite("File not found: ${msiFile}")
+            }
+        }
+
+        logger.quiet("DONE PROCESSING -> repo: ${repoConf.repoName}\r\n")
+    }
+}
+
+def List getListOfMSI(String repo, String pathMatch, int x){
+    def selectedDate = new Date() - x
+    String selectedDateString = selectedDate.format("yyyy-MM-dd hh:mm:ss")
+    selectedDateString = selectedDateString.replaceAll(" ","T")
+    String notMatch="maven-metadata.xml"
+
+    String aqlQuery =
+            "items.find" +
+                    "(" +
+                    "    {" +
+                    "        \"repo\":{\"\$eq\":\"${repo}\"}" +
+                    "        ,\"created\":{\"\$lt\":\"${selectedDateString}\"}" +
+                    "        ,\"updated\":{\"\$lt\":\"${selectedDateString}\"}" +
+                    "        ,\"path\":{\"\$match\":\"${pathMatch}*\"}" +
+                    "        ,\"path\":{\"\$nmatch\":\".index\"}" +
+                    "        ,\"path\":{\"\$nmatch\":\".npm/*\"}" +
+
+                    "        ,\"\$or\":[{\"name\":{\"\$match\":\"*.MSI\"}}, {\"name\":{\"\$match\":\"*.MSI\"}}]" +
+                    //"        ,\"\$or\":[{\"name\":{\"\$match\":\"*.MSI\"}}, {\"name\":{\"\$match\":\"*.msi\"}}]" +
+
+                    "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" +
+                    "    }"  +
+                    ").include(\"name\", \"path\",\"size\")"
+
+    List resultsList  = search(aqlQuery)
+    return resultsList
+}
+
+def downloadMSI(String repo, String path, String name){
+    String artifactUrl = "${contextURL}/${repo}/${path}/${name}"
+    String sCmd = "curl -f -X GET -u \"" + "${uname}" + "\":\"" + "${pword}" + "\" \"${artifactUrl}\" -o \"${name}\""
+    logger.quiet("Execute cmd: ${sCmd}")
+
+    try {
+        exec {
+            commandLine 'sh', '-c', sCmd
+        }
+    }
+    catch (Exception e) {
+        logger.quiet (e.toString())
+    }
+}
+
+def extractMSIInfo(String name){
+    logger.quiet("Extract Info from MSI: ${name}")
+    def sout = new StringBuilder(), serr = new StringBuilder()
+    def shellCommand = "powershell.exe .\\MSIInfoExtractor.ps1 .\\${name}"
+    def process = shellCommand.execute()
+    process.consumeProcessOutput( sout, serr )
+    process.waitForOrKill( 60000 )
+
+    def msi = new JsonSlurper().parseText(sout.toString())
+    //logger.quiet ("RESULT: " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID)
+
+    return msi
+}
+
+def List search(String aql ){
+    logger.quiet("Artifactory query: $aql")
+
+    def String resultsJsonText = executeAQL(aql)
+    def resultsJson = new JsonSlurper().parseText(resultsJsonText)
+
+    List resultsList  = resultsJson.results
+    File searchResultFile = new File ("searchResult.json")
+    searchResultFile.text = "${resultsJsonText}"
+
+    return resultsList
+}
+
+def String executeAQL(String query){
+    String filePath =""
+    File tempArtifactsList = File.createTempFile("aqlResult",".result");
+    filePath = tempArtifactsList.getAbsolutePath()
+    filePath = filePath.replaceAll("\\\\","/")
+
+    File aqlQueryFile=File.createTempFile("aqlQueryFile",".query");
+    String aqlQueryFilePath = aqlQueryFile.getAbsolutePath()
+    aqlQueryFilePath = aqlQueryFilePath.replaceAll("\\\\","/")
+
+    aqlQueryFile.text = "${query}"
+
+    String sCmd = "curl -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$contextURL/api/search/aql\" -T\"${aqlQueryFilePath}\"  -o \"$filePath\""
+    logger.quiet("Execute AQL: ${sCmd}")
+
+    try {
+        exec {
+            commandLine 'sh', '-c', sCmd
+        }
+    }
+    catch (Exception e) {
+        logger.quiet (e.toString())
+
+    }
+
+    //def inputJSON = new JsonSlurper().parseText(tempArtifactsList.text)
+    String rtnText = tempArtifactsList.text
+    tempArtifactsList.delete()
+    aqlQueryFile.delete()
+
+    return rtnText
+}
