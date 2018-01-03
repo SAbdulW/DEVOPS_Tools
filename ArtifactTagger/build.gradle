@@ -38,7 +38,7 @@ def process (String conf){
         // get all artifacts
         List candidateList = getListOfMSI (repoKey, pathMatch, 1)
         candidateList.each { item ->
-            fFullL << item.path + "/" + item.name + "\r\n"
+            fFullL << "--> " + item.path + "/" + item.name + "\r\n"
             downloadMSI(repoKey, item.path, item.name)
             File msiFile = new File("./${item.name}")
             def msi = null
@@ -46,7 +46,14 @@ def process (String conf){
                 msi = extractMSIInfo(item.name)
                 logger.quiet ("${item.name} :: " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID)
                 msiFile.delete()
-                fFullL << "----> " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID + "\r\n"
+                fFullL << "   |--> " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID + "\r\n"
+
+                putArtifactProperties(repoKey, item.path, item.name, msi)
+
+                Map props = getArtifactProperties(repoKey, item.path, item.name)
+                props.each{prop ->
+                    logger.quiet(prop.key + " : " + prop.value)
+                }
             }
             else{
                 logger.quite("File not found: ${msiFile}")
@@ -75,7 +82,7 @@ def List getListOfMSI(String repo, String pathMatch, int x){
                     "        ,\"path\":{\"\$nmatch\":\".npm/*\"}" +
 
                     "        ,\"\$or\":[{\"name\":{\"\$match\":\"*.MSI\"}}, {\"name\":{\"\$match\":\"*.MSI\"}}]" +
-                    //"        ,\"\$or\":[{\"name\":{\"\$match\":\"*.MSI\"}}, {\"name\":{\"\$match\":\"*.msi\"}}]" +
+                    "        ,\"\$or\":[{\"name\":{\"\$match\":\"*.MSI\"}}, {\"name\":{\"\$match\":\"*.msi\"}}]" +
 
                     "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" +
                     "    }"  +
@@ -112,6 +119,51 @@ def extractMSIInfo(String name){
     //logger.quiet ("RESULT: " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID)
 
     return msi
+}
+
+def getArtifactProperties(String repo, String path, String name){
+    String outputFilename = "output.json"
+    String artifactUrl = "${contextURL}/api/storage/${repo}/${path}/${name}?properties"
+    String sCmd = "curl -f -X GET -u \"" + "${uname}" + "\":\"" + "${pword}" + "\" \"${artifactUrl}\" -o \"${outputFilename}\""
+    logger.quiet("Execute cmd: ${sCmd}")
+
+    try {
+        exec {
+            commandLine 'sh', '-c', sCmd
+        }
+
+        File outputFile = new File(outputFilename)
+        if(outputFile.exists()){
+            String rtnText = outputFile.text
+            logger.quiet(rtnText)
+            def resultsJson = new JsonSlurper().parseText(rtnText)
+            Map results  = resultsJson.properties
+            outputFile.delete()
+
+            return results
+        }
+    }
+    catch (Exception e) {
+        logger.quiet(e.toString())
+        logger.quiet("Could not retrieve any properties")
+    }
+}
+
+def putArtifactProperties(String repo, String path, String name, Object msi){
+    String artifactUrl = "${contextURL}/api/storage/${repo}/${path}/${name}?properties=ProductName=${msi.ProductName}%7CProductCode=${msi.ProductCode}%7CManufacturer=${msi.Manufacturer}%7CINSTALLATIONUNITGUID=${msi.INSTALLATIONUNITGUID}"
+    artifactUrl = artifactUrl.replaceAll(" ", "%20")
+    String sCmd = "curl -f -X PUT -u \"" + "${uname}" + "\":\"" + "${pword}" + "\" \"${artifactUrl}\""
+    logger.quiet("Execute cmd: ${sCmd}")
+
+    try {
+        exec {
+            commandLine 'sh', '-c', sCmd
+        }
+    }
+    catch (Exception e) {
+        logger.quiet(e.toString())
+        logger.quiet("Could not put properties")
+    }
 }
 
 def List search(String aql ){

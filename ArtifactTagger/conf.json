@@ -2,7 +2,7 @@
   "conf" : [
     {
       "repoName" : "cf-ci-release",
-      "pathMatch" : "com/verint",
+      "pathMatch" : "com/verint/",
       "pathExclude" : ""
     }
   ]
