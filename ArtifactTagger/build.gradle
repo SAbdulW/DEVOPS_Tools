@@ -35,8 +35,11 @@ def process (String conf){
         File fFullL = new File ("$projectDir/${repoKey}_FullList.log")
         fFullL.setText("ALL ARTIFACTS\r\n")
 
+        def watermark = getRepoWatermark(repoKey)
+        logger.quiet("Watermark: ${watermark}")
+
         // get all artifacts
-        List candidateList = getListOfMSI (repoKey, pathMatch, 1)
+        List candidateList = getListOfMSI (repoKey, pathMatch, watermark)
         candidateList.each { item ->
             fFullL << "--> " + item.path + "/" + item.name + "\r\n"
             downloadMSI(repoKey, item.path, item.name)
@@ -60,14 +63,13 @@ def process (String conf){
             }
         }
 
+        setRepoWatermark(repoKey)
         logger.quiet("DONE PROCESSING -> repo: ${repoConf.repoName}\r\n")
     }
 }
 
-def List getListOfMSI(String repo, String pathMatch, int x){
-    def selectedDate = new Date() - x
-    String selectedDateString = selectedDate.format("yyyy-MM-dd hh:mm:ss")
-    selectedDateString = selectedDateString.replaceAll(" ","T")
+def List getListOfMSI(String repo, String pathMatch, String watermark){
+    watermark = watermark.replaceAll(" ","T")
     String notMatch="maven-metadata.xml"
 
     String aqlQuery =
@@ -75,8 +77,8 @@ def List getListOfMSI(String repo, String pathMatch, int x){
                     "(" +
                     "    {" +
                     "        \"repo\":{\"\$eq\":\"${repo}\"}" +
-                    "        ,\"created\":{\"\$lt\":\"${selectedDateString}\"}" +
-                    "        ,\"updated\":{\"\$lt\":\"${selectedDateString}\"}" +
+                    "        ,\"created\":{\"\$gt\":\"${watermark}\"}" +
+                    "        ,\"updated\":{\"\$gt\":\"${watermark}\"}" +
                     "        ,\"path\":{\"\$match\":\"${pathMatch}*\"}" +
                     "        ,\"path\":{\"\$nmatch\":\".index\"}" +
                     "        ,\"path\":{\"\$nmatch\":\".npm/*\"}" +
@@ -123,7 +125,13 @@ def extractMSIInfo(String name){
 
 def getArtifactProperties(String repo, String path, String name){
     String outputFilename = "output.json"
-    String artifactUrl = "${contextURL}/api/storage/${repo}/${path}/${name}?properties"
+    String artifactUrl = "${contextURL}/api/storage/${repo}"
+    if(path != null && path != "" && name != null & name != ""){
+        artifactUrl += "/${path}/${name}?properties"
+    }
+    else{
+        artifactUrl += "?properties"
+    }
     String sCmd = "curl -f -X GET -u \"" + "${uname}" + "\":\"" + "${pword}" + "\" \"${artifactUrl}\" -o \"${outputFilename}\""
     logger.quiet("Execute cmd: ${sCmd}")
 
@@ -151,6 +159,43 @@ def getArtifactProperties(String repo, String path, String name){
 
 def putArtifactProperties(String repo, String path, String name, Object msi){
     String artifactUrl = "${contextURL}/api/storage/${repo}/${path}/${name}?properties=ProductName=${msi.ProductName}%7CProductCode=${msi.ProductCode}%7CManufacturer=${msi.Manufacturer}%7CINSTALLATIONUNITGUID=${msi.INSTALLATIONUNITGUID}"
+    artifactUrl = artifactUrl.replaceAll(" ", "%20")
+    String sCmd = "curl -f -X PUT -u \"" + "${uname}" + "\":\"" + "${pword}" + "\" \"${artifactUrl}\""
+    logger.quiet("Execute cmd: ${sCmd}")
+
+    try {
+        exec {
+            commandLine 'sh', '-c', sCmd
+        }
+    }
+    catch (Exception e) {
+        logger.quiet(e.toString())
+        logger.quiet("Could not put properties")
+    }
+}
+
+def setRepoWatermark(String repo){
+    def selectedDate = new Date()
+    String selectedDateString = selectedDate.format("yyyy-MM-dd hh:mm:ss")
+
+    setRepoProperty(repo,"ArtifactTaggerWatermark", selectedDateString)
+}
+
+def getRepoWatermark(String repo){
+    def watermark = (new Date(0)).format("yyyy-MM-dd hh:mm:ss")
+    def props = getArtifactProperties(repo, null, null)
+    props.each{prop ->
+        logger.quiet(prop.key + " : " + prop.value)
+        if(prop.key == "ArtifactTaggerWatermark"){
+            watermark = prop.value[0]
+        }
+    }
+
+    return watermark
+}
+
+def setRepoProperty(String repo, String name, String value){
+    String artifactUrl = "${contextURL}/api/storage/${repo}?properties=${name}=${value}&recursive=0"
     artifactUrl = artifactUrl.replaceAll(" ", "%20")
     String sCmd = "curl -f -X PUT -u \"" + "${uname}" + "\":\"" + "${pword}" + "\" \"${artifactUrl}\""
     logger.quiet("Execute cmd: ${sCmd}")
