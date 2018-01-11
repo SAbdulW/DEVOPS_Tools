@@ -55,7 +55,7 @@ def process (String conf){
 
                 Map props = getArtifactProperties(repoKey, item.path, item.name)
                 props.each{prop ->
-                    logger.quiet(prop.key + " : " + prop.value)
+                    logger.quiet(prop.key + " : " + prop.value[0])
                 }
             }
             else{
@@ -82,7 +82,7 @@ def List getListOfMSI(String repo, String pathMatch, String watermark){
                     "        ,\"path\":{\"\$match\":\"${pathMatch}*\"}" +
                     "        ,\"path\":{\"\$nmatch\":\".index\"}" +
                     "        ,\"path\":{\"\$nmatch\":\".npm/*\"}" +
-                    "        ,\"\$or\":[{\"name\":{\"\$match\":\"*.MSI\"}}, {\"name\":{\"\$match\":\"*.MSI\"}}]" +
+                    "        ,\"\$or\":[{\"name\":{\"\$match\":\"*.MSI\"}}, {\"name\":{\"\$match\":\"*.msi\"}}, {\"name\":{\"\$match\":\"*.Msi\"}}]" +
                     "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" +
                     "    }"  +
                     ").include(\"name\", \"path\",\"size\")"
