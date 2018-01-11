@@ -1,6 +1,8 @@
 pipeline {
     agent {
-        label 'Build-Slaves-B'
+        node {
+            label "Build-Slaves-B"
+        }
     }
     options {
         buildDiscarder(logRotator(numToKeepStr: '10'))

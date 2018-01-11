@@ -44,8 +44,8 @@
       <file leaf-file-name="ArtifactTagger.jenkinsfile" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/ArtifactTagger.jenkinsfile">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="54">
-              <caret line="2" column="29" lean-forward="false" selection-start-line="2" selection-start-column="29" selection-end-line="2" selection-end-column="29" />
+            <state relative-caret-position="81">
+              <caret line="3" column="34" lean-forward="true" selection-start-line="3" selection-start-column="34" selection-end-line="3" selection-end-column="34" />
               <folding />
             </state>
           </provider>
@@ -417,7 +417,14 @@
       <option name="project" value="LOCAL" />
       <updated>1515687773762</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="test">
+      <created>1515688008812</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1515688008812</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -458,7 +465,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="added IDEA files" />
     <MESSAGE value="added jenkins pipeline" />
-    <option name="LAST_COMMIT_MESSAGE" value="added jenkins pipeline" />
+    <MESSAGE value="test" />
+    <option name="LAST_COMMIT_MESSAGE" value="test" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -507,8 +515,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/ArtifactTagger.jenkinsfile">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="54">
-          <caret line="2" column="29" lean-forward="false" selection-start-line="2" selection-start-column="29" selection-end-line="2" selection-end-column="29" />
+        <state relative-caret-position="81">
+          <caret line="3" column="34" lean-forward="true" selection-start-line="3" selection-start-column="34" selection-end-line="3" selection-end-column="34" />
           <folding />
         </state>
       </provider>
