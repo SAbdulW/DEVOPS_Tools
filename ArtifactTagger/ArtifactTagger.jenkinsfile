@@ -16,7 +16,9 @@ pipeline {
     stages {
         stage('Process'){
             steps{
-                bat "gradlew.bat run"
+                dir("./dashboard"){
+                    bat "gradlew.bat run"
+                }
             }
         }
     }
