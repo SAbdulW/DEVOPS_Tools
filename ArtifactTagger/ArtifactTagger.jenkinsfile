@@ -16,7 +16,7 @@ pipeline {
     stages {
         stage('Process'){
             steps{
-                dir("./dashboard"){
+                dir("./ArtifactTagger"){
                     bat "gradlew.bat run"
                 }
             }
