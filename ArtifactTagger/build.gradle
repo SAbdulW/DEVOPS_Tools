@@ -43,7 +43,7 @@ def process (String conf){
         candidateList.each { item ->
             fFullL << "--> " + item.path + "/" + item.name + "\r\n"
             downloadMSI(repoKey, item.path, item.name)
-            File msiFile = new File("./${item.name}")
+            File msiFile = new File("\"./${item.name}\"")
             def msi = null
             if(msiFile.exists()){
                 msi = extractMSIInfo(item.name)
@@ -59,7 +59,7 @@ def process (String conf){
                 }
             }
             else{
-                logger.quite("File not found: ${msiFile}")
+                logger.quiet("File not found: ${msiFile}")
             }
         }
 
