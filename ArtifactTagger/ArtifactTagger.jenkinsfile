@@ -1,0 +1,21 @@
+pipeline {
+    agent {
+        node any
+    }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        disableConcurrentBuilds()
+    }
+    /*
+    triggers {
+        cron('30 21 * * *')
+    }*/
+
+    stages {
+        stage('Process'){
+            steps{
+                bat "gradlew.bat run"
+            }
+        }
+    }
+}

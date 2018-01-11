@@ -82,10 +82,7 @@ def List getListOfMSI(String repo, String pathMatch, String watermark){
                     "        ,\"path\":{\"\$match\":\"${pathMatch}*\"}" +
                     "        ,\"path\":{\"\$nmatch\":\".index\"}" +
                     "        ,\"path\":{\"\$nmatch\":\".npm/*\"}" +
-
                     "        ,\"\$or\":[{\"name\":{\"\$match\":\"*.MSI\"}}, {\"name\":{\"\$match\":\"*.MSI\"}}]" +
-                    "        ,\"\$or\":[{\"name\":{\"\$match\":\"*.MSI\"}}, {\"name\":{\"\$match\":\"*.msi\"}}]" +
-
                     "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" +
                     "    }"  +
                     ").include(\"name\", \"path\",\"size\")"
