@@ -5,7 +5,6 @@ Process {
     try {
         $Result = @{}
         
-        
         # Open MSI database
         $WindowsInstaller = New-Object -ComObject WindowsInstaller.Installer
         $MSIDatabase = $WindowsInstaller.GetType().InvokeMember("OpenDatabase", "InvokeMethod", $null, $WindowsInstaller, @($Path.FullName, 0))
@@ -15,7 +14,12 @@ Process {
         $View = $MSIDatabase.GetType().InvokeMember("OpenView", "InvokeMethod", $null, $MSIDatabase, ($Query))
         $View.GetType().InvokeMember("Execute", "InvokeMethod", $null, $View, $null)
         $Record = $View.GetType().InvokeMember("Fetch", "InvokeMethod", $null, $View, $null)
-        $Value = $Record.GetType().InvokeMember("StringData", "GetProperty", $null, $Record, 1)
+        If ($Record -ne $null){
+            $Value = $Record.GetType().InvokeMember("StringData", "GetProperty", $null, $Record, 1)            
+        }
+        Else{
+            $Value = ""
+        }
         $View.GetType().InvokeMember("Close", "InvokeMethod", $null, $View, $null)
         $Result.Add("ProductCode", $Value)
         
@@ -23,7 +27,12 @@ Process {
         $View = $MSIDatabase.GetType().InvokeMember("OpenView", "InvokeMethod", $null, $MSIDatabase, ($Query))
         $View.GetType().InvokeMember("Execute", "InvokeMethod", $null, $View, $null)
         $Record = $View.GetType().InvokeMember("Fetch", "InvokeMethod", $null, $View, $null)
-        $Value = $Record.GetType().InvokeMember("StringData", "GetProperty", $null, $Record, 1)
+        If ($Record -ne $null){
+            $Value = $Record.GetType().InvokeMember("StringData", "GetProperty", $null, $Record, 1)            
+        }
+        Else{
+            $Value = ""
+        }
         $View.GetType().InvokeMember("Close", "InvokeMethod", $null, $View, $null)
         $Result.Add("Manufacturer", $Value)
         
@@ -31,7 +40,12 @@ Process {
         $View = $MSIDatabase.GetType().InvokeMember("OpenView", "InvokeMethod", $null, $MSIDatabase, ($Query))
         $View.GetType().InvokeMember("Execute", "InvokeMethod", $null, $View, $null)
         $Record = $View.GetType().InvokeMember("Fetch", "InvokeMethod", $null, $View, $null)
-        $Value = $Record.GetType().InvokeMember("StringData", "GetProperty", $null, $Record, 1)
+        If ($Record -ne $null){
+            $Value = $Record.GetType().InvokeMember("StringData", "GetProperty", $null, $Record, 1)            
+        }
+        Else{
+            $Value = ""
+        }
         $View.GetType().InvokeMember("Close", "InvokeMethod", $null, $View, $null)
         $Result.Add("ProductName", $Value)
         
@@ -39,16 +53,20 @@ Process {
         $View = $MSIDatabase.GetType().InvokeMember("OpenView", "InvokeMethod", $null, $MSIDatabase, ($Query))
         $View.GetType().InvokeMember("Execute", "InvokeMethod", $null, $View, $null)
         $Record = $View.GetType().InvokeMember("Fetch", "InvokeMethod", $null, $View, $null)
-        $Value = $Record.GetType().InvokeMember("StringData", "GetProperty", $null, $Record, 1)
+        If ($Record -ne $null){
+            $Value = $Record.GetType().InvokeMember("StringData", "GetProperty", $null, $Record, 1)            
+        }
+        Else{
+            $Value = ""
+        }
         $View.GetType().InvokeMember("Close", "InvokeMethod", $null, $View, $null)
         $Result.Add("INSTALLATIONUNITGUID", $Value)
-                 
+        
         # Commit database and close view        
         $MSIDatabase.GetType().InvokeMember("Commit", "InvokeMethod", $null, $MSIDatabase, $null)
         $MSIDatabase = $null
         $View = $null
  
-        
         # Return the value
         $eof = "`r`n"
         $Json = "{" + $eof +
