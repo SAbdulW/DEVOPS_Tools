@@ -970,6 +970,12 @@ task copyFilesPrepare << {
         arg line: "net use \\\\${vmIP}\\C\$ /user:${vmUser} ${vmPw}"
     }
 
+    // First to make sure
+
+    ant.mkdir (dir: "\\\\${vmIP}\\C\$\\GradleUtils")
+
+    // Then copy
+
     ant.copy (todir: "\\\\${vmIP}\\C\$\\GradleUtils",overwrite:true, verbose: true){
         fileset (dir: "${projectDir}" ){
             exclude name: "**/.gradle/**"
