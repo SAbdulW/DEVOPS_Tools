@@ -971,8 +971,7 @@ task copyFilesPrepare << {
     }
 
     // First to make sure
-
-    ant.mkdir (dir: "\\\\${vmIP}\\C\$\\GradleUtils")
+    WaitAndCreateDirRemote ("\\\\${vmIP}\\C\$\\GradleUtils")
 
     // Then copy
 
@@ -1497,6 +1496,28 @@ def createEnvJsonFiles(String strDataPath, String strSoftPath){
 
 def renameEnvJsonFile (String envJsonPathTemp, String  envJsonPath){
     ant.copy (file: "${envJsonPathTemp}", tofile: "${envJsonPath}", verbose: true)
+}
+
+def WaitAndCreateDirRemote(String strDir){
+
+    boolean bCreateSuccessful = false
+    def rtnException
+    for (int i=0; i<10 && !bCreateSuccessful; i++){
+        def boolean bValue = true
+        try {
+            ant.mkdir (dir: strDir)
+        }catch(Exception e){
+            logger.quiet ("GradleUtils: Failed in creating ${strDir} try in 1'...")
+            ant.sleep (minutes: 1)
+            bValue = false
+            rtnException = e
+        }
+        bCreateSuccessful = bValue
+    }
+
+    if (!bCreateSuccessful) throw new GradleException("GradleUtils: Failed to create the dir: ${strDir} with Exception: ${rtnException}")
+
+
 }
 
 artifactoryPublish.dependsOn zipLogs
