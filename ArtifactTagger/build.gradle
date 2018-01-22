@@ -21,6 +21,19 @@ task run() <<{
     process(conf)
 }
 
+task tagMe() <<{
+    logger.quiet("Artifact Tagger: ****************************************************************************")
+    logger.quiet("viewOnly: ${viewOnly}")
+    logger.quiet("masterBuildVersion: ${masterBuildVersion}")
+    logger.quiet("repo: ${repo}")
+    logger.quiet("groupId: ${groupId}")
+    logger.quiet("artifactId: ${artifactId}")
+    logger.quiet("tags: ${tags}")
+    logger.quiet("Artifact Tagger: ****************************************************************************")
+
+    processOneArtifact(repo, groupId, artifactId, masterBuildVersion, tags)
+}
+
 def process (String conf){
     def obj = new JsonSlurper().parseText(conf)
     List repoConfList = obj.conf
@@ -36,7 +49,7 @@ def process (String conf){
         fFullL.setText("ALL ARTIFACTS\r\n")
 
         def watermark = getRepoWatermark(repoKey)
-        logger.quiet("Watermark: ${watermark}")
+        logger.quiet("Got Watermark: ${watermark}")
 
         // get all artifacts
         List candidateList = getListOfMSI (repoKey, pathMatch, watermark)
@@ -51,11 +64,28 @@ def process (String conf){
                 msiFile.delete()
                 fFullL << "   |--> " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID + "\r\n"
 
-                putArtifactProperties(repoKey, item.path, item.name, msi)
+                String buildVersion = extractBuildVersionFromPath(item.path)
+                String majorRelease = ""
+                String minorRelease = ""
+                def v = buildVersion.tokenize(".")
+                if(v != null && v.size() > 2){
+                    majorRelease = "${v[0]}.${v[1]}"
+                    minorRelease = "${v[2]}"
+                }
+                String tags = ""
+                def props = [:]
+                props.put("ProductName", msi.ProductName)
+                props.put("ProductCode", msi.ProductCode)
+                props.put("Manufacturer", msi.Manufacturer)
+                props.put("INSTALLATIONUNITGUID", msi.INSTALLATIONUNITGUID)
+                props.put("MajorRelease", majorRelease)
+                props.put("MinorRelease", minorRelease)
+                props.put("Tags", tags)
+                putArtifactProperties(repoKey, item.path, item.name, props)
 
-                Map props = getArtifactProperties(repoKey, item.path, item.name)
-                props.each{prop ->
-                    logger.quiet(prop.key + " : " + prop.value[0])
+                Map newProps = getArtifactProperties(repoKey, item.path, item.name)
+                newProps.each{prop ->
+                    logger.quiet(prop.key + " : " + prop.value)
                 }
             }
             else{
@@ -66,6 +96,50 @@ def process (String conf){
         setRepoWatermark(repoKey)
         logger.quiet("DONE PROCESSING -> repo: ${repoConf.repoName}\r\n")
     }
+}
+
+def processOneArtifact (String repo, String groupId, String artifactId, String masterBuildVersion, String tags){
+    logger.quiet("\r\nSTART PROCESSING -> repo: ${repo} - groupId: ${groupId} - artifactId: ${artifactId} - masterBuildVersion: ${masterBuildVersion} - tags: ${tags}")
+
+    String majorRelease = ""
+    String minorRelease = ""
+    def v = masterBuildVersion.tokenize(".")
+    if(v != null && v.size() > 2){
+        majorRelease = "${v[0]}.${v[1]}"
+        minorRelease = "${v[2]}"
+    }
+    String groupName = groupId.replace('.', '/')
+    logger.quiet(groupName)
+    String artifactPath = "${groupName}/${artifactId}/${masterBuildVersion}"
+    String artifactName = "${artifactId}-${masterBuildVersion}.msi"
+    downloadMSI(repo, artifactPath, artifactName)
+    File msiFile = new File("./${artifactName}")
+    def msi = null
+    if(msiFile.exists()){
+        msi = extractMSIInfo(artifactName)
+        logger.quiet ("${artifactName} :: " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID)
+        msiFile.delete()
+
+        def props = [:]
+        props.put("ProductName", msi.ProductName)
+        props.put("ProductCode", msi.ProductCode)
+        props.put("Manufacturer", msi.Manufacturer)
+        props.put("INSTALLATIONUNITGUID", msi.INSTALLATIONUNITGUID)
+        props.put("MajorRelease", majorRelease)
+        props.put("MinorRelease", minorRelease)
+        props.put("Tags", tags)
+        putArtifactProperties(repo, artifactPath, artifactName, props)
+
+        Map newProps = getArtifactProperties(repo, artifactPath, artifactName)
+        newProps.each{prop ->
+            logger.quiet(prop.key + " : " + prop.value)
+        }
+    }
+    else{
+        logger.quiet("File not found: ${msiFile}")
+    }
+
+    logger.quiet("\r\nDONE PROCESSING -> repo: ${repo} - groupId: ${groupId} - artifactId: ${artifactId} - masterBuildVersion: ${masterBuildVersion} - tags: ${tags}")
 }
 
 def List getListOfMSI(String repo, String pathMatch, String watermark){
@@ -154,8 +228,15 @@ def getArtifactProperties(String repo, String path, String name){
     }
 }
 
-def putArtifactProperties(String repo, String path, String name, Object msi){
-    String artifactUrl = "${contextURL}/api/storage/${repo}/${path}/${name}?properties=ProductName=${msi.ProductName}%7CProductCode=${msi.ProductCode}%7CManufacturer=${msi.Manufacturer}%7CINSTALLATIONUNITGUID=${msi.INSTALLATIONUNITGUID}"
+def putArtifactProperties(String repo, String path, String name, Map props){
+    def selectedDate = new Date()
+    String selectedDateString = selectedDate.format("yyyy-MM-dd hh:mm:ss")
+    String propsString = "ArtifactTaggerWatermark=${selectedDateString}"
+    props.each { prop ->
+        propsString += "%7C${prop.key}=${prop.value}"
+    }
+
+    String artifactUrl = "${contextURL}/api/storage/${repo}/${path}/${name}?properties=${propsString}"
     artifactUrl = artifactUrl.replaceAll(" ", "%20")
     String sCmd = "curl -f -X PUT -u \"" + "${uname}" + "\":\"" + "${pword}" + "\" \"${artifactUrl}\""
     logger.quiet("Execute cmd: ${sCmd}")
@@ -252,4 +333,16 @@ def String executeAQL(String query){
     aqlQueryFile.delete()
 
     return rtnText
+}
+
+def extractBuildVersionFromPath(String path){
+    String version = ""
+    def parts = path.tokenize("/")
+    parts.each { part ->
+        if (part ==~ /[0-9]+.[0-9]+.[0-9]+.[0-9]+/){
+            version = part
+        }
+    }
+
+    return version
 }
