@@ -81,6 +81,7 @@ def process (String conf){
                 props.put("MajorRelease", majorRelease)
                 props.put("MinorRelease", minorRelease)
                 props.put("Tags", tags)
+                props.put("MasterBuildVersion", buildVersion)
                 putArtifactProperties(repoKey, item.path, item.name, props)
 
                 Map newProps = getArtifactProperties(repoKey, item.path, item.name)
@@ -128,6 +129,7 @@ def processOneArtifact (String repo, String groupId, String artifactId, String m
         props.put("MajorRelease", majorRelease)
         props.put("MinorRelease", minorRelease)
         props.put("Tags", tags)
+        props.put("MasterBuildVersion", masterBuildVersion)
         putArtifactProperties(repo, artifactPath, artifactName, props)
 
         Map newProps = getArtifactProperties(repo, artifactPath, artifactName)
