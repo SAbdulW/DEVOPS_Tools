@@ -449,6 +449,7 @@ def MultiRemoteService(String vmIP, String vmUser, String iPw, String iServices,
 }
 
 def createYAML (String strReplaceWith, String sourcePathYAML, String destPathYAML) {
+    logger.quiet("### CHAU - Creating yaml files ###")
     // Open the
     File sourceFile = new File (sourcePathYAML);
     File destFile =  new File (destPathYAML);
