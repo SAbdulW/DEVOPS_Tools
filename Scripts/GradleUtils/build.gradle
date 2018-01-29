@@ -448,6 +448,7 @@ def MultiRemoteService(String vmIP, String vmUser, String iPw, String iServices,
     }
 }
 
+
 def createYAML (String strReplaceWith, String sourcePathYAML, String destPathYAML) {
     logger.quiet("### CHAU - Creating yaml files ###")
     // Open the
@@ -472,6 +473,85 @@ def createYAML (String strReplaceWith, String sourcePathYAML, String destPathYAM
 
     logger.quiet ("GradleUtils: updatedContent YAML at ${destFilePath} \n${sourceContent}")
     destFile.write(sourceContent,"UTF-8")
+}
+
+def preprocessYAML (String sourcePathYAML, String destPathYAML) {
+    logger.quiet("SRC: ${sourcePathYAML} - DEST: ${destPathYAML}")
+
+    File sourceFile = new File (sourcePathYAML)
+    String sourceContent = sourceFile.getText("UTF-8")
+    Yaml yaml = new Yaml()
+    Object data = yaml.load(sourceContent)
+
+    def artifacts = []
+    data.each { repo ->
+        def repoKey = repo.keySet().toArray()[0]
+        repo.get(repoKey).each{component ->
+            def artifact = [:]
+            artifact.RepoKey = repoKey
+            artifact.Name = getArtifactProperties(repoKey, component.ModuleID).ProductName[0]
+            artifact.ModuleID = component.ModuleID
+            artifact.Action = component.Action == null ? "both" : component.Action
+            artifact.Params = component.Params == null ? "" : component.Params
+            artifact.Promote = component.Promote == null ? "true" : component.Promote
+
+            artifacts << artifact
+        }
+    }
+
+    artifacts.each{artifact ->
+        logger.quiet("${artifact.Name} | ${artifact.RepoKey} | ${artifact.ModuleID} | ${artifact.Action} | ${artifact.Params} | ${artifact.Promote}")
+    }
+
+    File destFile = new File (destPathYAML)
+    if(destFile.exists()){
+       destFile.delete()
+    }
+    destFile.createNewFile()
+
+    destFile << "wfoComponents:\r\n"
+    artifacts.each{artifact ->
+        destFile << "  - ComponentName: ${artifact.Name}\r\n"
+        destFile << "    ComponentGAV: '${artifact.ModuleID}'\r\n"
+        destFile << "    ComponentRepo: ${artifact.RepoKey}\r\n"
+        destFile << "    ComponentPC: ${artifact.Promote}\r\n"
+        destFile << "    ComponentActionReceive: ${artifact.Params}\r\n"
+    }
+}
+
+def getArtifactProperties(String repo, String moduleID){
+    def props = [:]
+    String outputFilename = "output.json"
+    def GAV = moduleID.tokenize(":")
+    String path = "${GAV[0].replace(".", "/")}/${GAV[1]}/${GAV[2]}/${GAV[1]}-${GAV[2]}.msi"
+    String artifactUrl = "${artifactory_contextUrl}/${repo}/${path}?properties"
+    String sCmd = "curl -f -X GET -u \"" + "${artifactory_user}" + "\":\"" + "${artifactory_password}" + "\" \"${artifactUrl}\" -o \"${outputFilename}\""
+    logger.quiet("Execute cmd: ${sCmd}")
+
+    try {
+        executeCommandLine(sCmd)
+
+        File outputFile = new File(outputFilename)
+        if(outputFile.exists()){
+            String rtnText = outputFile.text
+            outputFile.delete()
+            logger.quiet(rtnText)
+            def resultsJson = new JsonSlurper().parseText(rtnText)
+            props  = resultsJson.properties
+
+            return props
+        }
+    }
+    catch (Exception e) {
+        logger.quiet(e.toString())
+        logger.quiet("Could not retrieve any properties")
+    }
+
+    return props
+}
+
+task testYaml() << {
+    preprocessYAML("./src.yaml", "./dest.yaml")
 }
 
 def renameYAML (String destPathYAML) {
