@@ -450,7 +450,6 @@ def MultiRemoteService(String vmIP, String vmUser, String iPw, String iServices,
 
 
 def createYAML (String strReplaceWith, String sourcePathYAML, String destPathYAML) {
-    logger.quiet("### CHAU - Creating yaml files ###")
     // Open the
     File sourceFile = new File (sourcePathYAML);
     File destFile =  new File (destPathYAML);
@@ -475,8 +474,11 @@ def createYAML (String strReplaceWith, String sourcePathYAML, String destPathYAM
     destFile.write(sourceContent,"UTF-8")
 }
 
-def preprocessYAML (String sourcePathYAML, String destPathYAML) {
-    logger.quiet("SRC: ${sourcePathYAML} - DEST: ${destPathYAML}")
+def preprocessYAML (String sourcePathYAML) {
+    logger.quiet("SRC: ${sourcePathYAML}")
+
+    logger.quiet("Backing up file : ${sourcePathYAML}")
+    renameYAML(sourcePathYAML)
 
     File sourceFile = new File (sourcePathYAML)
     String sourceContent = sourceFile.getText("UTF-8")
@@ -503,7 +505,7 @@ def preprocessYAML (String sourcePathYAML, String destPathYAML) {
         logger.quiet("${artifact.Name} | ${artifact.RepoKey} | ${artifact.ModuleID} | ${artifact.Action} | ${artifact.Params} | ${artifact.Promote}")
     }
 
-    File destFile = new File (destPathYAML)
+    File destFile = new File (sourcePathYAML)
     if(destFile.exists()){
        destFile.delete()
     }
@@ -551,7 +553,7 @@ def getArtifactProperties(String repo, String moduleID){
 }
 
 task testYaml() << {
-    preprocessYAML("./src.yaml", "./dest.yaml")
+    preprocessYAML("./src.yaml")
 }
 
 def renameYAML (String destPathYAML) {
@@ -757,6 +759,7 @@ def fillSpecificVersionYAML (String iYamlFile){
     else{
         logger.quiet("THIS IS NEW YAML")
         fillSpecificVersionNewYAML(iYamlFile)
+        preprocessYAML(iYamlFile)
     }
 }
 
@@ -1051,7 +1054,7 @@ def yamlValidation(String [] yamlFiles){
         def yaml = new Yaml()
         def doc = new File(yamlFile).text
         try {
-            //def map = (Map) yaml.load(doc)
+            def map = yaml.load(doc)
             logger.quiet ("GradleUtils: YAML (${yamlFile}) PASSED validation")
         }catch (Exception e){
             logger.quiet ("GradleUtils: Invalid YAML (${yamlFile})")
