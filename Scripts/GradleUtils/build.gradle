@@ -743,7 +743,53 @@ def fillSpecificVersionYAMLs (String iYamlFiles){
         fillSpecificVersionYAML (yamlSrcPath)
     }
 }
+
 def fillSpecificVersionYAML (String iYamlFile){
+    File sourceFile = new File (iYamlFile)
+    String sourceContent = sourceFile.getText("UTF-8")
+    Yaml yaml = new Yaml()
+    Object data = yaml.load(sourceContent)
+
+    if (data."wfoComponents" != null){
+        fillSpecificVersionOldYAML(iYamlFile)
+    }
+    else{
+        fillSpecificVersionNewYAML(iYamlFile)
+    }
+}
+
+def fillSpecificVersionNewYAML (String iYamlFile){
+    File sourceFile = new File (iYamlFile)
+    String srcFilePath = (sourceFile.getCanonicalPath()).replaceAll("\\\\", "\\\\\\\\")
+    String sourceContent = sourceFile.getText("UTF-8")
+    Yaml yaml = new Yaml()
+    Object data = yaml.load(sourceContent)
+
+    def artifacts = []
+    data.each { repo ->
+        def repoKey = repo.keySet().toArray()[0]
+        repo.get(repoKey).each{component ->
+            def artifact = [:]
+            artifact.RepoKey = repoKey
+            artifact.ModuleID = component.ModuleID
+            artifact.Action = component.Action == null ? "both" : component.Action
+            artifact.Params = component.Params == null ? "" : component.Params
+            artifact.Promote = component.Promote == null ? "true" : component.Promote
+
+            artifacts << artifact
+        }
+    }
+
+    String sCurrentVersion = "${currentVersion}"
+    artifacts.each{artifact ->
+        updateRequestedVersion (artifact.ModuleID, artifact.RepoKey, srcFilePath, sCurrentVersion)
+    }
+
+    File yamlFile = new File (iYamlFile)
+    logger.quiet(" GradleUtils: YAML file ${iYamlFile} after filling versions:\n" + yamlFile.text)
+}
+
+def fillSpecificVersionOldYAML (String iYamlFile){
     //base on the GAV input, to get the specific version from artifactory and update the YAML
     File sourceFile = new File (iYamlFile);
     String srcFilePath = sourceFile.getCanonicalPath()
