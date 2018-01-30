@@ -762,6 +762,7 @@ def fillSpecificVersionNewYAML (String iYamlFile){
     File sourceFile = new File (iYamlFile)
     String srcFilePath = (sourceFile.getCanonicalPath()).replaceAll("\\\\", "\\\\\\\\")
     String sourceContent = sourceFile.getText("UTF-8")
+    logger.quiet(sourceContent)
     Yaml yaml = new Yaml()
     Object data = yaml.load(sourceContent)
 
@@ -777,6 +778,8 @@ def fillSpecificVersionNewYAML (String iYamlFile){
             artifact.Promote = component.Promote == null ? "true" : component.Promote
 
             artifacts << artifact
+
+            logger.quiet("${artifact.Name} | ${artifact.RepoKey} | ${artifact.ModuleID} | ${artifact.Action} | ${artifact.Params} | ${artifact.Promote}")
         }
     }
 
@@ -843,10 +846,10 @@ def fillSpecificVersionOldYAML (String iYamlFile){
 }
 
 def updateRequestedVersion (String sComponentGAV, String sComponentRepo, String sYamlFiles, String sCurrentVersion){
-    String cmdLine = "gradlew.bat --parallel -d -b versionRequest/build.gradle updateRequestVersion -PyamlFiles=${sYamlFiles} -PaGAV=${sComponentGAV} -PaRepoKey=${sComponentRepo} -PcurrentVersion=${sCurrentVersion}"
+    String cmdLine = "gradlew.bat --parallel -b versionRequest/build.gradle updateRequestVersion -PyamlFiles=${sYamlFiles} -PaGAV=${sComponentGAV} -PaRepoKey=${sComponentRepo} -PcurrentVersion=${sCurrentVersion}"
     // --daemon didn't help much
     // String cmdLine = "gradlew.bat --daemon --parallel -b versionRequest/build.gradle updateRequestVersion -PyamlFiles=${sYamlFiles} -PaGAV=${sComponentGAV} -PaRepoKey=${sComponentRepo}"
-    logger.quiet("updateRequestedVersion :: ${cmdLine}")
+    logger.quiet("[CHAU] updateRequestedVersion :: ${cmdLine}")
     executeCommandLine(cmdLine)
 }
 
