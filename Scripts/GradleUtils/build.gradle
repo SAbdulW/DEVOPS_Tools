@@ -782,6 +782,7 @@ def fillSpecificVersionNewYAML (String iYamlFile){
 
     String sCurrentVersion = "${currentVersion}"
     artifacts.each{artifact ->
+        logger.quiet("Calling updateRequestedVersion: ${artifact.ModuleID} | ${artifact.RepoKey} | ${srcFilePath} | ${sCurrentVersion}")
         updateRequestedVersion (artifact.ModuleID, artifact.RepoKey, srcFilePath, sCurrentVersion)
     }
 
@@ -842,10 +843,10 @@ def fillSpecificVersionOldYAML (String iYamlFile){
 }
 
 def updateRequestedVersion (String sComponentGAV, String sComponentRepo, String sYamlFiles, String sCurrentVersion){
-
-    String cmdLine = "gradlew.bat --parallel -b versionRequest/build.gradle updateRequestVersion -PyamlFiles=${sYamlFiles} -PaGAV=${sComponentGAV} -PaRepoKey=${sComponentRepo} -PcurrentVersion=${sCurrentVersion}"
+    String cmdLine = "gradlew.bat --parallel -d -b versionRequest/build.gradle updateRequestVersion -PyamlFiles=${sYamlFiles} -PaGAV=${sComponentGAV} -PaRepoKey=${sComponentRepo} -PcurrentVersion=${sCurrentVersion}"
     // --daemon didn't help much
     // String cmdLine = "gradlew.bat --daemon --parallel -b versionRequest/build.gradle updateRequestVersion -PyamlFiles=${sYamlFiles} -PaGAV=${sComponentGAV} -PaRepoKey=${sComponentRepo}"
+    logger.quiet("updateRequestedVersion :: ${cmdLine}")
     executeCommandLine(cmdLine)
 }
 
