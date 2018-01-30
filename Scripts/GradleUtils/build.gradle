@@ -750,7 +750,7 @@ def fillSpecificVersionYAML (String iYamlFile){
     Yaml yaml = new Yaml()
     Object data = yaml.load(sourceContent)
 
-    if (data.wfoComponents != null && data.wfoComponents.size() > 0){
+    if (sourceContent.indexOf("wfoComponents") >= 0){
         logger.quiet("wfoComponents exists - THIS IS OLD YAML")
         fillSpecificVersionOldYAML(iYamlFile)
     }
