@@ -750,15 +750,18 @@ def fillSpecificVersionYAML (String iYamlFile){
     Yaml yaml = new Yaml()
     Object data = yaml.load(sourceContent)
 
-    if (data."wfoComponents" != null){
+    if (data.wfoComponents != null && data.wfoComponents.size() > 0){
+        logger.quiet("wfoComponents exists - THIS IS OLD YAML")
         fillSpecificVersionOldYAML(iYamlFile)
     }
     else{
+        logger.quiet("THIS IS NEW YAML")
         fillSpecificVersionNewYAML(iYamlFile)
     }
 }
 
 def fillSpecificVersionNewYAML (String iYamlFile){
+    logger.quiet("fillSpecificVersionNewYAML: ${iYamlFile}")
     File sourceFile = new File (iYamlFile)
     String srcFilePath = (sourceFile.getCanonicalPath()).replaceAll("\\\\", "\\\\\\\\")
     String sourceContent = sourceFile.getText("UTF-8")
