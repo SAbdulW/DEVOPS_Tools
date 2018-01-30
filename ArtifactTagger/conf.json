@@ -4,6 +4,11 @@
       "repoName" : "cf-ci-release",
       "pathMatch" : "com/verint/",
       "pathExclude" : ""
+    },
+    {
+      "repoName" : "cd-passed-pl",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
     }
   ]
 }
