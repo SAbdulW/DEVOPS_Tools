@@ -588,8 +588,8 @@ def getComponentNameFromRegistry(String guid){
             logger.quiet("GUID: ${guid}")
         }
 
-        //File registryExportFile = new File ("${projectDir}\\PPLogs\\registryExport.json")
-        File registryExportFile = new File ("registryExport.json")
+        File registryExportFile = new File ("${projectDir}\\PPLogs\\registryExport.json")
+        //File registryExportFile = new File ("registryExport.json")
         def jsRegistryObj = loadJsonObject (registryExportFile)
 
         def component = jsRegistryObj."${guid}"
