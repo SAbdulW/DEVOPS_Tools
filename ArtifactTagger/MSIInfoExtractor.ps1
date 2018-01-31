@@ -78,7 +78,8 @@ Process {
         return $Json
     } 
     catch {
-        Write-Warning -Message $_.Exception.Message ; break
+        Write-Warning -Message $_.Exception.Message
+        return "{}"
     }
 }
 End {
