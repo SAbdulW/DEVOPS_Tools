@@ -120,7 +120,7 @@ def processOneArtifact (String repo, String groupId, String artifactId, String m
     def msi = null
     if(msiFile.exists()){
         msi = extractMSIInfo(artifactName)
-        if(msi !== null){
+        if(msi != null){
             logger.quiet ("${artifactName} :: " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID)
             msiFile.delete()
 
