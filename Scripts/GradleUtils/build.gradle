@@ -497,9 +497,10 @@ def preprocessYAML (String sourcePathYAML) {
     data.each { repo ->
         def repoKey = repo.keySet().toArray()[0]
         repo.get(repoKey).each{component ->
+            String guid = getComponentGuidFromArtifactory(repoKey, component.ModuleID)
             def artifact = [:]
             artifact.RepoKey = repoKey
-            artifact.Name = getArtifactProperties(repoKey, component.ModuleID).ProductName[0]
+            artifact.Name = getComponentNameFromRegistry(guid)
             artifact.ModuleID = component.ModuleID
             artifact.Action = component.Action == null ? "both" : component.Action
             artifact.Params = component.Params == null ? "" : component.Params
@@ -568,8 +569,44 @@ def getArtifactProperties(String repo, String moduleID){
     return props
 }
 
+def getComponentNameFromArtifactory(String repo, String moduleID){
+    def props = getArtifactProperties(repo, moduleID)
+    return props.ProductName[0]
+}
+
+def getComponentGuidFromArtifactory(String repo, String moduleID){
+    def props = getArtifactProperties(repo, moduleID)
+    return props.ProductCode[0]
+}
+
+def getComponentNameFromRegistry(String guid){
+    String name = "NOT FOUND"
+    logger.quiet("GUID: ${guid}")
+    try {
+        if(!(guid.contains("{") && guid.contains("}"))){
+            guid = "{${guid}}"
+            logger.quiet("GUID: ${guid}")
+        }
+
+        //File registryExportFile = new File ("${projectDir}\\PPLogs\\registryExport.json")
+        File registryExportFile = new File ("registryExport.json")
+        def jsRegistryObj = loadJsonObject (registryExportFile)
+
+        def component = jsRegistryObj."${guid}"
+        name = component."ComponentName"
+        logger.quiet("Got name: ${name}")
+    }
+    catch(Exception e){
+        logger.quiet("Could not get the component from Registry file. Error: ${e}")
+    }
+
+    return name
+}
+
 task testYaml() << {
-    preprocessYAML("./src.yaml")
+    //preprocessYAML("./src.yaml")
+    String guid = getComponentGuidFromArtifactory("cf-ci-release", "com.verint.cf.kbs.CFETL:KB140067:15.2.2.51")
+    getComponentNameFromRegistry(guid)
 }
 
 def renameYAML (String destPathYAML) {
@@ -1143,6 +1180,7 @@ task copyFilesPrepare << {
 }
 
 task runLocalDeployController(dependsOn: 'init') << {
+    readRegistries()
 
     noticeLog("GradleUtils: The full flow as below\n"         )
 
@@ -1420,6 +1458,7 @@ import com.github.sarxos.winreg.WindowsRegistry;
 // List of function that we can use
 
 def readRegistries( ){
+    logger.quiet("### READING WINDOWS REGISTRY ###")
     String strDataDir=System.getenv("IMPACT360DATADIR")
     String strSoftwareDir=System.getenv("IMPACT360SOFTWAREDIR")
     if (!strDataDir) strDataDir="${impact360DataDir}"
@@ -1574,8 +1613,8 @@ task zipLogs() <<{
         ant.copy (file: "${strSoftwareDir}\\ProductionServer\\weblogic\\Impact360\\buildear.log", tofile: "${srcLogDir}\\buildear.log", verbose: true, failonerror: false)
     }
     //logger.quiet ("GradlePuppetClient: getting the installed versions from the certname ${certname}")
-    logger.quiet ("Zipping: gett and export the registry ")
-    readRegistries()
+    //logger.quiet ("Zipping: gett and export the registry ")
+    //readRegistries()
 
     ant.zip(destfile: "$buildDir/pplog.zip") {
         fileset(dir: "${srcDir}") {
