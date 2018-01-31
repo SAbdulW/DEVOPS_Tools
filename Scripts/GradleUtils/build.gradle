@@ -477,8 +477,8 @@ def createYAML (String strReplaceWith, String sourcePathYAML, String destPathYAM
 def preprocessYAML (String sourcePathYAML) {
     logger.quiet("SRC: ${sourcePathYAML}")
 
-    logger.quiet("Backing up file : ${sourcePathYAML}")
-    renameYAML(sourcePathYAML)
+    //logger.quiet("Backing up file : ${sourcePathYAML}")
+    //renameYAML(sourcePathYAML)
 
     File sourceFile = new File (sourcePathYAML)
     String sourceContent = sourceFile.getText("UTF-8")
