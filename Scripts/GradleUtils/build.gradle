@@ -477,13 +477,21 @@ def createYAML (String strReplaceWith, String sourcePathYAML, String destPathYAM
 def preprocessYAML (String sourcePathYAML) {
     logger.quiet("SRC: ${sourcePathYAML}")
 
-    //logger.quiet("Backing up file : ${sourcePathYAML}")
-    //renameYAML(sourcePathYAML)
-
     File sourceFile = new File (sourcePathYAML)
     String sourceContent = sourceFile.getText("UTF-8")
     Yaml yaml = new Yaml()
     Object data = yaml.load(sourceContent)
+
+    logger.quiet("Backing up file : ${sourcePathYAML}")
+    String backupFilePath = "${sourcePathYAML}.bak"
+    logger.quiet("BAK: ${backupFilePath}")
+    File backupFile = new File (backupFilePath)
+    if(backupFile.exists()){
+        backupFile.delete()
+    }
+    backupFile.createNewFile()
+    backupFile << sourceContent
+
 
     def artifacts = []
     data.each { repo ->
@@ -517,8 +525,16 @@ def preprocessYAML (String sourcePathYAML) {
         destFile << "    ComponentGAV: '${artifact.ModuleID}'\r\n"
         destFile << "    ComponentRepo: ${artifact.RepoKey}\r\n"
         destFile << "    ComponentPC: ${artifact.Promote}\r\n"
-        destFile << "    ComponentActionReceive: ${artifact.Params}\r\n"
+        destFile << "    ComponentActionReceive: ${artifact.Action}\r\n"
+        destFile << "    ComponentInstallOptions: ${artifact.Params}\r\n"
     }
+
+    String destContent = destFile.getText("UTF-8")
+
+    logger.quiet("Yaml file content BEFORE:")
+    logger.quiet(sourceContent)
+    logger.quiet("Yaml file content AFTER:")
+    logger.quiet(destContent)
 }
 
 def getArtifactProperties(String repo, String moduleID){
