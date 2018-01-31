@@ -60,33 +60,35 @@ def process (String conf){
             def msi = null
             if(msiFile.exists()){
                 msi = extractMSIInfo(item.name)
-                logger.quiet ("${item.name} :: " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID)
-                msiFile.delete()
-                fFullL << "   |--> " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID + "\r\n"
+                if(msi != null){
+                    logger.quiet ("${item.name} :: " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID)
+                    msiFile.delete()
+                    fFullL << "   |--> " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID + "\r\n"
 
-                String buildVersion = extractBuildVersionFromPath(item.path)
-                String majorRelease = ""
-                String minorRelease = ""
-                def v = buildVersion.tokenize(".")
-                if(v != null && v.size() > 2){
-                    majorRelease = "${v[0]}.${v[1]}"
-                    minorRelease = "${v[2]}"
-                }
-                String tags = ""
-                def props = [:]
-                props.put("ProductName", msi.ProductName)
-                props.put("ProductCode", msi.ProductCode)
-                props.put("Manufacturer", msi.Manufacturer)
-                props.put("INSTALLATIONUNITGUID", msi.INSTALLATIONUNITGUID)
-                props.put("MajorRelease", majorRelease)
-                props.put("MinorRelease", minorRelease)
-                props.put("Tags", tags)
-                props.put("MasterBuildVersion", buildVersion)
-                putArtifactProperties(repoKey, item.path, item.name, props)
+                    String buildVersion = extractBuildVersionFromPath(item.path)
+                    String majorRelease = ""
+                    String minorRelease = ""
+                    def v = buildVersion.tokenize(".")
+                    if(v != null && v.size() > 2){
+                        majorRelease = "${v[0]}.${v[1]}"
+                        minorRelease = "${v[2]}"
+                    }
+                    String tags = ""
+                    def props = [:]
+                    props.put("ProductName", msi.ProductName)
+                    props.put("ProductCode", msi.ProductCode)
+                    props.put("Manufacturer", msi.Manufacturer)
+                    props.put("INSTALLATIONUNITGUID", msi.INSTALLATIONUNITGUID)
+                    props.put("MajorRelease", majorRelease)
+                    props.put("MinorRelease", minorRelease)
+                    props.put("Tags", tags)
+                    props.put("MasterBuildVersion", buildVersion)
+                    putArtifactProperties(repoKey, item.path, item.name, props)
 
-                Map newProps = getArtifactProperties(repoKey, item.path, item.name)
-                newProps.each{prop ->
-                    logger.quiet(prop.key + " : " + prop.value)
+                    Map newProps = getArtifactProperties(repoKey, item.path, item.name)
+                    newProps.each{prop ->
+                        logger.quiet(prop.key + " : " + prop.value)
+                    }
                 }
             }
             else{
@@ -118,23 +120,25 @@ def processOneArtifact (String repo, String groupId, String artifactId, String m
     def msi = null
     if(msiFile.exists()){
         msi = extractMSIInfo(artifactName)
-        logger.quiet ("${artifactName} :: " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID)
-        msiFile.delete()
+        if(msi !== null){
+            logger.quiet ("${artifactName} :: " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID)
+            msiFile.delete()
 
-        def props = [:]
-        props.put("ProductName", msi.ProductName)
-        props.put("ProductCode", msi.ProductCode)
-        props.put("Manufacturer", msi.Manufacturer)
-        props.put("INSTALLATIONUNITGUID", msi.INSTALLATIONUNITGUID)
-        props.put("MajorRelease", majorRelease)
-        props.put("MinorRelease", minorRelease)
-        props.put("Tags", tags)
-        props.put("MasterBuildVersion", masterBuildVersion)
-        putArtifactProperties(repo, artifactPath, artifactName, props)
+            def props = [:]
+            props.put("ProductName", msi.ProductName)
+            props.put("ProductCode", msi.ProductCode)
+            props.put("Manufacturer", msi.Manufacturer)
+            props.put("INSTALLATIONUNITGUID", msi.INSTALLATIONUNITGUID)
+            props.put("MajorRelease", majorRelease)
+            props.put("MinorRelease", minorRelease)
+            props.put("Tags", tags)
+            props.put("MasterBuildVersion", masterBuildVersion)
+            putArtifactProperties(repo, artifactPath, artifactName, props)
 
-        Map newProps = getArtifactProperties(repo, artifactPath, artifactName)
-        newProps.each{prop ->
-            logger.quiet(prop.key + " : " + prop.value)
+            Map newProps = getArtifactProperties(repo, artifactPath, artifactName)
+            newProps.each{prop ->
+                logger.quiet(prop.key + " : " + prop.value)
+            }
         }
     }
     else{
@@ -183,17 +187,22 @@ def downloadMSI(String repo, String path, String name){
 }
 
 def extractMSIInfo(String name){
-    logger.quiet("Extract Info from MSI: ${name}")
-    def sout = new StringBuilder(), serr = new StringBuilder()
-    def shellCommand = "powershell.exe .\\MSIInfoExtractor.ps1 .\\${name}"
-    def process = shellCommand.execute()
-    process.consumeProcessOutput( sout, serr )
-    process.waitForOrKill( 60000 )
+    try{
+        logger.quiet("Extract Info from MSI: ${name}")
+        def sout = new StringBuilder(), serr = new StringBuilder()
+        def shellCommand = "powershell.exe .\\MSIInfoExtractor.ps1 .\\${name}"
+        def process = shellCommand.execute()
+        process.consumeProcessOutput( sout, serr )
+        process.waitForOrKill( 60000 )
 
-    def msi = new JsonSlurper().parseText(sout.toString())
-    //logger.quiet ("RESULT: " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID)
+        logger.quiet(sout.toString())
+        def msi = new JsonSlurper().parseText(sout.toString())
 
-    return msi
+        return msi
+    }
+    catch(Exception){
+        logger.quiet("Could not extract metadata from this MSI: ${name}")
+    }
 }
 
 def getArtifactProperties(String repo, String path, String name){
