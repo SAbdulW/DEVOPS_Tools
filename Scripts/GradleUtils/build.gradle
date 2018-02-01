@@ -616,6 +616,17 @@ def getComponentNameFromRemoteRegistry(String guid){
         String name = sout.toString()
         logger.quiet("Got name: ${name}")
 
+        if(name.contains("NOT FOUND")){
+            shellCommand = "powershell.exe .\\readregistry.ps1 consolidate \"${guid}\""
+            logger.quiet("CMD: ${shellCommand}")
+            process = shellCommand.execute()
+            process.consumeProcessOutput( sout, serr )
+            process.waitForOrKill( 60000 )
+
+            name = sout.toString()
+            logger.quiet("Got name: ${name}")
+        }
+
         return name
     }
     catch(Exception){
