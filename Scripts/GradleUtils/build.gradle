@@ -606,6 +606,11 @@ def getComponentNameFromRegistry(String guid){
 def getComponentNameFromRemoteRegistry(String guid){
     try{
         logger.quiet("getComponentNameFromRemoteRegistry:: guid=${guid}")
+        if(!(guid.contains("{") && guid.contains("}"))){
+            guid = "{${guid}}"
+            logger.quiet("GUID: ${guid}")
+        }
+
         def sout = new StringBuilder(), serr = new StringBuilder()
         def shellCommand = "powershell.exe .\\readregistry.ps1 ${vmIP} \"${guid}\""
         logger.quiet("CMD: ${shellCommand}")
