@@ -617,6 +617,7 @@ def getComponentNameFromRemoteRegistry(String guid){
         logger.quiet("Got name: ${name}")
 
         if(name.contains("NOT FOUND")){
+            logger.quiet("Retry with hostname: consolidate")
             shellCommand = "powershell.exe .\\readregistry.ps1 consolidate \"${guid}\""
             logger.quiet("CMD: ${shellCommand}")
             process = shellCommand.execute()
