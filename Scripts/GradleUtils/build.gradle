@@ -618,22 +618,10 @@ def getComponentNameFromRemoteRegistry(String guid){
         process.consumeProcessOutput( sout, serr )
         process.waitForOrKill( 60000 )
 
-        String name = sout.toString()
-        logger.quiet("Got name: ${name}")
+        def result = new JsonSlurper().parseText(sout.toString())
+        logger.quiet("Got result: ${result}")
 
-        if(name.contains("NOT FOUND")){
-            logger.quiet("Retry with hostname: consolidate")
-            shellCommand = "powershell.exe .\\readregistry.ps1 consolidate \"${guid}\""
-            logger.quiet("CMD: ${shellCommand}")
-            process = shellCommand.execute()
-            process.consumeProcessOutput( sout, serr )
-            process.waitForOrKill( 60000 )
-
-            name = sout.toString()
-            logger.quiet("Got name: ${name}")
-        }
-
-        return name
+        return result.DisplayName
     }
     catch(Exception){
         logger.quiet("Could not read remote Registry: ${vmIP} - ${guid}")
