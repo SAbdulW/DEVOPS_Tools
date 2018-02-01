@@ -605,8 +605,10 @@ def getComponentNameFromRegistry(String guid){
 
 def getComponentNameFromRemoteRegistry(String guid){
     try{
+        logger.quiet("getComponentNameFromRemoteRegistry:: guid=${guid}")
         def sout = new StringBuilder(), serr = new StringBuilder()
         def shellCommand = "powershell.exe .\\readregistry.ps1 ${vmIP} \"${guid}\""
+        logger.quiet("CMD: ${shellCommand}")
         def process = shellCommand.execute()
         process.consumeProcessOutput( sout, serr )
         process.waitForOrKill( 60000 )
@@ -623,8 +625,10 @@ def getComponentNameFromRemoteRegistry(String guid){
 
 task testYaml() << {
     //preprocessYAML("./src.yaml")
-    String guid = getComponentGuidFromArtifactory("cf-ci-release", "com.verint.cf.kbs.CFETL:KB140067:15.2.2.51")
-    getComponentNameFromRegistry(guid)
+    String guid = getComponentGuidFromArtifactory("cf-ci-release", "com.verint.cf.kbs.CFETL:KB140067:15.2.2.61")
+    logger.quiet("Got GUID: ${guid}")
+    String name = getComponentNameFromRemoteRegistry(guid)
+    logger.quiet("Got name: ${name}")
 }
 
 def renameYAML (String destPathYAML) {
