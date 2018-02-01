@@ -617,9 +617,9 @@ def getComponentNameFromRemoteRegistry(String guid){
         def process = shellCommand.execute()
         process.consumeProcessOutput( sout, serr )
         process.waitForOrKill( 60000 )
-
+        logger.quiet("Got result: ${sout.toString()}")
         def result = new JsonSlurper().parseText(sout.toString())
-        logger.quiet("Got result: ${result}")
+        logger.quiet("Parsed: ${result}")
 
         return result.DisplayName
     }
