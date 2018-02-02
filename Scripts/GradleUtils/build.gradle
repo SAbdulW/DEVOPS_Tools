@@ -650,6 +650,7 @@ def runExportRegistryFromTestBench (String iVmIP, String iUser, String iPw) {
 }
 
 def exportRemoteRegistry(){
+    logger.quiet("### EXPORT REMOTE REGISTRY ###")
     String sCmd = "if not exist ${srcRootDir} mkdir ${srcRootDir} \n" +
             "cd /D C:\\GradleUtils\n" +
             "cmd /c gradlew.bat -i exportRegistry"
@@ -662,7 +663,8 @@ def exportRemoteRegistry(){
 
     String sRemoteFileName="\\\\${vmIP}\\C\$\\GradleUtils\\build\\registryExport.json"
     File a = new File(sRemoteFileName)
-    String t = a.getText
+    String t = a.getText("UTF-8")
+    logger.quiet(t)
 
     File localFile = new File("registryExport.json")
     if(localFile.exists()){
@@ -671,6 +673,7 @@ def exportRemoteRegistry(){
     localFile.createNewFile()
 
     localFile << t
+    logger.quiet("### DONE - export remote registry")
 }
 
 task testYaml() << {
