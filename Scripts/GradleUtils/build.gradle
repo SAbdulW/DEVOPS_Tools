@@ -500,7 +500,7 @@ def preprocessYAML (String sourcePathYAML) {
             String guid = getComponentGuidFromArtifactory(repoKey, component.ModuleID)
             def artifact = [:]
             artifact.RepoKey = repoKey
-            artifact.Name = getComponentNameFromRemoteRegistry(guid)
+            artifact.Name = getComponentNameFromRegistry(guid)
             artifact.ModuleID = component.ModuleID
             artifact.Action = component.Action == null ? "both" : component.Action
             artifact.Params = component.Params == null ? "" : component.Params
@@ -588,8 +588,8 @@ def getComponentNameFromRegistry(String guid){
             logger.quiet("GUID: ${guid}")
         }
 
-        File registryExportFile = new File ("${projectDir}\\PPLogs\\registryExport.json")
-        //File registryExportFile = new File ("registryExport.json")
+        //File registryExportFile = new File ("${projectDir}\\PPLogs\\registryExport.json")
+        File registryExportFile = new File ("registryExport.json")
         def jsRegistryObj = loadJsonObject (registryExportFile)
 
         def component = jsRegistryObj."${guid}"
@@ -613,7 +613,7 @@ def getComponentNameFromRemoteRegistry(String guid){
 
         for (int i = 0; i < 10; i++){
             def sout = new StringBuilder(), serr = new StringBuilder()
-            def shellCommand = "powershell.exe .\\readregistry.ps1 ${vmIP} \"${guid}\""
+            def shellCommand = "cmd /c powershell.exe .\\readregistry.ps1 ${vmIP} \"${guid}\""
             logger.quiet("CMD: ${shellCommand}")
             def process = shellCommand.execute()
             process.consumeProcessOutput( sout, serr )
@@ -622,7 +622,7 @@ def getComponentNameFromRemoteRegistry(String guid){
             def result = new JsonSlurper().parseText(sout.toString())
             logger.quiet("Parsed: ${result}")
             if(result.DisplayName == "NOT FOUND"){
-                ant.sleep (minutes: 1)
+                sleep(1000*60)
             }
             else{
                 return result.DisplayName
@@ -632,9 +632,45 @@ def getComponentNameFromRemoteRegistry(String guid){
 
         return result.DisplayName
     }
-    catch(Exception){
-        logger.quiet("Could not read remote Registry: ${vmIP} - ${guid}")
+    catch(Exception e){
+        logger.quiet("Could not read remote Registry: ${vmIP} - ${guid} - Error: ${e.getMessage()}")
     }
+}
+
+def runExportRegistryFromTestBench (String iVmIP, String iUser, String iPw) {
+    String sCmd = "C:\\GradleUtils\\runExportRegistry.bat"
+
+    String rtnCode = runRemoteNonIteractive(sCmd, iVmIP,iUser,iPw)
+    logger.quiet ("Run the gradle local: exitCode (${rtnCode})")
+
+    if (rtnCode!="" && rtnCode!="0" && Integer.parseInt("${rtnCode}")<10 ) {
+        logger.quiet ("GradleUtils: Failed with: exitCode (${rtnCode})")
+        throw new GradleException("GradleUtils: Failed to gradle in test bench exitCode (${rtnCode})")
+    }
+}
+
+def exportRemoteRegistry(){
+    String sCmd = "if not exist ${srcRootDir} mkdir ${srcRootDir} \n" +
+            "cd /D C:\\GradleUtils\n" +
+            "cmd /c gradlew.bat -i exportRegistry"
+    File cmdFile = new File ("${projectDir}\\runExportRegistry.bat")
+    cmdFile.text = sCmd
+
+    tasks.copyFilesPrepare.execute()
+
+    runExportRegistryFromTestBench("$vmIP","$vmUser","$vmPw")
+
+    String sRemoteFileName="\\\\${vmIP}\\C\$\\GradleUtils\\build\\registryExport.json"
+    File a = new File(sRemoteFileName)
+    String t = a.getText
+
+    File localFile = new File("registryExport.json")
+    if(localFile.exists()){
+        localFile.delete()
+    }
+    localFile.createNewFile()
+
+    localFile << t
 }
 
 task testYaml() << {
@@ -1217,6 +1253,7 @@ task copyFilesPrepare << {
 
 task runLocalDeployController(dependsOn: 'init') << {
     noticeLog("GradleUtils: The full flow as below\n")
+    exportRemoteRegistry()
 
     if ("${fillVersionRange}".toBoolean()) {
         noticeLog ("GradleUtils: Stage 1.1: Check the YAML file and fill the version as needed [SLAVE]: ${yamlFiles}")
@@ -1658,6 +1695,15 @@ task zipLogs() <<{
             exclude(name: "**\\*.zip")
         }
 
+    }
+}
+
+task exportRegistry() <<{
+    readRegistries()
+    ant.copy (todir: "${buildDir}" ){
+        fileset(dir: "${srcLogDir}") {
+            include(name: "**\\*.json")
+        }
     }
 }
 
