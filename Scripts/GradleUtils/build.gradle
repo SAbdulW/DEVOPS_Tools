@@ -662,6 +662,8 @@ def exportRemoteRegistry(){
     runExportRegistryFromTestBench("$vmIP","$vmUser","$vmPw")
 
     String sRemoteFileName="\\\\${vmIP}\\C\$\\GradleUtils\\build\\registryExport.json"
+    waitImpact360DirInfoReady(sRemoteFileName)
+
     File a = new File(sRemoteFileName)
     String t = a.getText("UTF-8")
     logger.quiet(t)
