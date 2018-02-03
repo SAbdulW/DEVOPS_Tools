@@ -663,18 +663,19 @@ def exportRemoteRegistry(){
 
     String sRemoteFileName="\\\\${vmIP}\\C\$\\GradleUtils\\registryExport.json"
     waitImpact360DirInfoReady(sRemoteFileName)
+    sleep(1000*60)
 
-    File a = new File(sRemoteFileName)
-    String t = a.getText("UTF-8")
-    logger.quiet(t)
-
-    File localFile = new File("registryExport.json")
-    if(localFile.exists()){
-        localFile.delete()
+    ant.copy (todir: "${projectDir}",overwrite:true, verbose: true){
+        fileset (dir: "\\\\${vmIP}\\C\$\\GradleUtils" ){
+            include name: "registryExport.json"
+        }
     }
-    localFile.createNewFile()
 
-    localFile << t
+    logger.quiet("Registry file content:")
+    File localFile = new File("registryExport.json")
+    String content = localFile.getText("UTF-8")
+    logger.quiet(content)
+
     logger.quiet("### DONE - export remote registry")
 }
 
@@ -1651,24 +1652,14 @@ def readRegistries( ){
 
 def readLocalRegistry( ){
     logger.quiet("### READING WINDOWS REGISTRY ###")
-    WindowsRegistry reg = WindowsRegistry.getInstance();
-    String branch = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
-    String branch64 = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
-    List<String> allKeys = new ArrayList<String>();		// list for all keys (32 and 64)
-    List<String> keys = reg.readStringSubKeys(HKey.HKLM, branch);
-    List<String> keys64 = reg.readStringSubKeys(HKey.HKLM, branch64); // adding key for 64
-    allKeys.addAll(keys);		// adding 32 keys
-    allKeys.addAll(keys64);		// adding 64
-
-    def fullRegistryFile = new File ("C:\\GradleUtils\\registryExport.json")
-    if(fullRegistryFile.exists()){
-        fullRegistryFile.delete()
-    }
-    fullRegistryFile.createNewFile()
+    WindowsRegistry reg = WindowsRegistry.getInstance()
+    String branch = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
+    String branch64 = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
+    List<String> keys = reg.readStringSubKeys(HKey.HKLM, branch)
+    List<String> keys64 = reg.readStringSubKeys(HKey.HKLM, branch64)
 
     String fullRegistryContent = ""
     String jsonItemHeader=""
-
     String valueDisplayName = "";
     String valueDisplayVersion = "";
     String valuePublisher = "";
@@ -1727,6 +1718,11 @@ def readLocalRegistry( ){
 
     }
 
+    def fullRegistryFile = new File ("C:\\GradleUtils\\registryExport.json")
+    if(fullRegistryFile.exists()){
+        fullRegistryFile.delete()
+    }
+    fullRegistryFile.createNewFile()
     fullRegistryFile.write "{\n${fullRegistryContent}\n}"
 }
 
@@ -1786,6 +1782,10 @@ task zipLogs() <<{
 
 task exportRegistry() <<{
     readLocalRegistry()
+}
+
+task testExportRemoteRegistry() <<{
+    exportRemoteRegistry()
 }
 
 def copyProductionLogs (String srcDir, String dstDir){
