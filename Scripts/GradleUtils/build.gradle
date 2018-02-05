@@ -662,7 +662,71 @@ def fillSpecificVersionYAMLs (String iYamlFiles){
         fillSpecificVersionYAML (yamlSrcPath)
     }
 }
+
 def fillSpecificVersionYAML (String iYamlFile){
+    File sourceFile = new File (iYamlFile)
+    String sourceContent = sourceFile.getText("UTF-8")
+    Yaml yaml = new Yaml()
+    Object data = yaml.load(sourceContent)
+
+    if (sourceContent.indexOf("wfoComponents") >= 0){
+        logger.quiet("wfoComponents exists - THIS IS OLD YAML : ${iYamlFile}")
+        fillSpecificVersionOldYAML(iYamlFile)
+    }
+    else{
+        logger.quiet("THIS IS NEW YAML : ${iYamlFile}")
+        fillSpecificVersionNewYAML(iYamlFile)
+        preprocessYAML(iYamlFile)
+    }
+}
+
+def fillSpecificVersionNewYAML (String iYamlFile){
+    logger.quiet("fillSpecificVersionNewYAML: ${iYamlFile}")
+    File sourceFile = new File (iYamlFile)
+    String srcFilePath = (sourceFile.getCanonicalPath()).replaceAll("\\\\", "\\\\\\\\")
+    String sourceContent = sourceFile.getText("UTF-8")
+    logger.quiet(sourceContent)
+    Yaml yaml = new Yaml()
+    Object data = yaml.load(sourceContent)
+
+    logger.quiet("Backing up file : ${iYamlFile}")
+    String backupFilePath = "${iYamlFile}.bak"
+    logger.quiet("BAK: ${backupFilePath}")
+    File backupFile = new File (backupFilePath)
+    if(backupFile.exists()){
+        backupFile.delete()
+    }
+    backupFile.createNewFile()
+    backupFile << sourceContent
+
+    def artifacts = []
+    data.each { repo ->
+        def repoKey = repo.keySet().toArray()[0]
+        repo.get(repoKey).each{component ->
+            def artifact = [:]
+            artifact.RepoKey = repoKey
+            artifact.ModuleID = component.ModuleID
+            artifact.Action = component.Action == null ? "both" : component.Action
+            artifact.Params = component.Params == null ? "" : component.Params
+            artifact.Promote = component.Promote == null ? "true" : component.Promote
+
+            artifacts << artifact
+
+            logger.quiet("${artifact.Name} | ${artifact.RepoKey} | ${artifact.ModuleID} | ${artifact.Action} | ${artifact.Params} | ${artifact.Promote}")
+        }
+    }
+
+    String sCurrentVersion = "${currentVersion}"
+    artifacts.each{artifact ->
+        logger.quiet("Calling updateRequestedVersion: ${artifact.ModuleID} | ${artifact.RepoKey} | ${srcFilePath} | ${sCurrentVersion}")
+        updateRequestedVersion (artifact.ModuleID, artifact.RepoKey, srcFilePath, sCurrentVersion)
+    }
+
+    File yamlFile = new File (iYamlFile)
+    logger.quiet(" GradleUtils: YAML file ${iYamlFile} after filling versions:\n" + yamlFile.text)
+}
+
+def fillSpecificVersionOldYAML (String iYamlFile){
     //base on the GAV input, to get the specific version from artifactory and update the YAML
     File sourceFile = new File (iYamlFile);
     String srcFilePath = sourceFile.getCanonicalPath()
@@ -1652,6 +1716,123 @@ def readLocalRegistry( ){
     }
     fullRegistryFile.createNewFile()
     fullRegistryFile.write "{\n${fullRegistryContent}\n}"
+}
+
+def preprocessYAML (String sourcePathYAML) {
+    logger.quiet("SRC: ${sourcePathYAML}")
+
+    File sourceFile = new File (sourcePathYAML)
+    String sourceContent = sourceFile.getText("UTF-8")
+    Yaml yaml = new Yaml()
+    Object data = yaml.load(sourceContent)
+
+    def artifacts = []
+    data.each { repo ->
+        def repoKey = repo.keySet().toArray()[0]
+        repo.get(repoKey).each{component ->
+            String guid = getComponentGuidFromArtifactory(repoKey, component.ModuleID)
+            def artifact = [:]
+            artifact.RepoKey = repoKey
+            artifact.Name = getComponentNameFromRegistry(guid)
+            artifact.ModuleID = component.ModuleID
+            artifact.Action = component.Action == null ? "both" : component.Action
+            artifact.Params = component.Params == null ? "" : component.Params
+            artifact.Promote = component.Promote == null ? "true" : component.Promote
+
+            artifacts << artifact
+        }
+    }
+
+    artifacts.each{artifact ->
+        logger.quiet("${artifact.Name} | ${artifact.RepoKey} | ${artifact.ModuleID} | ${artifact.Action} | ${artifact.Params} | ${artifact.Promote}")
+    }
+
+    File destFile = new File (sourcePathYAML)
+    if(destFile.exists()){
+        destFile.delete()
+    }
+    destFile.createNewFile()
+
+    destFile << "wfoComponents:\r\n"
+    artifacts.each{artifact ->
+        destFile << "  - ComponentName: ${artifact.Name}\r\n"
+        destFile << "    ComponentGAV: '${artifact.ModuleID}'\r\n"
+        destFile << "    ComponentRepo: ${artifact.RepoKey}\r\n"
+        destFile << "    ComponentPC: ${artifact.Promote}\r\n"
+        destFile << "    ComponentActionReceive: ${artifact.Action}\r\n"
+        destFile << "    ComponentInstallOptions: ${artifact.Params}\r\n"
+    }
+
+    String destContent = destFile.getText("UTF-8")
+
+    logger.quiet("Yaml file content BEFORE:")
+    logger.quiet(sourceContent)
+    logger.quiet("Yaml file content AFTER:")
+    logger.quiet(destContent)
+}
+
+def getArtifactProperties(String repo, String moduleID){
+    def props = [:]
+    String outputFilename = "output.json"
+    def GAV = moduleID.tokenize(":")
+    String path = "${GAV[0].replace(".", "/")}/${GAV[1]}/${GAV[2]}/${GAV[1]}-${GAV[2]}.msi"
+    String artifactUrl = "${artifactory_contextUrl}/${repo}/${path}?properties"
+    String sCmd = "curl -f -X GET -u \"" + "${artifactory_user}" + "\":\"" + "${artifactory_password}" + "\" \"${artifactUrl}\" -o \"${outputFilename}\""
+    logger.quiet("Execute cmd: ${sCmd}")
+
+    try {
+        executeCommandLine(sCmd)
+
+        File outputFile = new File(outputFilename)
+        if(outputFile.exists()){
+            String rtnText = outputFile.text
+            outputFile.delete()
+            logger.quiet(rtnText)
+            def resultsJson = new JsonSlurper().parseText(rtnText)
+            props  = resultsJson.properties
+
+            return props
+        }
+    }
+    catch (Exception e) {
+        logger.quiet(e.toString())
+        logger.quiet("Could not retrieve any properties")
+    }
+
+    return props
+}
+
+def getComponentNameFromArtifactory(String repo, String moduleID){
+    def props = getArtifactProperties(repo, moduleID)
+    return props.ProductName[0]
+}
+
+def getComponentGuidFromArtifactory(String repo, String moduleID){
+    def props = getArtifactProperties(repo, moduleID)
+    return props.ProductCode[0]
+}
+
+def getComponentNameFromRegistry(String guid){
+    String name = "NOT FOUND"
+    logger.quiet("GUID: ${guid}")
+    try {
+        if(!(guid.contains("{") && guid.contains("}"))){
+            guid = "{${guid}}"
+            logger.quiet("GUID: ${guid}")
+        }
+
+        File registryExportFile = new File ("registryExport.json")
+        def jsRegistryObj = loadJsonObject (registryExportFile)
+
+        def component = jsRegistryObj."${guid}"
+        name = component."ComponentName"
+        logger.quiet("Got name: ${name}")
+    }
+    catch(Exception e){
+        logger.quiet("Could not get the component from Registry file. Error: ${e}")
+    }
+
+    return name
 }
 
 task exportRegistry() <<{
