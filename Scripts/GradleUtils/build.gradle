@@ -1566,7 +1566,7 @@ def exportRemoteRegistry(){
     logger.quiet("Registry file content:")
     File localFile = new File("registryExport.json")
     String content = localFile.getText("UTF-8")
-    //logger.quiet(content)
+    logger.quiet(content)
 
     logger.quiet("### DONE - export remote registry")
 }
@@ -1663,7 +1663,7 @@ task exportRegistry() <<{
 task exportRemoteRegistry() <<{
     exportRemoteRegistry()
 }
-runLocalDeployController.depensOn exportRemoteRegistry
+runLocalDeployController.dependsOn exportRemoteRegistry
 
 artifactoryPublish.dependsOn zipLogs
 artifactory {
