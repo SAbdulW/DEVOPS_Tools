@@ -9,6 +9,11 @@
       "repoName" : "cd-passed-pl",
       "pathMatch" : "com/verint/",
       "pathExclude" : ""
+    },
+    {
+      "repoName" : "ci-release",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
     }
   ]
 }
