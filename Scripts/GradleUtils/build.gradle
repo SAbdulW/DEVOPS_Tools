@@ -1648,7 +1648,7 @@ def readLocalRegistry( ){
         }
     }
 
-    def fullRegistryFile = new File ("C:\\GradleUtils\\registryExport.json")
+    def fullRegistryFile = new File ("C:\\RegistryExporter\\registryExport.json")
     if(fullRegistryFile.exists()){
         fullRegistryFile.delete()
     }
