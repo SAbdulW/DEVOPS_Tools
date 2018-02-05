@@ -294,14 +294,14 @@ def String generateRemoteCmd(String sPrefix, String sCommand, String iVmIP, Stri
 def String generateRemoteCmdPsExecNonInteractive(String sCommand, String iVmIP, String iUser, String iPw){
 
     //String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -s -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -h -d ${sCommand}"
-	String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h -d ${sCommand}"
+    String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h -d ${sCommand}"
     return strExecCmd;
 }
 
 def String generateRemoteCmdPsExec(String sCommand, String iVmIP, String iUser, String iPw){
 
     //String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -s -u ${iVmIP}\\${iUser} -p ${iPw} -w ${sWorkDir} -h ${sCommand}"
-	String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCommand}"
+    String strExecCmd = "cmd /c .\\PSTools\\psexec.exe -accepteula \\\\${iVmIP} -u ${iVmIP}\\${iUser} -p ${iPw} -h ${sCommand}"
     return strExecCmd;
 }
 
@@ -504,7 +504,7 @@ def loadPuppetLog (String certName, String env  ){
         ant.unzip(src: "${projectDir}\\${certName}.zip", dest: "${unzipDirPath}")
 
 
-       // ant.unzip(src: project.configurations.logConfig.find {it.name.startsWith("${certName}-")}, dest: "${unzipDirPath}")
+        // ant.unzip(src: project.configurations.logConfig.find {it.name.startsWith("${certName}-")}, dest: "${unzipDirPath}")
 
         logger.quiet("\nGradleUtils: ****************************************************************************")
         logger.quiet("GradleUtils: *                      LINKS TO LOG IN ARTIFACTORY                         *")
@@ -662,7 +662,71 @@ def fillSpecificVersionYAMLs (String iYamlFiles){
         fillSpecificVersionYAML (yamlSrcPath)
     }
 }
+
 def fillSpecificVersionYAML (String iYamlFile){
+    File sourceFile = new File (iYamlFile)
+    String sourceContent = sourceFile.getText("UTF-8")
+    Yaml yaml = new Yaml()
+    Object data = yaml.load(sourceContent)
+
+    if (sourceContent.indexOf("wfoComponents") >= 0){
+        logger.quiet("wfoComponents exists - THIS IS OLD YAML : ${iYamlFile}")
+        fillSpecificVersionOldYAML(iYamlFile)
+    }
+    else{
+        logger.quiet("THIS IS NEW YAML : ${iYamlFile}")
+        fillSpecificVersionNewYAML(iYamlFile)
+        preprocessYAML(iYamlFile)
+    }
+}
+
+def fillSpecificVersionNewYAML (String iYamlFile){
+    logger.quiet("fillSpecificVersionNewYAML: ${iYamlFile}")
+    File sourceFile = new File (iYamlFile)
+    String srcFilePath = (sourceFile.getCanonicalPath()).replaceAll("\\\\", "\\\\\\\\")
+    String sourceContent = sourceFile.getText("UTF-8")
+    logger.quiet(sourceContent)
+    Yaml yaml = new Yaml()
+    Object data = yaml.load(sourceContent)
+
+    logger.quiet("Backing up file : ${iYamlFile}")
+    String backupFilePath = "${iYamlFile}.bak"
+    logger.quiet("BAK: ${backupFilePath}")
+    File backupFile = new File (backupFilePath)
+    if(backupFile.exists()){
+        backupFile.delete()
+    }
+    backupFile.createNewFile()
+    backupFile << sourceContent
+
+    def artifacts = []
+    data.each { repo ->
+        def repoKey = repo.keySet().toArray()[0]
+        repo.get(repoKey).each{component ->
+            def artifact = [:]
+            artifact.RepoKey = repoKey
+            artifact.ModuleID = component.ModuleID
+            artifact.Action = component.Action == null ? "both" : component.Action
+            artifact.Params = component.Params == null ? "" : component.Params
+            artifact.Promote = component.Promote == null ? "true" : component.Promote
+
+            artifacts << artifact
+
+            logger.quiet("${artifact.Name} | ${artifact.RepoKey} | ${artifact.ModuleID} | ${artifact.Action} | ${artifact.Params} | ${artifact.Promote}")
+        }
+    }
+
+    String sCurrentVersion = "${currentVersion}"
+    artifacts.each{artifact ->
+        logger.quiet("Calling updateRequestedVersion: ${artifact.ModuleID} | ${artifact.RepoKey} | ${srcFilePath} | ${sCurrentVersion}")
+        updateRequestedVersion (artifact.ModuleID, artifact.RepoKey, srcFilePath, sCurrentVersion)
+    }
+
+    File yamlFile = new File (iYamlFile)
+    logger.quiet(" GradleUtils: YAML file ${iYamlFile} after filling versions:\n" + yamlFile.text)
+}
+
+def fillSpecificVersionOldYAML (String iYamlFile){
     //base on the GAV input, to get the specific version from artifactory and update the YAML
     File sourceFile = new File (iYamlFile);
     String srcFilePath = sourceFile.getCanonicalPath()
@@ -869,7 +933,7 @@ def boolean containsPrefixes(String srcString, String prefixes) {
 def waitAppReady (String vmIP_NA) {
     def vmIP="127.0.0.1"
     logger.quiet ("-----Start wait login page-----")
-	logger.quiet ("Try load login page: http://${vmIP}/wfo/control/signin")
+    logger.quiet ("Try load login page: http://${vmIP}/wfo/control/signin")
     //waits up to 10 minutes (and checks every 500 milliseconds) for a web server on vmIP to serve up the specified URL.
     ant.waitfor (maxwait:"10", maxwaitunit:"minute", checkevery:"500", timeoutproperty:"web.timeout") {
         http (url:"http://${vmIP}/wfo/control/signin")
@@ -917,7 +981,7 @@ def yamlValidation(String [] yamlFiles){
         def yaml = new Yaml()
         def doc = new File(yamlFile).text
         try {
-            def map = (Map) yaml.load(doc)
+            def map = yaml.load(doc)
             logger.quiet ("GradleUtils: YAML (${yamlFile}) PASSED validation")
         }catch (Exception e){
             logger.quiet ("GradleUtils: Invalid YAML (${yamlFile})")
@@ -1277,30 +1341,30 @@ def readRegistries( ){
     //String tree = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
     //String value = reg.readString(HKey.HKLM, tree, "ProductName");
     String branch = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
-	String branch64 = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
-	List<String> allKeys = new ArrayList<String>();		// list for all keys (32 and 64)
+    String branch64 = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
+    List<String> allKeys = new ArrayList<String>();		// list for all keys (32 and 64)
     List<String> keys = reg.readStringSubKeys(HKey.HKLM, branch);
-	List<String> keys64 = reg.readStringSubKeys(HKey.HKLM, branch64); // adding key for 64
-	allKeys.addAll(keys);		// adding 32 keys
-	allKeys.addAll(keys64);		// adding 64
+    List<String> keys64 = reg.readStringSubKeys(HKey.HKLM, branch64); // adding key for 64
+    allKeys.addAll(keys);		// adding 32 keys
+    allKeys.addAll(keys64);		// adding 64
     def registryDiffFile = new File ("$srcLogDir\\ServerVersionInstalledMismatch.log")
     registryDiffFile.write "List of mismatch of registry and ServerVersionInformation.xml\n"
 
     def fullRegistryFile = new File ("$srcLogDir\\registryExport.json")
     String fullRegistryContent = ""
     String jsonItemHeader=""
-	
-	String valueDisplayName = "";
-	String valueDisplayVersion = "";
-	String valuePublisher = "";
-	
+
+    String valueDisplayName = "";
+    String valueDisplayVersion = "";
+    String valuePublisher = "";
+
     for (String key : keys) {
         logger.quiet("GradleUtils Test: looking for key: ${key} in Wow6432Node");
-		valueDisplayName = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayName");
+        valueDisplayName = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayName");
         valueDisplayVersion = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayVersion");
         valuePublisher = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "Publisher");
-		logger.quiet("GradleUtils Test: key: ${key} AND valueDisplayName: ${valueDisplayName}");
-	
+        logger.quiet("GradleUtils Test: key: ${key} AND valueDisplayName: ${valueDisplayName}");
+
         def component = getXMLComponent(parsedXmlObj,key)
 
         if (component !=null){
@@ -1331,19 +1395,19 @@ def readRegistries( ){
                     "  }"
         }
     }
-	
-	
-	for (String key : keys64) {
-        
-		logger.quiet("GradleUtils Test: looking for key: ${key} for 64bit");
-		//static Pattern escaper = Pattern.compile("([^a-zA-z0-9])");
+
+
+    for (String key : keys64) {
+
+        logger.quiet("GradleUtils Test: looking for key: ${key} for 64bit");
+        //static Pattern escaper = Pattern.compile("([^a-zA-z0-9])");
         //key =  key.replaceAll( /([^a-zA-Z0-9])/, '\\\\$1' )
-		//key = key.replaceAll('$' , '\$');
-		logger.quiet("GradleUtils Test: key after replacement : ${key}");
-		valueDisplayName = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayName");
-		valueDisplayVersion = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayVersion");
-		valuePublisher = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "Publisher");
-		logger.quiet("GradleUtils Test: key: ${key} AND valueDisplayName: ${valueDisplayName}");				
+        //key = key.replaceAll('$' , '\$');
+        logger.quiet("GradleUtils Test: key after replacement : ${key}");
+        valueDisplayName = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayName");
+        valueDisplayVersion = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayVersion");
+        valuePublisher = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "Publisher");
+        logger.quiet("GradleUtils Test: key: ${key} AND valueDisplayName: ${valueDisplayName}");
         def component = getXMLComponent(parsedXmlObj,key)
 
         if (component !=null){
@@ -1376,7 +1440,7 @@ def readRegistries( ){
 
 
     }
-	
+
     fullRegistryFile.write "{\n${fullRegistryContent}\n}"
 
 }
@@ -1520,9 +1584,267 @@ def WaitAndCreateDirRemote(String strDir){
 
 }
 
+def exportRemoteRegistry(){
+    logger.quiet("### EXPORT REMOTE REGISTRY ###")
+    String dir = "C:\\\\RegistryExporter"
+    String sCmd = "if not exist ${srcRootDir} mkdir ${srcRootDir} \n" +
+            "cd /D ${dir}\n" +
+            "cmd /c gradlew.bat -i exportRegistry"
+    File cmdFile = new File ("${projectDir}\\runExportRegistry.bat")
+    cmdFile.text = sCmd
+
+    ant.exec(executable: "cmd", failonerror:"false") {
+        arg line: '/c'
+        arg line: "net use \\\\${vmIP}\\C\$ /user:${vmUser} ${vmPw}"
+    }
+
+    // First to make sure
+    WaitAndCreateDirRemote ("\\\\${vmIP}\\C\$\\RegistryExporter")
+
+    // Then copy
+    ant.copy (todir: "\\\\${vmIP}\\C\$\\RegistryExporter",overwrite:true, verbose: true){
+        fileset (dir: "${projectDir}" ){
+            exclude name: "**/.gradle/**"
+            exclude name: "**/.git/**"
+            exclude name: "**/build/**"
+            exclude name: "**/PPLogs/**"
+            exclude name: "**/dependencies_*.info"
+            exclude name: "**/*.zip"
+        }
+    }
+
+    runExportRegistryFromTestBench("$vmIP","$vmUser","$vmPw")
+
+    String sRemoteFileName="\\\\${vmIP}\\C\$\\RegistryExporter\\registryExport.json"
+    waitImpact360DirInfoReady(sRemoteFileName)
+    sleep(1000*30)
+
+    ant.copy (todir: "${projectDir}",overwrite:true, verbose: true){
+        fileset (dir: "\\\\${vmIP}\\C\$\\RegistryExporter" ){
+            include name: "registryExport.json"
+        }
+    }
+
+    //File localFile = new File("registryExport.json")
+    //String content = localFile.getText("UTF-8")
+    //logger.quiet("Registry file content:")
+    //logger.quiet(content)
+
+    logger.quiet("### DONE - export remote registry")
+}
+
+def runExportRegistryFromTestBench (String iVmIP, String iUser, String iPw) {
+    String sCmd = "C:\\RegistryExporter\\runExportRegistry.bat"
+
+    String rtnCode = runRemoteNonIteractive(sCmd, iVmIP,iUser,iPw)
+    logger.quiet ("Run the gradle local: exitCode (${rtnCode})")
+
+    if (rtnCode!="" && rtnCode!="0" && Integer.parseInt("${rtnCode}")<10 ) {
+        logger.quiet ("GradleUtils: Failed with: exitCode (${rtnCode})")
+        throw new GradleException("GradleUtils: Failed to gradle in test bench exitCode (${rtnCode})")
+    }
+}
+
+def readLocalRegistry( ){
+    logger.quiet("### READING WINDOWS REGISTRY ###")
+    WindowsRegistry reg = WindowsRegistry.getInstance()
+    String branch = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
+    String branch64 = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
+    List<String> keys = reg.readStringSubKeys(HKey.HKLM, branch)
+    List<String> keys64 = reg.readStringSubKeys(HKey.HKLM, branch64)
+
+    String fullRegistryContent = ""
+    String jsonItemHeader=""
+    String valueDisplayName = ""
+    String valueDisplayVersion = ""
+    String valuePublisher = ""
+
+    for (String key : keys) {
+        logger.quiet("GradleUtils Test: looking for key: ${key} in Wow6432Node")
+        valueDisplayName = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayName")
+        valueDisplayVersion = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayVersion")
+        valuePublisher = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "Publisher")
+        logger.quiet("GradleUtils Test: key: ${key} AND valueDisplayName: ${valueDisplayName}")
+
+        if (fullRegistryContent=="") {
+            fullRegistryContent ="  \"${key}\": {\n" +
+                    "    \"ComponentName\": \"${valueDisplayName}\",\n" +
+                    "    \"InstalledVersion\": \"${valueDisplayVersion}\",\n" +
+                    "    \"Key\": \"${key}\",\n" +
+                    "    \"Publisher\": \"${valuePublisher}\"\n" +
+                    "  }"
+        }else{
+            fullRegistryContent =fullRegistryContent +",\n  \"${key}\": {\n" +
+                    "    \"ComponentName\": \"${valueDisplayName}\",\n" +
+                    "    \"InstalledVersion\": \"${valueDisplayVersion}\",\n" +
+                    "    \"Key\": \"${key}\",\n" +
+                    "    \"Publisher\": \"${valuePublisher}\"\n" +
+                    "  }"
+        }
+    }
+
+
+    for (String key : keys64) {
+
+        logger.quiet("GradleUtils Test: looking for key: ${key} for 64bit")
+        logger.quiet("GradleUtils Test: key after replacement : ${key}")
+        valueDisplayName = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayName")
+        valueDisplayVersion = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayVersion")
+        valuePublisher = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "Publisher")
+        logger.quiet("GradleUtils Test: key: ${key} AND valueDisplayName: ${valueDisplayName}")
+
+        if (fullRegistryContent=="") {
+            fullRegistryContent ="  \"${key}\": {\n" +
+                    "    \"ComponentName\": \"${valueDisplayName}\",\n" +
+                    "    \"InstalledVersion\": \"${valueDisplayVersion}\",\n" +
+                    "    \"Key\": \"${key}\",\n" +
+                    "    \"Publisher\": \"${valuePublisher}\"\n" +
+                    "  }"
+        }else{
+            fullRegistryContent =fullRegistryContent +",\n  \"${key}\": {\n" +
+                    "    \"ComponentName\": \"${valueDisplayName}\",\n" +
+                    "    \"InstalledVersion\": \"${valueDisplayVersion}\",\n" +
+                    "    \"Key\": \"${key}\",\n" +
+                    "    \"Publisher\": \"${valuePublisher}\"\n" +
+                    "  }"
+        }
+    }
+
+    def fullRegistryFile = new File ("C:\\RegistryExporter\\registryExport.json")
+    if(fullRegistryFile.exists()){
+        fullRegistryFile.delete()
+    }
+    fullRegistryFile.createNewFile()
+    fullRegistryFile.write "{\n${fullRegistryContent}\n}"
+}
+
+def preprocessYAML (String sourcePathYAML) {
+    logger.quiet("SRC: ${sourcePathYAML}")
+
+    File sourceFile = new File (sourcePathYAML)
+    String sourceContent = sourceFile.getText("UTF-8")
+    Yaml yaml = new Yaml()
+    Object data = yaml.load(sourceContent)
+
+    def artifacts = []
+    data.each { repo ->
+        def repoKey = repo.keySet().toArray()[0]
+        repo.get(repoKey).each{component ->
+            String guid = getComponentGuidFromArtifactory(repoKey, component.ModuleID)
+            def artifact = [:]
+            artifact.RepoKey = repoKey
+            artifact.Name = getComponentNameFromRegistry(guid)
+            artifact.ModuleID = component.ModuleID
+            artifact.Action = component.Action == null ? "both" : component.Action
+            artifact.Params = component.Params == null ? "" : component.Params
+            artifact.Promote = component.Promote == null ? "true" : component.Promote
+
+            artifacts << artifact
+        }
+    }
+
+    artifacts.each{artifact ->
+        logger.quiet("${artifact.Name} | ${artifact.RepoKey} | ${artifact.ModuleID} | ${artifact.Action} | ${artifact.Params} | ${artifact.Promote}")
+    }
+
+    File destFile = new File (sourcePathYAML)
+    if(destFile.exists()){
+        destFile.delete()
+    }
+    destFile.createNewFile()
+
+    destFile << "wfoComponents:\r\n"
+    artifacts.each{artifact ->
+        destFile << "  - ComponentName: ${artifact.Name}\r\n"
+        destFile << "    ComponentGAV: '${artifact.ModuleID}'\r\n"
+        destFile << "    ComponentRepo: ${artifact.RepoKey}\r\n"
+        destFile << "    ComponentPC: ${artifact.Promote}\r\n"
+        destFile << "    ComponentActionReceive: ${artifact.Action}\r\n"
+        destFile << "    ComponentInstallOptions: ${artifact.Params}\r\n"
+    }
+
+    String destContent = destFile.getText("UTF-8")
+
+    logger.quiet("Yaml file content BEFORE:")
+    logger.quiet(sourceContent)
+    logger.quiet("Yaml file content AFTER:")
+    logger.quiet(destContent)
+}
+
+def getArtifactProperties(String repo, String moduleID){
+    def props = [:]
+    String outputFilename = "output.json"
+    def GAV = moduleID.tokenize(":")
+    String path = "${GAV[0].replace(".", "/")}/${GAV[1]}/${GAV[2]}/${GAV[1]}-${GAV[2]}.msi"
+    String artifactUrl = "${artifactory_contextUrl}/${repo}/${path}?properties"
+    String sCmd = "curl -f -X GET -u \"" + "${artifactory_user}" + "\":\"" + "${artifactory_password}" + "\" \"${artifactUrl}\" -o \"${outputFilename}\""
+    logger.quiet("Execute cmd: ${sCmd}")
+
+    try {
+        executeCommandLine(sCmd)
+
+        File outputFile = new File(outputFilename)
+        if(outputFile.exists()){
+            String rtnText = outputFile.text
+            outputFile.delete()
+            logger.quiet(rtnText)
+            def resultsJson = new JsonSlurper().parseText(rtnText)
+            props  = resultsJson.properties
+
+            return props
+        }
+    }
+    catch (Exception e) {
+        logger.quiet(e.toString())
+        logger.quiet("Could not retrieve any properties")
+    }
+
+    return props
+}
+
+def getComponentNameFromArtifactory(String repo, String moduleID){
+    def props = getArtifactProperties(repo, moduleID)
+    return props.ProductName[0]
+}
+
+def getComponentGuidFromArtifactory(String repo, String moduleID){
+    def props = getArtifactProperties(repo, moduleID)
+    return props.ProductCode[0]
+}
+
+def getComponentNameFromRegistry(String guid){
+    String name = "NOT FOUND"
+    logger.quiet("GUID: ${guid}")
+    try {
+        if(!(guid.contains("{") && guid.contains("}"))){
+            guid = "{${guid}}"
+            logger.quiet("GUID: ${guid}")
+        }
+
+        File registryExportFile = new File ("registryExport.json")
+        def jsRegistryObj = loadJsonObject (registryExportFile)
+
+        def component = jsRegistryObj."${guid}"
+        name = component."ComponentName"
+        logger.quiet("Got name: ${name}")
+    }
+    catch(Exception e){
+        logger.quiet("Could not get the component from Registry file. Error: ${e}")
+    }
+
+    return name
+}
+
+task exportRegistry() <<{
+    readLocalRegistry()
+}
+
+task exportRemoteRegistry(dependsOn: 'init') <<{
+    exportRemoteRegistry()
+}
+runLocalDeployController.dependsOn exportRemoteRegistry
+
 artifactoryPublish.dependsOn zipLogs
-
-
 artifactory {
     publish {
         contextUrl = "${artifactory_contextUrl}"	// The base Artifactory URL if not overridden by the publisher/resolver
