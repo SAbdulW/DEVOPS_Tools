@@ -1542,8 +1542,6 @@ def exportRemoteRegistry(){
         fileset (dir: "${projectDir}" ){
             exclude name: "**/.gradle/**"
             exclude name: "**/.git/**"
-            exclude name: "**/PAExec/**"
-            exclude name: "**/Pstools/**"
             exclude name: "**/build/**"
             exclude name: "**/PPLogs/**"
             exclude name: "**/dependencies_*.info"
@@ -1555,7 +1553,7 @@ def exportRemoteRegistry(){
 
     String sRemoteFileName="\\\\${vmIP}\\C\$\\RegistryExporter\\registryExport.json"
     waitImpact360DirInfoReady(sRemoteFileName)
-    sleep(1000*60)
+    sleep(1000*30)
 
     ant.copy (todir: "${projectDir}",overwrite:true, verbose: true){
         fileset (dir: "\\\\${vmIP}\\C\$\\RegistryExporter" ){
@@ -1566,7 +1564,7 @@ def exportRemoteRegistry(){
     logger.quiet("Registry file content:")
     File localFile = new File("registryExport.json")
     String content = localFile.getText("UTF-8")
-    logger.quiet(content)
+    //logger.quiet(content)
 
     logger.quiet("### DONE - export remote registry")
 }
@@ -1660,7 +1658,7 @@ task exportRegistry() <<{
     readLocalRegistry()
 }
 
-task exportRemoteRegistry() <<{
+task exportRemoteRegistry(dependsOn: 'init') <<{
     exportRemoteRegistry()
 }
 runLocalDeployController.dependsOn exportRemoteRegistry
