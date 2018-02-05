@@ -1625,9 +1625,9 @@ def exportRemoteRegistry(){
         }
     }
 
-    logger.quiet("Registry file content:")
-    File localFile = new File("registryExport.json")
-    String content = localFile.getText("UTF-8")
+    //File localFile = new File("registryExport.json")
+    //String content = localFile.getText("UTF-8")
+    //logger.quiet("Registry file content:")
     //logger.quiet(content)
 
     logger.quiet("### DONE - export remote registry")
