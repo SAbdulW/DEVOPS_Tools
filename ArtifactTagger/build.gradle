@@ -73,7 +73,6 @@ def process (String conf){
                         majorRelease = "${v[0]}.${v[1]}"
                         minorRelease = "${v[2]}"
                     }
-                    String tags = ""
                     def props = [:]
                     props.put("ProductName", msi.ProductName)
                     props.put("ProductCode", msi.ProductCode)
@@ -81,8 +80,10 @@ def process (String conf){
                     props.put("INSTALLATIONUNITGUID", msi.INSTALLATIONUNITGUID)
                     props.put("MajorRelease", majorRelease)
                     props.put("MinorRelease", minorRelease)
-                    props.put("Tags", tags)
-                    props.put("MasterBuildVersion", buildVersion)
+                    //props.put("Tags", tags) // WE DO NOT WANT TO OVERWRITE existing tags when tagging whole repo
+                    props.put("GroupID", groupId)
+                    props.put("ArtifactID", artifactId)
+                    props.put("MasterBuildVersion", masterBuildVersion)
                     putArtifactProperties(repoKey, item.path, item.name, props)
 
                     Map newProps = getArtifactProperties(repoKey, item.path, item.name)
@@ -132,6 +133,8 @@ def processOneArtifact (String repo, String groupId, String artifactId, String m
             props.put("MajorRelease", majorRelease)
             props.put("MinorRelease", minorRelease)
             props.put("Tags", tags)
+            props.put("GroupID", groupId)
+            props.put("ArtifactID", artifactId)
             props.put("MasterBuildVersion", masterBuildVersion)
             putArtifactProperties(repo, artifactPath, artifactName, props)
 
