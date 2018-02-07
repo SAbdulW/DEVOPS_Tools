@@ -675,8 +675,9 @@ def fillSpecificVersionYAML (String iYamlFile){
     }
     else{
         logger.quiet("THIS IS NEW YAML : ${iYamlFile}")
-        fillSpecificVersionNewYAML(iYamlFile)
         preprocessYAML(iYamlFile)
+        fillSpecificVersionNewYAML(iYamlFile)
+        transformYAML(iYamlFile)
     }
 }
 
@@ -1718,7 +1719,7 @@ def readLocalRegistry( ){
     fullRegistryFile.write "{\n${fullRegistryContent}\n}"
 }
 
-def preprocessYAML (String sourcePathYAML) {
+def transformYAML (String sourcePathYAML) {
     logger.quiet("SRC: ${sourcePathYAML}")
 
     File sourceFile = new File (sourcePathYAML)
@@ -1771,6 +1772,105 @@ def preprocessYAML (String sourcePathYAML) {
     logger.quiet(destContent)
 }
 
+def preprocessYAML (String sourcePathYAML) {
+    logger.quiet("SRC: ${sourcePathYAML}")
+
+    File sourceFile = new File (sourcePathYAML)
+    String sourceContent = sourceFile.getText("UTF-8")
+    Yaml yaml = new Yaml()
+    Object data = yaml.load(sourceContent)
+
+    def repos = [:]
+    def artifacts = []
+    data.each { repo ->
+        def repoKey = repo.keySet().toArray()[0]
+        repo.get(repoKey).each{component ->
+            def GAV = component.ModuleID.tokenize(":")
+            def artifact = [:]
+            artifact.RepoKey = repoKey
+            artifact.ModuleID = component.ModuleID
+            artifact.GroupID = GAV[0]
+            artifact.ArtifactID = getArtifactIdFromProperties(repoKey, component.ModuleID)
+            artifact.Version = GAV[2]
+            artifacts << artifact
+
+            logger.quiet("ModuleID: ${artifact.ModuleID} | ArtifactID:  ${artifact.ArtifactID}")
+        }
+
+        repos.put(repoKey, artifacts)
+    }
+
+    File destFile = new File (sourcePathYAML)
+    if(destFile.exists()){
+        destFile.delete()
+    }
+    destFile.createNewFile()
+
+    repos.each{key, items ->
+        destFile << "- ${key}:\r\n"
+        items.each{item ->
+            destFile << "    - ModuleID: '${item.GroupID}:${item.ArtifactID}:${item.Version}'\r\n"
+        }
+
+    }
+
+    String destContent = destFile.getText("UTF-8")
+    logger.quiet("Yaml file content BEFORE:")
+    logger.quiet(sourceContent)
+    logger.quiet("Yaml file content AFTER:")
+    logger.quiet(destContent)
+}
+
+def getArtifactIdFromProperties(String repo, String moduleID){
+    String artifactId = ""
+
+    def GAV = moduleID.tokenize(":")
+    String groupId = GAV[0]
+    String properties = GAV[1]
+    String version = GAV[2]
+    if(properties.indexOf("[") == 0){
+        logger.quiet("Need to query Artifactory with properties. GroupID: ${groupId} | Properties: ${properties}")
+        def propList = parseStringList2List(properties)
+        propList.push(["GroupID", groupId])
+        propList.each{item ->
+            logger.quiet("'${item[0]}' === '${item[1]}'")
+        }
+
+        def msiList = queryMSIListWithProperties(repo, propList)
+        Set artifactIdSet = []
+        msiList.each{msi ->
+            logger.quiet(msi.name + " | " + msi.path)
+            def a = msi.name.split('-')
+            artifactIdSet.add(a[0])
+        }
+
+        artifactIdSet.each(){artifact ->
+            logger.quiet("${artifact}")
+        }
+
+        artifactId = artifactIdSet.sort().last()
+    }
+    else{
+        artifactId = properties
+    }
+
+    return artifactId
+}
+
+def parseStringList2List(String input){
+    def propList = []
+    String s = ""
+    if(input.contains('[') && input.contains(']')){
+        s = input - '[' - ']'
+    }
+    s.split(',').each{prop ->
+        def pair = prop.trim().split('=')
+        propList.push(pair)
+    }
+
+    return propList
+}
+
 def getArtifactProperties(String repo, String moduleID){
     def props = [:]
     String outputFilename = "output.json"
@@ -1800,6 +1900,71 @@ def getArtifactProperties(String repo, String moduleID){
     }
 
     return props
+}
+
+def List queryMSIListWithProperties(String repo, Object props){
+    String s = ""
+    props.each{prop ->
+        s += "        ,\"@${prop[0]}\":{\"\$match\":\"${prop[1]}\"}"
+    }
+
+    String aqlQuery =
+            "items.find" +
+                    "(" +
+                    "    {" +
+                    "        \"repo\":{\"\$eq\":\"${repo}\"}" +
+                    "        ,\"\$or\":[{\"name\":{\"\$match\":\"*.MSI\"}}, {\"name\":{\"\$match\":\"*.msi\"}}]" +
+
+                    s +
+
+                    "    }"  +
+                    ").include(\"name\", \"path\")"
+
+    List resultsList  = search(aqlQuery)
+    return resultsList
+}
+
+def List search(String aql ){
+    logger.quiet("Artifactory query: $aql")
+
+    def String resultsJsonText = executeAQL(aql)
+    def resultsJson = new JsonSlurper().parseText(resultsJsonText)
+
+    List resultsList  = resultsJson.results
+    File searchResultFile = new File ("searchResult.json")
+    searchResultFile.text = "${resultsJsonText}"
+
+    return resultsList
+}
+
+def String executeAQL(String query){
+    String filePath =""
+    File tempArtifactsList = File.createTempFile("aqlResult",".result");
+    filePath = tempArtifactsList.getAbsolutePath()
+    filePath = filePath.replaceAll("\\\\","/")
+
+    File aqlQueryFile=File.createTempFile("aqlQueryFile",".query");
+    String aqlQueryFilePath = aqlQueryFile.getAbsolutePath()
+    aqlQueryFilePath = aqlQueryFilePath.replaceAll("\\\\","/")
+
+    aqlQueryFile.text = "${query}"
+
+    String sCmd = "curl -f -X POST -u \"" + "$artifactory_user" + "\":\"" + "$artifactory_password" + "\" \"$artifactory_contextUrl/api/search/aql\" -T\"${aqlQueryFilePath}\"  -o \"$filePath\""
+    logger.quiet("Execute AQL: ${sCmd}")
+
+    try {
+        executeCommandLine(sCmd)
+    }
+    catch (Exception e) {
+        logger.quiet (e.toString())
+    }
+
+    //def inputJSON = new JsonSlurper().parseText(tempArtifactsList.text)
+    String rtnText = tempArtifactsList.text
+    tempArtifactsList.delete()
+    aqlQueryFile.delete()
+
+    return rtnText
 }
 
 def getComponentNameFromArtifactory(String repo, String moduleID){
@@ -1843,6 +2008,10 @@ task exportRemoteRegistry(dependsOn: 'init') <<{
     exportRemoteRegistry()
 }
 runLocalDeployController.dependsOn exportRemoteRegistry
+
+task testNewYaml() << {
+    preprocessYAML("./src.yaml")
+}
 
 artifactoryPublish.dependsOn zipLogs
 artifactory {
