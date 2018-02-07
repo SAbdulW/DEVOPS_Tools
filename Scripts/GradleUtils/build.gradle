@@ -1781,8 +1781,8 @@ def preprocessYAML (String sourcePathYAML) {
     Object data = yaml.load(sourceContent)
 
     def repos = [:]
-    def artifacts = []
     data.each { repo ->
+        def artifacts = []
         def repoKey = repo.keySet().toArray()[0]
         repo.get(repoKey).each{component ->
             def GAV = component.ModuleID.tokenize(":")
