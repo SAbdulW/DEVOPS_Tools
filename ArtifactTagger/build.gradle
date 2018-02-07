@@ -66,6 +66,8 @@ def process (String conf){
                     fFullL << "   |--> " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID + "\r\n"
 
                     String buildVersion = extractBuildVersionFromPath(item.path)
+                    String groupId = extractGroupIdFromPath(item.path)
+                    String artifactId = extractArtifactIdFromPath(item.path)
                     String majorRelease = ""
                     String minorRelease = ""
                     def v = buildVersion.tokenize(".")
@@ -83,7 +85,7 @@ def process (String conf){
                     //props.put("Tags", tags) // WE DO NOT WANT TO OVERWRITE existing tags when tagging whole repo
                     props.put("GroupID", groupId)
                     props.put("ArtifactID", artifactId)
-                    props.put("MasterBuildVersion", masterBuildVersion)
+                    props.put("MasterBuildVersion", buildVersion)
                     putArtifactProperties(repoKey, item.path, item.name, props)
 
                     Map newProps = getArtifactProperties(repoKey, item.path, item.name)
@@ -168,7 +170,7 @@ def List getListOfMSI(String repo, String pathMatch, String watermark){
                     "        ,\"\$or\":[{\"name\":{\"\$match\":\"*.MSI\"}}, {\"name\":{\"\$match\":\"*.msi\"}}]" +
                     "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" +
                     "    }"  +
-                    ").include(\"name\", \"path\",\"size\")"
+                    ").include(\"name\", \"path\",\"artifact.module.name\")"
 
     List resultsList  = search(aqlQuery)
     return resultsList
@@ -350,13 +352,30 @@ def String executeAQL(String query){
 }
 
 def extractBuildVersionFromPath(String path){
-    String version = ""
     def parts = path.tokenize("/")
-    parts.each { part ->
-        if (part ==~ /[0-9]+.[0-9]+.[0-9]+.[0-9]+/){
-            version = part
+    String version = parts[parts.size() - 1]
+
+    return version
+}
+
+def extractArtifactIdFromPath(String path){
+    def parts = path.tokenize("/")
+    String artifactId = parts[parts.size() - 2]
+
+    return artifactId
+}
+
+def extractGroupIdFromPath(String path){
+    String groupId = ""
+    def parts = path.tokenize("/")
+    for(int i = 0; i < parts.size() - 2; i++){
+        if(i < parts.size() - 3){
+            groupId += parts[i] + "."
+        }
+        else{
+            groupId += parts[i]
         }
     }
 
-    return version
+    return groupId
 }
