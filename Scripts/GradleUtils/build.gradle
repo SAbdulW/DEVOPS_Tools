@@ -690,16 +690,6 @@ def fillSpecificVersionNewYAML (String iYamlFile){
     Yaml yaml = new Yaml()
     Object data = yaml.load(sourceContent)
 
-    logger.quiet("Backing up file : ${iYamlFile}")
-    String backupFilePath = "${iYamlFile}.bak"
-    logger.quiet("BAK: ${backupFilePath}")
-    File backupFile = new File (backupFilePath)
-    if(backupFile.exists()){
-        backupFile.delete()
-    }
-    backupFile.createNewFile()
-    backupFile << sourceContent
-
     def artifacts = []
     data.each { repo ->
         def repoKey = repo.keySet().toArray()[0]
@@ -1780,24 +1770,52 @@ def preprocessYAML (String sourcePathYAML) {
     Yaml yaml = new Yaml()
     Object data = yaml.load(sourceContent)
 
+    logger.quiet("Backing up file : ${sourcePathYAML}")
+    String backupFilePath = "${sourcePathYAML}.bak"
+    logger.quiet("BAK: ${backupFilePath}")
+    File backupFile = new File (backupFilePath)
+    if(backupFile.exists()){
+        backupFile.delete()
+    }
+    backupFile.createNewFile()
+    backupFile << sourceContent
+
     def repos = [:]
+    def predefined = [:]
     data.each { repo ->
         def artifacts = []
         def repoKey = repo.keySet().toArray()[0]
-        repo.get(repoKey).each{component ->
-            def GAV = component.ModuleID.tokenize(":")
-            def artifact = [:]
-            artifact.RepoKey = repoKey
-            artifact.ModuleID = component.ModuleID
-            artifact.GroupID = GAV[0]
-            artifact.ArtifactID = getArtifactIdFromProperties(repoKey, component.ModuleID)
-            artifact.Version = GAV[2]
-            artifacts << artifact
-
-            logger.quiet("ModuleID: ${artifact.ModuleID} | ArtifactID:  ${artifact.ArtifactID}")
+        if(repoKey == "_predefined_"){
+            repo.get(repoKey).each{k, v ->
+                predefined.put(k, v)
+            }
+            logger.quiet("_predefined_ : ${predefined.toMapString()}")
         }
+        else{
+            repo.get(repoKey).each{component ->
+                def GAV = component.ModuleID.tokenize(":")
+                def artifact = [:]
+                artifact.RepoKey = repoKey
+                artifact.ModuleID = component.ModuleID
+                artifact.GroupID = GAV[0]
+                String tempArtifactId = GAV[1]
+                logger.quiet("tempArtifactId BEFORE: ${tempArtifactId}")
+                predefined.each{k,v ->
+                    tempArtifactId = tempArtifactId.replace("\${${k}}", "${v}")
+                }
+                logger.quiet("tempArtifactId AFTER: ${tempArtifactId}")
+                artifact.ArtifactID = getArtifactIdFromProperties(repoKey, artifact.GroupID, tempArtifactId)
+                artifact.Version = GAV[2]
+                artifact.Action = component.Action
+                artifact.Params = component.Params
+                artifact.Promote = component.Promote
+                artifacts << artifact
 
-        repos.put(repoKey, artifacts)
+                logger.quiet("ModuleID: ${artifact.ModuleID} | ArtifactID:  ${artifact.ArtifactID}")
+            }
+
+            repos.put(repoKey, artifacts)
+        }
     }
 
     File destFile = new File (sourcePathYAML)
@@ -1810,8 +1828,16 @@ def preprocessYAML (String sourcePathYAML) {
         destFile << "- ${key}:\r\n"
         items.each{item ->
             destFile << "    - ModuleID: '${item.GroupID}:${item.ArtifactID}:${item.Version}'\r\n"
+            if(item.Action != null){
+                destFile << "      Action: ${item.Action}\r\n"
+            }
+            if(item.Params != null){
+                destFile << "      Params: ${item.Params}\r\n"
+            }
+            if(item.Promote != null){
+                destFile << "      Promote: ${item.Promote}\r\n"
+            }
         }
-
     }
 
     String destContent = destFile.getText("UTF-8")
@@ -1821,13 +1847,9 @@ def preprocessYAML (String sourcePathYAML) {
     logger.quiet(destContent)
 }
 
-def getArtifactIdFromProperties(String repo, String moduleID){
+def getArtifactIdFromProperties(String repo, String groupId, String properties){
     String artifactId = ""
 
-    def GAV = moduleID.tokenize(":")
-    String groupId = GAV[0]
-    String properties = GAV[1]
-    String version = GAV[2]
     if(properties.indexOf("[") == 0){
         logger.quiet("Need to query Artifactory with properties. GroupID: ${groupId} | Properties: ${properties}")
         def propList = parseStringList2List(properties)
@@ -1848,7 +1870,9 @@ def getArtifactIdFromProperties(String repo, String moduleID){
             logger.quiet("${artifact}")
         }
 
-        artifactId = artifactIdSet.sort().last()
+        if(!artifactIdSet.isEmpty()){
+            artifactId = artifactIdSet.sort().last()
+        }
     }
     else{
         artifactId = properties
