@@ -1814,16 +1814,15 @@ def preprocessYAML (String sourcePathYAML) {
         items.each{item ->
             destFile << "    - ModuleID: '${item.GroupID}:${item.ArtifactID}:${item.Version}'\r\n"
             if(item.Action != null){
-                destFile << "      Action: '${item.Action}'\r\n"
+                destFile << "      Action: ${item.Action}\r\n"
             }
             if(item.Params != null){
-                destFile << "      Params: '${item.Params}'\r\n"
+                destFile << "      Params: ${item.Params}\r\n"
             }
             if(item.Promote != null){
-                destFile << "      Promote: '${item.Promote}'\r\n"
+                destFile << "      Promote: ${item.Promote}\r\n"
             }
         }
-
     }
 
     String destContent = destFile.getText("UTF-8")
