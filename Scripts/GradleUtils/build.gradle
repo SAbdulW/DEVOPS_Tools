@@ -690,16 +690,6 @@ def fillSpecificVersionNewYAML (String iYamlFile){
     Yaml yaml = new Yaml()
     Object data = yaml.load(sourceContent)
 
-    logger.quiet("Backing up file : ${iYamlFile}")
-    String backupFilePath = "${iYamlFile}.bak"
-    logger.quiet("BAK: ${backupFilePath}")
-    File backupFile = new File (backupFilePath)
-    if(backupFile.exists()){
-        backupFile.delete()
-    }
-    backupFile.createNewFile()
-    backupFile << sourceContent
-
     def artifacts = []
     data.each { repo ->
         def repoKey = repo.keySet().toArray()[0]
@@ -1780,6 +1770,16 @@ def preprocessYAML (String sourcePathYAML) {
     Yaml yaml = new Yaml()
     Object data = yaml.load(sourceContent)
 
+    logger.quiet("Backing up file : ${sourcePathYAML}")
+    String backupFilePath = "${sourcePathYAML}.bak"
+    logger.quiet("BAK: ${backupFilePath}")
+    File backupFile = new File (backupFilePath)
+    if(backupFile.exists()){
+        backupFile.delete()
+    }
+    backupFile.createNewFile()
+    backupFile << sourceContent
+
     def repos = [:]
     data.each { repo ->
         def artifacts = []
@@ -1792,6 +1792,9 @@ def preprocessYAML (String sourcePathYAML) {
             artifact.GroupID = GAV[0]
             artifact.ArtifactID = getArtifactIdFromProperties(repoKey, component.ModuleID)
             artifact.Version = GAV[2]
+            artifact.Action = component.Action
+            artifact.Params = component.Params
+            artifact.Promote = component.Promote
             artifacts << artifact
 
             logger.quiet("ModuleID: ${artifact.ModuleID} | ArtifactID:  ${artifact.ArtifactID}")
@@ -1810,6 +1813,15 @@ def preprocessYAML (String sourcePathYAML) {
         destFile << "- ${key}:\r\n"
         items.each{item ->
             destFile << "    - ModuleID: '${item.GroupID}:${item.ArtifactID}:${item.Version}'\r\n"
+            if(item.Action != null){
+                destFile << "      Action: '${item.Action}'\r\n"
+            }
+            if(item.Params != null){
+                destFile << "      Params: '${item.Params}'\r\n"
+            }
+            if(item.Promote != null){
+                destFile << "      Promote: '${item.Promote}'\r\n"
+            }
         }
 
     }
