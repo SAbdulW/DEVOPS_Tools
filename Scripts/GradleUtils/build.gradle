@@ -1728,7 +1728,7 @@ def transformYAML (String sourcePathYAML) {
             artifact.ModuleID = component.ModuleID
             artifact.Action = component.Action == null ? "both" : component.Action
             artifact.Params = component.Params == null ? "" : component.Params
-            artifact.Promote = component.Promote == null ? "true" : component.Promote
+            artifact.Promote = component.Promote == null ? "false" : component.Promote
 
             artifacts << artifact
         }
