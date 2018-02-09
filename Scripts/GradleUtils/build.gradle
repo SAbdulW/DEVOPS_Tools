@@ -1785,11 +1785,11 @@ def preprocessYAML (String sourcePathYAML) {
     data.each { repo ->
         def artifacts = []
         def repoKey = repo.keySet().toArray()[0]
-        if(repoKey == "_predefined_"){
+        if(repoKey == "_def"){
             repo.get(repoKey).each{k, v ->
                 predefined.put(k, v)
             }
-            logger.quiet("_predefined_ : ${predefined.toMapString()}")
+            logger.quiet("_def : ${predefined.toMapString()}")
         }
         else{
             repo.get(repoKey).each{component ->
