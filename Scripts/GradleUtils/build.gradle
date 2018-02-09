@@ -1724,7 +1724,11 @@ def transformYAML (String sourcePathYAML) {
             String guid = getComponentGuidFromArtifactory(repoKey, component.ModuleID)
             def artifact = [:]
             artifact.RepoKey = repoKey
-            artifact.Name = getComponentNameFromRegistry(guid)
+            String name = getComponentNameFromRegistry(guid)
+            if(name == "NOT FOUND"){
+                name = getComponentNameFromArtifactory(repoKey, component.ModuleID)
+            }
+            artifact.Name = name
             artifact.ModuleID = component.ModuleID
             artifact.Action = component.Action == null ? "both" : component.Action
             artifact.Params = component.Params == null ? "" : component.Params
