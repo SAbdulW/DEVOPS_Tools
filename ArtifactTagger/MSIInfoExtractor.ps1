@@ -61,6 +61,19 @@ Process {
         }
         $View.GetType().InvokeMember("Close", "InvokeMethod", $null, $View, $null)
         $Result.Add("INSTALLATIONUNITGUID", $Value)
+
+        $Query = "SELECT Value FROM Property WHERE Property = 'INSTALLATIONUNIT'"
+        $View = $MSIDatabase.GetType().InvokeMember("OpenView", "InvokeMethod", $null, $MSIDatabase, ($Query))
+        $View.GetType().InvokeMember("Execute", "InvokeMethod", $null, $View, $null)
+        $Record = $View.GetType().InvokeMember("Fetch", "InvokeMethod", $null, $View, $null)
+        If ($Record -ne $null){
+            $Value = $Record.GetType().InvokeMember("StringData", "GetProperty", $null, $Record, 1)
+        }
+        Else{
+            $Value = ""
+        }
+        $View.GetType().InvokeMember("Close", "InvokeMethod", $null, $View, $null)
+        $Result.Add("INSTALLATIONUNIT", $Value)
         
         # Commit database and close view        
         $MSIDatabase.GetType().InvokeMember("Commit", "InvokeMethod", $null, $MSIDatabase, $null)
@@ -74,6 +87,7 @@ Process {
                     "`"Manufacturer`"" + " : " + "`"" + $Result.Manufacturer + "`"" +  "," + $eof +
                     "`"ProductName`"" + " : " + "`"" + $Result.ProductName + "`"" + "," + $eof +
                     "`"INSTALLATIONUNITGUID`"" + " : " + "`"" + $Result.INSTALLATIONUNITGUID + "`"" + $eof +
+                    "`"INSTALLATIONUNIT`"" + " : " + "`"" + $Result.INSTALLATIONUNIT + "`"" + $eof +
                  "}"
         return $Json
     } 

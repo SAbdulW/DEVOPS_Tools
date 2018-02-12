@@ -70,6 +70,13 @@ def process (String conf){
                     String artifactId = extractArtifactIdFromPath(item.path)
                     String majorRelease = ""
                     String minorRelease = ""
+                    String tags = ""
+                    if(artifactId.indexOf("KB") == 0){
+                        tags = "Grey"
+                    }
+                    else{
+                        tags = "Green"
+                    }
                     def v = buildVersion.tokenize(".")
                     if(v != null && v.size() > 2){
                         majorRelease = "${v[0]}.${v[1]}"
@@ -80,11 +87,13 @@ def process (String conf){
                     props.put("ProductCode", msi.ProductCode)
                     props.put("Manufacturer", msi.Manufacturer)
                     props.put("INSTALLATIONUNITGUID", msi.INSTALLATIONUNITGUID)
+                    props.put("INSTALLATIONUNIT", msi.INSTALLATIONUNIT)
                     props.put("MajorRelease", majorRelease)
                     props.put("MinorRelease", minorRelease)
-                    //props.put("Tags", tags) // WE DO NOT WANT TO OVERWRITE existing tags when tagging whole repo
+                    props.put("Tags", tags)
                     props.put("GroupID", groupId)
                     props.put("ArtifactID", artifactId)
+
                     props.put("MasterBuildVersion", buildVersion)
                     putArtifactProperties(repoKey, item.path, item.name, props)
 
@@ -132,6 +141,7 @@ def processOneArtifact (String repo, String groupId, String artifactId, String m
             props.put("ProductCode", msi.ProductCode)
             props.put("Manufacturer", msi.Manufacturer)
             props.put("INSTALLATIONUNITGUID", msi.INSTALLATIONUNITGUID)
+            props.put("INSTALLATIONUNIT", msi.INSTALLATIONUNIT)
             props.put("MajorRelease", majorRelease)
             props.put("MinorRelease", minorRelease)
             props.put("Tags", tags)
