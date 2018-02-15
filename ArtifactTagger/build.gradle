@@ -83,6 +83,7 @@ def process (String conf){
                         minorRelease = "${v[2]}"
                     }
                     def props = [:]
+                    props.put("Tagger", "ArtifactTagger")
                     props.put("ProductName", msi.ProductName)
                     props.put("ProductCode", msi.ProductCode)
                     props.put("Manufacturer", msi.Manufacturer)
@@ -137,6 +138,7 @@ def processOneArtifact (String repo, String groupId, String artifactId, String m
             msiFile.delete()
 
             def props = [:]
+            props.put("Tagger", "Pipeline")
             props.put("ProductName", msi.ProductName)
             props.put("ProductCode", msi.ProductCode)
             props.put("Manufacturer", msi.Manufacturer)
@@ -179,8 +181,9 @@ def List getListOfMSI(String repo, String pathMatch, String watermark){
                     "        ,\"path\":{\"\$nmatch\":\".npm/*\"}" +
                     "        ,\"\$or\":[{\"name\":{\"\$match\":\"*.MSI\"}}, {\"name\":{\"\$match\":\"*.msi\"}}]" +
                     "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" +
+                    "        ,\"@Tagger\":{\"\$nmatch\":\"Pipeline\"}" +
                     "    }"  +
-                    ").include(\"name\", \"path\",\"artifact.module.name\")"
+                    ").include(\"name\", \"path\")"
 
     List resultsList  = search(aqlQuery)
     return resultsList

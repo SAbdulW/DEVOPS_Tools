@@ -19,6 +19,11 @@
       "repoName" : "ci-release",
       "pathMatch" : "com/verint/",
       "pathExclude" : ""
+    },
+    {
+      "repoName" : "gate0-master",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
     }
   ]
 }
