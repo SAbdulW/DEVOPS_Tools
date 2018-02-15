@@ -11,6 +11,11 @@
       "pathExclude" : ""
     },
     {
+      "repoName" : "ci-snapshot",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
+    },
+    {
       "repoName" : "ci-release",
       "pathMatch" : "com/verint/",
       "pathExclude" : ""

@@ -86,7 +86,7 @@ Process {
                     "`"ProductCode`"" + " : " + "`"" + $Result.ProductCode + "`"" +  "," + $eof +
                     "`"Manufacturer`"" + " : " + "`"" + $Result.Manufacturer + "`"" +  "," + $eof +
                     "`"ProductName`"" + " : " + "`"" + $Result.ProductName + "`"" + "," + $eof +
-                    "`"INSTALLATIONUNITGUID`"" + " : " + "`"" + $Result.INSTALLATIONUNITGUID + "`"" + $eof +
+                    "`"INSTALLATIONUNITGUID`"" + " : " + "`"" + $Result.INSTALLATIONUNITGUID + "`"" + "," + $eof +
                     "`"INSTALLATIONUNIT`"" + " : " + "`"" + $Result.INSTALLATIONUNIT + "`"" + $eof +
                  "}"
         return $Json
