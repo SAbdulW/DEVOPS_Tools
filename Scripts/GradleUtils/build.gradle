@@ -21,6 +21,8 @@ buildscript {
 apply plugin: 'vebutu'
 apply plugin: 'artifactory'
 apply plugin: 'java'
+
+
 ext.supportedGradleVersion = '2.3'
 
 allprojects {
@@ -54,6 +56,8 @@ dependencies {
     envConfig 'com.microsoft.technet.sysinternals:PSTools:2.11@zip'
     envConfig 'com.poweradmin:paexec:1.26@zip'
 }
+
+
 
 // prepare environment, getting the tools
 task init() << {
@@ -1544,4 +1548,5 @@ artifactory {
     }
 }
 
+apply from: 'yamlBuilder.gradle'
 //*************
