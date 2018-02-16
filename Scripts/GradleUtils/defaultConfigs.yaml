@@ -2,246 +2,63 @@
 # For global lib configuration
 Version: '15.2.1.0'
 # Steps default configuration
-defaultConfigFilePath: "ci\\jenkins-properties.yaml"
-zArchiveMng:
-    promoteBaseOnJsonFile:
-        archiveType             : "promoteBaseOnJsonFile"
-        devRootPath              : "zArchiveMngWS"
-        masterBuildVersion       : "15.1.1.0"
-        contextURL: "http://atlartifactory:8081/artifactory"
-        promoteEnabled           : true
-        skipPromotionFailure     : true
-        repoURL: "git@atlgit:DEVOPS_Tools"
-        repoBranch: artifactoryPromotion
-        taskToRun: "aPT"
-        installedVersionFiles    : "Deployment\\Scripts\\GradleUtils\\PPLogs\\installedVersions.json"
-        sourceRepos              : "ci-release"
-        targetRepos              : "ci-release-temp"
-        rootBuildScriptDir: ""
-        gradlePureExecution      : true
-        installedVersionsStashName : ""
-    promoteBaseOnGAV:
-        archiveType             : "promoteBaseOnGAV"
-        devRootPath              : "zArchiveMngWS"
-        masterBuildVersion       : "15.1.1.0"
-        contextURL: "http://atlartifactory:8081/artifactory"
-        promoteEnabled           : true
-        repoURL: "git@atlgit:SC_DevKit"
-        repoBranch: artifactoryPromotion
-        taskToRun: artifactoryPromote
-        sourceRepos              : "ci-release"
-        targetRepos              : "ci-release-temp"
-        teamGroupPrefixes        : "com/verinttest/wfm"
-        moveArtifacts: true
-        tagEnabled: false
-        tagRepoURL: ""
-        tagPrefix: ""
-        tagRepoDir: ""
-        rootBuildScriptDir: ""
-        gradlePureExecution      : true
-    deployEAR:
-        archiveType             : "deployEAR"
-        devRootPath              : "zDeployEAR"
-        masterBuildVersion       : "15.1.1.0"
-        artifactory_resolveRepo  : "gate1-master-repos"
-        repoURL: "git@atlgit:DEVOPS_Tools"
-        repoBranch: "ci_wfo_env"
-        taskToRun: "aP"
-        vmIP: ""
-        vmUser                :      "AP2Admin"
-        vmPw                  :      "verint1!"
-        fisComponentName: "Framework Integration Server"
-        fisComponentVersion: "" # can be retrieved from the vm information
-        rootBuildScriptDir: "Scripts\\DeployEAR"
-        copyEar: false
-        gradlePureExecution      : true
-# -------------------
-zGradleBuild:
-    devRootPath            : "zGradleBuild"
-    artifactoryServerId    : "atlartifactory"
-    artifactoryPublishRepo : "test-repo"
-    artifactoryResolveRepo : "repo"
-    artifactoryAddInclude  : ""
-    artifactoryAddExclude  : ""
-    gradleSwitches         : "-i"
-    gradleTasks            : "tasks"
-    gradleUseWrapper       : true
-    gradleParams           : ""
-    gradleBuildFile        : "build.gradle"
-    gradleUsesPlugin       : false
-    gradlePureExecution    : false
-    returnStatus           : false
-# -------------------
-zSCMCheckout:
-    devRootPath            : "zSCMCheckout"
-    scmClass               : "GitSCM"
-    repoURL                : ""
-    repoBranch             : ""
-# -------------------
-zLoadConfig:
-    configType             : "YAML"
-    configFilePath         : "${defaultConfigFilePath}" #"ci\\jenkins-properties.yaml"
-    overwrite              : false
-    loadFromGit            : false
-    devRootPath            : "zLoadConfig"
-    repoURL                : "git@atlgit:DEVOPS_Configs"
-    repoBranch             : master
-# -------------------
-zInstallBuilder:
-    devRootPath            : "zInstallBuilder"
-    serviceList            : ""
-    kbNumber               : ""
-    product                : ""
-    subsystem:
-        WFM Common: KBDummy
-        WFM Reporting: KBDummy
-        WFM Reporting Languages: KBDummy
-    kbVersion              : ""
-    branch                 : ""
-    nofKbs                 : ""
-    tags                   : ""
-    fixIsRelevantFor       : ""
-    masterBuildVersion     : ""
-    msiPath                : ""
-    type                   : ""
-    email                  : ""
-    abortOnProcessError    : "false"
-    targetRelease          : ""
-    repoURL                : "git@atlgit:DEVOPS_Tools"
-    repoBranch             : ci_wfo_env
-    gradlePureExecution    : true
-    rootBuildScriptDir     : "Scripts\\InstallBuilder"
-# -------------------
+ResolveRepo: 'cd-passed-pl'
+PromoteEnabled: true
+InstallAction: 'both' #uninstall, install, both
+MasterBuildVersion: "15.2.3.0"
+DBInstallParams: 'ARPSYSTEMCOMPONENT=false,IMPACT360DATADIR=C:\Impact360\Data\,IMPACT360SOFTWAREDIR=C:\Impact360\Software\,SQLSERVERHOSTNAMECOMMON=consolidate,SQLSERVERPORTCOMMON=1433,IMSA_DOMAIN=consolidate,IMSA_NAME=ap2admin,IMSA_PASSWORD=verint1!,DMSA_DOMAIN=consolidate,DMSA_NAME=ap2admin,DMSA_PASSWORD=verint1!,INSTALLLANGUAGE=en_US,DATAFILESPATH=C:\Impact360\Databases,LOGFILESPATH=C:\Impact360\Databases,DBTYPE=WH,DBNAME=BPWAREHOUSEDB'
+InstallVersion: '[RELEASE]'
+Tags:
+    Flavor: "green"
 
-zGetEaas:
-    vcdProxyMethod        : "deployvapp"  # currenlty the list - deployvapp, changevappleasetime, savetocatalog, promotetemplate
-    devRootPath           : "zGetEaas"
-    vcdUser               : "svc_global"
-    vcdUserPw             : 'verint1!'
-    vcdOrg                : "main"
-    srccatalog            : "CD_Catalog_Latest"
-    vcdTemplate           : "L1_S_16_14_15.2.0_AI_HFR1_AI" # DevOpsDashboard here: http://10.156.4.72/DevOpsDashboard/ ***
-    vcdVappName           : "" # same as above
-    jenkinsMaster         : ""
-    storageLease          : "2"
-    runtimeLease          : "1"
-    vappDescription       : "" # should come from job
-    repoURL               : "git@atlgit:DEVOPS_Utils"
-    repoBranch            : dev
-    envInfoFileName       : envinfo.yml
-    masterBuildVersion    : ""
+Components: # The Product Name just to give idea of what the GUI is, usely woudl be the same
+    81F973AD-7284-4c36-9637-16EEA43337B4:
+        InstallationUnit: 'Framework Foundation'
+        InstallParams: ''
+        InstallAction: "${InstallAction}"
+        PromoteEnabled: "${PromoteEnabled}"
+        ResolveRepo: "${ResolveRepo}"
+        Version: "${InstallVersion}"
+        Tags: "${Tags}"
+    452F6916-AA15-48b0-B4BF-63CD6EC78590:
+        InstallationUnit:  'WFM Common'
+        InstallParams: 'ARPSYSTEMCOMPONENT=false'
+        InstallAction: "${InstallAction}"
+        PromoteEnabled: "${PromoteEnabled}"
+        ResolveRepo: "${ResolveRepo}"
+        Version: "${InstallVersion}"
+        Tags: "${Tags}"
+    a0dfe68e-59f1-4eac-8ff3-88638dc8bbf8:
+        InstallationUnit:  'WFM Reporting'
+        InstallParams: ''
+        InstallAction: "${InstallAction}"
+        PromoteEnabled: "${PromoteEnabled}"
+        ResolveRepo: "${ResolveRepo}"
+        Version: "${InstallVersion}"
+        Tags: "${Tags}"
+    4E693109-AB2D-41D8-A88D-1506E0D654B9:
+        InstallationUnit:  'Framework Integration Server'
+        InstallParams: ''
+        InstallAction: "${InstallAction}"
+        PromoteEnabled: "${PromoteEnabled}"
+        ResolveRepo: "${ResolveRepo}"
+        Version: "${InstallVersion}"
+        Tags: "${Tags}"
+    621243F6-4743-4228-9364-574643D1CCE9:
+        InstallationUnit:  'Framework Warehouse Database'
+        InstallParams: "${DBInstallParams}"
+        InstallAction: "${InstallAction}"
+        PromoteEnabled: "${PromoteEnabled}"
+        ResolveRepo: "${ResolveRepo}"
+        Version: "${InstallVersion}"
+        Tags: "${Tags}"
+    default:
+        InstallationUnit:  'Unknown'
+        InstallParams: 'Unknown'
+        InstallAction: "${InstallAction}"
+        PromoteEnabled: false
+        ResolveRepo: 'Unknown'
+        Version: "${InstallVersion}"
+        Tags: "${Tags}"
 
-
-    timestamps            : true
-    timeout               : true
-    ansiColorBuildWrapper : true
-    runningMode           : "test"
-    vapptocopy            : ""
-    newtemplatename       : "" # has to be unique comes from the job
-    destcatalog           : "CI_Catalog_L1"
-    BUILD_USER_ID         : "default"
-    KeepSRC               : " "
-    jenkinsUrl            : "http://jenkinsdevops:8080/"
-    #Current out put
-    eaasProp              : ""
-
-# -------------------
-zDeployment:
-    devRootPath           :      "zDeployment"
-    stepName              :      "zDeployment"
-    puppetEnv             :      "ci_wfo_env"                         # Puppet environment which was defined to work with YAML files
-    repoURL               :      'git@atlgit.lab.local:DEVOPS_Tools'  # Repo for the puppet gradle util code
-    repoBranch            :      "ci_wfo_env"                         # Branch for the puppet gradle util code
-    repoFolder            :      "gradle"                         # Branch for the puppet gradle util code
-    puppetServer          :      "atlpuppetmaster.lab.local"          # Puppet server Url
-    vmIp                  :      ""                                   # IP address of the fixture machine
-    vmUser                :      "AP2Admin"                           #
-    vmPw                  :      "verint1!"
-    yamlFiles             :      'Templates/Puppet/wfo-olh.yaml'
-    yamlGitRepo           :      'git@atlgit.lab.local:DEVOPS_Tools'
-    yamlRepoBranch        :      'ci_wfo_env'
-    yamlRepoFolder        :      "yaml"
-    yamlText              :      ""
-    stashName             :      ""
-    deployEarFile         :      false
-    checkIfWFOLoginPageIsUp :    false
-    stopStartservices     :    "WatchDog,MinerTomcat,RecorderTomcat,Recorder Alarm Service"
-    wfoService            :    "WFO_ProductionDomain_ProductionServer"
-    taskToRun             :    "runLDC"
-    masterBuildVersion    : "15.1.1.0"
-    componentRepoDefault  : "ci-wfo-puppet-repos"  # It will be the default Repo that puppet will look for installed component when running the installation if users don't define it in yaml
-    defaultRepoKey        : "ci-release" # To utilize the feature from gradle, this is not virtual repo, show default repo that gradle will look for a version to fill before even send to puppet
-    fillVersionRange      : true # User have option to use this filled version feature.
-    gradlePureExecution   : true
-    gradleTasks           : "runLDC"
-    rootBuildScriptDir    : "Scripts\\GradleUtils"
-    installedVersionsDir  : "PPLogs"
-    installedVersionsFileName  : "installedVersions.json"
-    installedVersionsAbsolutePath : ""
-
-# -------------------
-zSystemTests:
-    devRootPath           :      "zSystemTests"
-    stepName              :      "zSystemTests"
-    ansiColorBuildWrapper : true,
-    rafMethodName         : "raf"
-    downloadRAF           : false # false, will use the available on in D:\\ws
-    rdpDisconnect         : true
-    scriptName            : "DailyBuildAcceptance.suite"
-    autoUpdateRAF         : true # scriptsBranhc and actionsBranch will be taken into account if this one turn on
-    scriptsBranch         : "master"  # if user has script and action branch
-    actionsBranch         : "master"  # if user has script and action branch
-
-    copyUserRafScript     : false     # if user have script put somewhere in Git, then turn it on - DONT DO IT
-    userRafScriptsRepoURL    : "git@atlgit:DEVOPS_Configs"  # source repo that script located. It will be use if autoUpdateRaf = false
-    userRafScriptsBranch  : "Generic"  # branch that script locatioed
-    userRafScriptsFolder  : "IntegrationTests\\RAF\\Generic\\*"
-
-    rafInstallDir         : "D:\\ws\\FTWEntryTest_437\\raf\\Regression Automation Framework" # "C:\\Program Files (x86)\\Verint\\Regression Automation Framework" # The desktop has raf install here!!
-    rafInstallDirName     : "Regression Automation Framework"
-    deleteWS              : false
-    updateHost            : false
-    artifactoryIp         : "10.156.23.12"   # all of this to get the raf install from artifactory
-    artifactoryURL        : "http://atlartifactory:8081/artifactory"
-    artifactoryUser       : "admin"
-    artifactoryPassword   : "AP525RbJXLsADZdc"
-    srcRafInstallerRepoId : "automation-release"
-    srcRafInstallerGroupId : "com/verint/automation"
-    srcRafInstallerArtifactId : "raf"
-    srcRafInstallerVersion : "2.8.0.370" # all of this to get the raf install from artifactory
-    useEnvFile			  : false
-    userEnvFilePath	      : "\\Jenkins\\RAF_params\\L0.params"
-    userEnvRepoURL        : "git@atlgit.lab.local:DEVOPS_Utils"
-    userEnvRepoBranch     : "dev"
-    logWebServiceRepoURL  : "git@atlgit:DEVOPS_Utils'"
-    logWebServiceRepoBranch  : "dev"
-    htmlURL               : ""
-    rafParams:
-            ServerNameApp         : "consolidate"
-            ServerNameConsolidate : "consolidate"
-            WinDomain             : "consolidate"
-            WinUsername           : "ap2admin"
-            WinPassword           : "verint1!"
-            ConsolidateIp         : ""
-
-
-# -------------------
-
-test:
-     Consolidate:
-       NIC0:
-         Name: Network adapter 1
-         VMName: Consolidate
-         ComputerName: Consolidate
-         ExternalIP: 10.156.40.247
-         InternalIP: 192.168.2.101
-         KitNumber: 15.2.0.1017-A
-     Desktop:
-       NIC0:
-        Name: Network adapter 0
-        VMName: Desktop2408210817259
-        ComputerName: Desktop
-        ExternalIP: 10.156.40.248
-        InternalIP: 192.168.2.102
-        KitNumber: 15.2.0.1017-A
 ...

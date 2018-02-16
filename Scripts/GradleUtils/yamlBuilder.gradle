@@ -1,8 +1,9 @@
 import groovy.json.JsonSlurper
 import groovy.util.XmlSlurper
 import java.util.regex.*;
-
-
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import groovy.json.JsonOutput
 
 buildscript {
     repositories {
@@ -20,30 +21,374 @@ buildscript {
     }
 }
 
-def strMasterBuildVersion="${currentVersion}"
-// Build Params
-def buildParams = [ LogLevel                     : "ALL",
-                    MasterBuildVersion          : "${strMasterBuildVersion}",
-                    defaultConfigFilePath       : "./Jenkinsfile.yaml"]
+
+
 
 
 import org.yaml.snakeyaml.Yaml
 
 task yamlBuilder() << {
-    buildParams = buildParams + loadDefaultConfig()
-    logger.quiet ("GradleUtils: buildParams: ${buildParams}")
+    buildYaml("./Jenkinsfile.yaml")
+}
+
+
+/******************** */
+
+def buildYaml(String configFilePath){
+    def strMasterBuildVersion="${currentVersion}"
+// Build Params
+    def m_zData = [ MasterBuildVersion          : "${strMasterBuildVersion}",
+                    configFilePath       : "${configFilePath}"]
+
+    m_zData = m_zData + loadDefaultConfig()
+    prettyPrintMapData (m_zData)
+
+    def userConfigData = loadUserConfig("${m_zData.configFilePath}")
+    prettyPrintMapData (userConfigData)
+
+    m_zData= mergeMaps(m_zData, userConfigData )
+    //logger.quiet ("GradleUtils: m_zData: ${m_zData}")
+    prettyPrintMapData (m_zData)
+
+
 }
 
 def loadDefaultConfig(){
     logger.quiet ("GradleUtils: loadLibDefaultConfig")
     def rtnMap = [:]
-
     File sourceFile = new File ('defaultConfigs.yaml');
-    String srcFilePath = sourceFile.getCanonicalPath()
     String sourceContent = sourceFile.getText("UTF-8")
     Yaml yaml = new Yaml();
     Object data = yaml.load(sourceContent);
+    return  rtnMap + data
+}
 
+def loadUserConfig(String configFilePath){
+    logger.quiet ("GradleUtils: loadUserConfig from path: ${configFilePath}")
+    def rtnMap = [:]
+    File sourceFile = new File (configFilePath);
+    String sourceContent = sourceFile.getText("UTF-8")
+    Yaml yaml = new Yaml();
+    Object data = yaml.load(sourceContent);
     return  rtnMap + data
 
+}
+
+
+
+def stringToMap(String mapAsString){
+    def map = [:] as HashMap
+    def itemList=mapAsString[1..-2].split(', ')
+    for (int i=0; i< itemList.length; i++){
+        def pair = itemList[i].split('=')
+        if (pair.length>1) {
+            def keyName = pair[0];
+            def keyValue = pair[1];
+            map.put(keyName, keyValue)
+        }
+    }
+    return map
+}
+
+
+def Map fillParameterizedMapWithData(Object parameterizedMap,Object iData){
+
+    def rtnMap = [:] as HashMap
+
+    rtnMap = parameterizedMap
+
+    if (parameterizedMap)
+    {
+        //logger.quiet "zDevLib: fillParameterizedMapWithData:parameterizedMap : \n ${parameterizedMap} "
+        def keys=parameterizedMap.keySet().toArray()
+
+        for(int i = 0; i < keys.size(); i++) { // Using "for" interator since it is serializable
+            def key=keys[i]
+            def value = parameterizedMap.get(key)
+            //logger.quiet "zDevLib: fillParameterizedMapWithData:parameterizedMap :value \n ${value} "
+
+            if ( isMapObject(value) ){
+                value =  fillParameterizedMapWithData(value, iData)
+                //logger.quiet "zDevLib: fillParameterizedMapWithData:parameterizedMap :value after translation:  ${value} "
+                rtnMap.put(key,value)
+            } else {
+                value = getParameterizedValue(value,iData)
+                //logger.quiet "zDevLib: fillParameterizedMapWithData:parameterizedMap :value after translation:  ${value} "
+                rtnMap.put(key,value)
+            }
+        }
+        //logger.quiet("zDevLib: fillParameterizedMapWithData Merge map completed : result:${rtnMap}")
+    }
+    else
+    {
+        logger.quiet "zDevLib: fillParameterizedMapWithData: There are not parameters to update!"
+    }
+    return rtnMap
+}
+
+def String getParameterizedValue(Object iPieceOfCode, Object iData){
+    //Example: -Penv=release -PcurrentVersion=${MasterBuildVersion} -PcurrentVersion=${Loading Something.vmIp}
+
+
+    def String strRtn=iPieceOfCode
+
+    //logger.quiet "getParameterizedValue: iPieceOfCode : ${iPieceOfCode} "
+
+    try {
+        String regex = '\\$\\{([^}]+)\\}';
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(iPieceOfCode);
+        while (matcher.find()) {
+            String token = matcher.group();     // Ex: ${fizz}
+            String tokenKey = matcher.group(1); // Ex: fizz
+            String replacementValue = ""
+
+            def replacementObjRoot=iData
+            def replacementObjKey=tokenKey
+
+            while (replacementObjKey.contains('.')) {
+                int firstIndexOfDot = replacementObjKey.indexOf('.')
+                String strSubMap = replacementObjKey.substring(0, firstIndexOfDot)
+                String strSubKey = replacementObjKey.substring(firstIndexOfDot + 1)
+
+                //logger.quiet "getParameterizedValue: \n firstIndexOfDot: ${firstIndexOfDot}  strSubMap: ${strSubMap} strSubKey: ${strSubKey}  "
+
+                replacementObjRoot = replacementObjRoot."${strSubMap}"
+
+                replacementObjKey = strSubKey
+
+                //logger.quiet "getParameterizedValue: \n replacementObjRoot: ${replacementObjRoot} "
+                //logger.quiet "getParameterizedValue: \n replacementObjKey: ${replacementObjKey} "
+
+            }
+
+            replacementValue = replacementObjRoot."${replacementObjKey}" ;
+
+            //logger.quiet "getParameterizedValue: \n token: ${token} tokenKey: ${tokenKey} replacementValue: ${replacementValue} "
+            strRtn = strRtn.replaceFirst(Pattern.quote(token), replacementValue);
+        }
+    } catch (Exception e){
+        //logger.quiet "zDevLib: getParameterizedValue: Skip the getting value of-  ${strRtn}  - due to issue: \n ${e}"
+    }
+    return strRtn;
+}
+
+
+def convertToString(Object sObj){
+    def String strRtn = sObj
+    return strRtn;
+}
+
+def boolean isMapObject(Object mObj){
+    def boolean rtnValue= false
+    def subkeys =null
+    try {
+        subkeys=mObj.keySet()
+    } catch (Exception e)          {
+        //logger.quiet "zDevLib: fillParameterizedMapWithData:parameterizedMap :e \n ${e} "
+        subkeys =null
+    }
+
+    if (subkeys){
+        rtnValue = true
+    }
+
+    return rtnValue
+
+}
+
+def Map mergeMaps(Object secondaryMap,Object primaryMap){
+
+    def rtnMap = [:] as HashMap
+
+    rtnMap = secondaryMap
+
+    if (primaryMap)
+    {
+        prettyPrintMapData(primaryMap)
+
+        def keys=primaryMap.keySet().toArray()
+        for(int i = 0; i < keys.size(); i++) { // Using "for" interator since it is serializable
+            def key=keys[i]
+            def value = primaryMap.get(key)
+            if (!(secondaryMap."${key}") || (!isMapObject(value))) {
+                logger.quiet(" mergeMaps put:${key} :  ${value}")
+
+                rtnMap.put (key, value)
+            }else{ //merge
+
+                logger.quiet(" mergeMaps + :${key} :  ${value}")
+                rtnMap."${key}" = rtnMap."${key}" + value
+            }
+        }
+        logger.quiet(" Merge map completed : result:${rtnMap}")
+    }
+    else
+    {
+        logger.quiet "There are not parameters to update!"
+    }
+    return rtnMap
+}
+
+// Traverse thorough all causes and put into a list
+
+def String getJenkinsMasterDomain(String jenkinsURL)
+{
+    def domain = "";
+    try{
+        logger.quiet  "<getJenkinsMasterDomain> - ${jenkinsURL}"
+        //find & remove protocol (http, ftp, etc.) and get domain
+        if (jenkinsURL.indexOf('://') > -1) {
+            domain = jenkinsURL.split('/')[2];
+            logger.quiet  "Domain: " + domain
+        }
+        if (domain.indexOf(':') > -1 ) {
+            domain = domain.split(':')[0];
+            logger.quiet  "Domain: " + domain
+        }
+    }
+    catch (Exception exp){
+        logger.quiet ("ERROR","Failed to get jenkins domain of ${jenkinsURL} ," + exp)
+        return ""
+    }
+    logger.quiet  "domain = " + domain
+    return domain
+
+}
+
+def loadPSScripts(String iScriptListString){
+    logger.quiet "zDevOpsHelper: load PSScripts: ${iScriptListString}"
+
+    def rtnMap = [:] as HashMap
+    def scriptList = "${iScriptListString}".split(',');
+    for (int i = 0; i < scriptList.size(); i++) {
+
+        def String strScriptName = scriptList[i]
+//            def bFileExist  =m_steps.fileExists file: "${strScriptName}"
+//            if (!bFileExist) {
+        logger.quiet "zDevOpsHelper: loadPSScripts: ${strScriptName}"
+        def strText = m_steps.libraryResource "scripts/ps/${strScriptName}"
+        m_steps.writeFile file: "${strScriptName}", text: "${strText}"
+//            }else{
+//                logger.quiet "zDevOpsHelper: script already exist  ${strScriptName}"
+//            }
+    }
+    return  rtnMap
+}
+
+def getInstalledVersionFromRegistry(String strComponentName, String strVmIP, String strVmUser, String strVmPwd){
+
+    def jsonFileName = "regInfo.info"
+
+    loadPSScripts("zPSConstant.ps1,zPSCommonLibs.ps1,zGetInstalledVersionFromRegistry.ps1")
+
+    def psFile = "zGetInstalledVersionFromRegistry.ps1"
+    def psScript = "powershell.exe -File ${psFile} -vmIP ${strVmIP} -vmUser ${strVmUser} -vmPwd ${strVmPwd} -componentName \"${strComponentName}\" -jsonOutFileName \"${jsonFileName}\""
+    logger.quiet ("Running ${psFile} script ...")
+    logger.quiet ("Running script: ${psScript} ")
+
+    def resultCode = m_steps.bat(script: "$psScript", returnStatus: true)
+    if (resultCode != 0) {
+        logger.quiet ( "[zDevLib:getInstalledVersionFromRegistry]: zGetInstalledVersionFromRegistry powershell script exit with error: ${resultCode}")
+        throw new Exception ("Error in executing powershell")
+    }
+
+    logger.quiet ( "[zDevLib:getInstalledVersionFromRegistry]:jsonFileName: \n ${jsonFileName} ")
+
+    def String jsonDataText =m_steps.readFile file: "${jsonFileName}", encoding: "UTF-8"
+    // This is the weird thign here, where the json generated by Powershell is having the abnomral charater at first which cause the invalid json object
+    // So have to do the read substring!!!
+    def String jsonDataTextReal = jsonDataText.substring(jsonDataText.indexOf("{"), jsonDataText.lastIndexOf("}") + 1)
+    logger.quiet ( "[zDevLib:getInstalledVersionFromRegistry]:jsonData: \n--${jsonDataTextReal}--\n")
+
+    //def jsonData =m_steps.readJSON file: "${jsonFileName}"
+    def jsonData =m_steps.readJSON text: "${jsonDataTextReal}"
+
+    return jsonData.ComponentVersion
+
+}
+
+def getRemoteEnvValue(String strEnvName, String strVmIP, String strVmUser, String strVmPwd){
+
+    def jsonFileName = "outInfo.info"
+
+    loadPSScripts("zPSConstant.ps1,zPSCommonLibs.ps1,zGetEnvProperty.ps1")
+
+    def psFile = "zGetEnvProperty.ps1"
+    def psScript = "powershell.exe -File ${psFile} -vmIP ${strVmIP} -vmUser ${strVmUser} -vmPwd ${strVmPwd} -propName \"${strEnvName}\" -jsonOutFileName \"${jsonFileName}\""
+    logger.quiet ("Running ${psFile} script ...")
+    logger.quiet ("Running script: ${psScript} ")
+
+    def resultCode = m_steps.bat(script: "$psScript", returnStatus: true)
+    if (resultCode != 0) {
+        logger.quiet ( "[zDevLib:getRemoteEnvValue]: zGetEnvProperty powershell script exit with error: ${resultCode}")
+        throw new Exception ("Error in executing powershell")
+    }
+
+    logger.quiet ( "[zDevLib:getRemoteEnvValue]:jsonFileName: \n ${jsonFileName} ")
+
+    def String jsonDataText =m_steps.readFile file: "${jsonFileName}", encoding: "UTF-8"
+    // This is the weird thign here, where the json generated by Powershell is having the abnomral charater at first which cause the invalid json object
+    // So have to do the read substring!!!
+    def String jsonDataTextReal = jsonDataText.substring(jsonDataText.indexOf("{"), jsonDataText.lastIndexOf("}") + 1)
+    logger.quiet ( "[zDevLib:getRemoteEnvValue]:jsonData: \n--${jsonDataTextReal}--\n")
+
+    def jsonData =m_steps.readJSON text: "${jsonDataTextReal}"
+
+    return jsonData.PropValue
+
+}
+
+def copyRemoteEar(String strVmIP, String strVmUser, String strVmPwd, String toFolder){
+
+    loadPSScripts("zPSConstant.ps1,zPSCommonLibs.ps1,zCopyTheEar.ps1")
+
+    def psFile = "zCopyTheEar.ps1"
+    def psScript = "powershell.exe -File ${psFile} -vmIP ${strVmIP} -vmUser ${strVmUser} -vmPwd ${strVmPwd} -toFolder \"${toFolder}\" "
+    logger.quiet ("Running ${psFile} script ...")
+    logger.quiet ("Running script: ${psScript} ")
+
+    def resultCode = m_steps.bat(script: "$psScript", returnStatus: true)
+    if (resultCode != 0) {
+        logger.quiet ( "[zDevLib:copyRemoteEar]: copyRemoteEar powershell script exit with error: ${resultCode}")
+        throw new Exception ("Error in executing powershell")
+    }
+
+    return resultCode
+
+}
+
+def verifyConsolidateRegistry(String localKbJsonPath, String remoteKbJsonPath, String strVmIP, String strVmUser, String strVmPwd){
+
+
+    loadPSScripts("zPSConstant.ps1,zPSCommonLibs.ps1,zVerifyConsolidateRegistry.ps1")
+
+    def psFile = "zVerifyConsolidateRegistry.ps1"
+    def psScript = "powershell.exe -File ${psFile} -vmIP ${strVmIP} -vmUser ${strVmUser} -vmPwd ${strVmPwd} -kbJsonPath \"${remoteKbJsonPath}\" "
+    logger.quiet ("Running ${psFile} script ...")
+    logger.quiet ("Running script: ${psScript} ")
+
+    def resultCode = m_steps.bat(script: "$psScript", returnStatus: true)
+    if (resultCode != 0) {
+        logger.quiet ( "[zDevLib:verifyConsolidateRegistry]: zGetInstalledVersionFromRegistry powershell script exit with error: ${resultCode}")
+        throw new Exception ("Error in executing powershell")
+    }
+
+    logger.quiet ( "[zDevLib:verifyConsolidateRegistry]:jsonFileName: \n ${localKbJsonPath} ")
+
+    def String jsonDataText =m_steps.readFile file: "${localKbJsonPath}", encoding: "UTF-8"
+    // This is the weird thign here, where the json generated by Powershell is having the abnomral charater at first which cause the invalid json object
+    // So have to do the read substring!!!
+    def String jsonDataTextReal = jsonDataText.substring(jsonDataText.indexOf("{"), jsonDataText.lastIndexOf("}") + 1)
+    logger.quiet ( "[zDevLib:verifyConsolidateRegistry]:jsonData: \n--${jsonDataTextReal}--\n")
+
+    //def jsonData =m_steps.readJSON file: "${jsonFileName}"
+    def jsonData =m_steps.readJSON text: "${jsonDataTextReal}"
+    //
+    return jsonData
+
+}
+
+def prettyPrintMapData(Object mapData) {
+    logger.quiet JsonOutput.prettyPrint(JsonOutput.toJson(mapData))
 }
