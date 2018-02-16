@@ -39,19 +39,32 @@ def buildYaml(String configFilePath){
 // Build Params
     def m_zData = [ MasterBuildVersion          : "${strMasterBuildVersion}",
                     configFilePath       : "${configFilePath}"]
-
+    // Get default config
     m_zData = m_zData + loadDefaultConfig()
     prettyPrintMapData (m_zData)
 
+    // Get user config
     def userConfigData = loadUserConfig("${m_zData.configFilePath}")
     prettyPrintMapData (userConfigData)
 
+    //Merge the component Map as it is special
+    def mergedComponentMap = mergeComponentMaps(m_zData."Components" , userConfigData."Components" )
+    prettyPrintMapData (mergedComponentMap)
+    userConfigData.put("Components",mergedComponentMap)
+    m_zData.remove("Components")
+
+    //Now mergeMaps
     m_zData= mergeMaps(m_zData, userConfigData )
     //logger.quiet ("GradleUtils: m_zData: ${m_zData}")
     prettyPrintMapData (m_zData)
 
+    //Do the translation now
 
+    m_zData = fillParameterizedMapWithData(m_zData,m_zData)
+    
+    prettyPrintMapData (m_zData)
 }
+
 
 def loadDefaultConfig(){
     logger.quiet ("GradleUtils: loadLibDefaultConfig")
@@ -73,8 +86,36 @@ def loadUserConfig(String configFilePath){
     return  rtnMap + data
 
 }
+def Map mergeComponentMaps(Object defaultMap,Object userMap){
+
+    def rtnMap = [:] as HashMap
 
 
+    rtnMap = userMap
+
+    if (userMap)
+    {
+        prettyPrintMapData(userMap)
+
+        def keys=userMap.keySet().toArray()
+        for(int i = 0; i < keys.size(); i++) { // Using "for" interator since it is serializable
+            def key=keys[i]
+            def value = userMap.get(key)
+            def defaultValue = defaultMap."${key}"
+
+            if (defaultValue){
+                rtnMap."${key}" = mergeMaps( defaultValue, value)
+            }
+        }
+        logger.quiet(" Merge map completed : result:${rtnMap}")
+    }
+    else
+    {
+        logger.quiet "There are not parameters to update!"
+    }
+    return rtnMap
+}
+//******************************************************Lib from declarative *******************
 
 def stringToMap(String mapAsString){
     def map = [:] as HashMap
@@ -205,23 +246,26 @@ def Map mergeMaps(Object secondaryMap,Object primaryMap){
 
     if (primaryMap)
     {
-        prettyPrintMapData(primaryMap)
+        //prettyPrintMapData(primaryMap)
 
         def keys=primaryMap.keySet().toArray()
         for(int i = 0; i < keys.size(); i++) { // Using "for" interator since it is serializable
             def key=keys[i]
             def value = primaryMap.get(key)
             if (!(secondaryMap."${key}") || (!isMapObject(value))) {
-                logger.quiet(" mergeMaps put:${key} :  ${value}")
+                //logger.quiet(" mergeMaps put:${key} :  ${value}")
 
                 rtnMap.put (key, value)
-            }else{ //merge
+            }else if (isMapObject(value)) {
+                //logger.quiet(" mergeMaps put:${key} :  ${value}")
+                rtnMap.put (key, value)
 
-                logger.quiet(" mergeMaps + :${key} :  ${value}")
+            } else {
+                //logger.quiet(" mergeMaps + :${key} :  ${value}")
                 rtnMap."${key}" = rtnMap."${key}" + value
             }
         }
-        logger.quiet(" Merge map completed : result:${rtnMap}")
+        //logger.quiet(" Merge map completed : result:${rtnMap}")
     }
     else
     {
