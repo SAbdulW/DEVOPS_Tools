@@ -24,3 +24,4 @@ Scripts/GradleUtils/.gradle/
 Scripts/InstallBuilder/.gradle/
 Scripts/InstallBuilder/.idea/
 /Scripts/ArtifactoryDeploy/.gradle/
+/Scripts/GradleUtils/versionRequest/.gradle/

@@ -1,12 +1,13 @@
 ---
 # For global lib configuration
-Version: '15.2.1.0'
+MasterBuildVersion: "15.2.2.0"
+MajorRelease: ''
+MinorRelease: ''
 # Steps default configuration
 ResolveRepo: 'cd-passed-pl'
 PromoteEnabled: true
 InstallAction: 'both' #uninstall, install, both
-MasterBuildVersion: "15.2.3.0"
-DBInstallParams: 'ARPSYSTEMCOMPONENT=false,IMPACT360DATADIR=C:\Impact360\Data\,IMPACT360SOFTWAREDIR=C:\Impact360\Software\,SQLSERVERHOSTNAMECOMMON=consolidate,SQLSERVERPORTCOMMON=1433,IMSA_DOMAIN=consolidate,IMSA_NAME=ap2admin,IMSA_PASSWORD=verint1!,DMSA_DOMAIN=consolidate,DMSA_NAME=ap2admin,DMSA_PASSWORD=verint1!,INSTALLLANGUAGE=en_US,DATAFILESPATH=C:\Impact360\Databases,LOGFILESPATH=C:\Impact360\Databases,DBTYPE=WH,DBNAME=BPWAREHOUSEDB'
+DBInstallParams: 'ARPSYSTEMCOMPONENT=false,IMPACT360DATADIR=C:/Impact360/Data/,IMPACT360SOFTWAREDIR=C:/Impact360/Software/,SQLSERVERHOSTNAMECOMMON=consolidate,SQLSERVERPORTCOMMON=1433,IMSA_DOMAIN=consolidate,IMSA_NAME=ap2admin,IMSA_PASSWORD=verint1!,DMSA_DOMAIN=consolidate,DMSA_NAME=ap2admin,DMSA_PASSWORD=verint1!,INSTALLLANGUAGE=en_US,DATAFILESPATH=C:/Impact360/Databases,LOGFILESPATH=C:/Impact360/Databases,DBTYPE=WH,DBNAME=BPWAREHOUSEDB'
 InstallVersion: '[RELEASE]'
 Tags:
     Flavor: "green"
