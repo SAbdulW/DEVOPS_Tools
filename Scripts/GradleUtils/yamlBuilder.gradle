@@ -101,7 +101,6 @@ def Map mergeComponentMaps(Object defaultMap,Object userMap){
 
     def rtnMap = [:] as HashMap
 
-
     rtnMap = userMap
 
     if (userMap)
@@ -161,6 +160,7 @@ Map fillComponentData(String componentKey,Object componentMap, Object configData
     // Get the ComponentName (aka DisplayName) for uninstall from target machine with VM
     def strInstallAction = componentMap."InstallAction"
     def strComponentName= componentMap."InstallationUnit"
+    //TODO:
     if ((strInstallAction=="both") || (strInstallAction=="uninstall")){
         def String strComponentNameRemote = getDisplayNameFromRegistry(componentKey,
                 configData."vmIP",
@@ -179,19 +179,6 @@ Map fillComponentData(String componentKey,Object componentMap, Object configData
     return rtnMap
 }
 
-String getComponentNameFromRemote (String componentKey, Object configData){
-    def String strComponentName=""
-
-    getDisplayNameFromRegistry
-    return strComponentName
-}
-
-def loadJsonObject(File jsonFile) {
-    String sourceContent = jsonFile.getText("UTF-8")
-    def InputJSON = new JsonSlurper().parseText(sourceContent)
-
-    return InputJSON
-}
 def getDisplayNameFromRegistry(String strComponentGUID, String strVmIP, String strVmUser, String strVmPwd){
     def strDisplayName=""
     def jsonFileName = "regInfo.info"
@@ -230,15 +217,133 @@ def getDisplayNameFromRegistry(String strComponentGUID, String strVmIP, String s
 
 }
 
-String getComponentGAVFromArtifactory (String componentKey,Object componentMap, Object configData){
+//String getComponentGAVFromArtifactory (String componentKey,Object componentMap, Object configData){
+//    def gavMap = [groupID:"",artifactID:"",version:""] as HashMap
+//    gavMap.groupID="com.verint.foundation.kbs"
+//    gavMap.artifactID="KB140042"
+//    gavMap.version=componentMap."Version"
+//
+//    getArtifactsInformation(componentKey,componentMap,configData)
+//
+//    return "${gavMap.groupID}:${gavMap.artifactID}:${gavMap.version}"
+//}
+
+def String getComponentGAVFromArtifactory(String componentKey,Object componentMap, Object configData){
     def gavMap = [groupID:"",artifactID:"",version:""] as HashMap
-    gavMap.groupID="com.verint.foundation.kbs"
-    gavMap.artifactID="KB140042"
     gavMap.version=componentMap."Version"
+
+    String strINSTALLATIONUNITGUID=componentKey
+    String strRepo = componentMap."ResolveRepo"
+    String strMajorRelease=configData."MajorRelease"
+    String strMinorRelease=configData."MinorRelease"
+
+    logger.quiet ("GradleUtils:componentMap:${componentMap}")
+
+    def tagsMap = componentMap."SearchTags"
+    logger.quiet ("GradleUtils:tagsMap:${tagsMap}")
+
+    String strTagsSearch=""
+    if ( isMapObject(tagsMap) ) {
+        def keys = tagsMap.keySet().toArray()
+        for (int i = 0; i < keys.size(); i++) { // Using "for" interator since it is serializable
+            def key = keys[i]
+            def value = tagsMap.get(key)
+            strTagsSearch = strTagsSearch + "        ,\"@${key}\":{\"\$match\":\"${value}\"}"
+        }
+    }else{
+        String strTagsMap="${tagsMap}"
+        int firstIndex = "${strTagsMap}".indexOf("{")+1
+        int lastIndex = "${strTagsMap}".lastIndexOf("}")
+
+        logger.quiet ("GradleUtils:${firstIndex}:${lastIndex}")
+        String tagsMapReal = strTagsMap.substring(firstIndex, lastIndex)
+
+        logger.quiet ("GradleUtils:tagsMapReal:${tagsMapReal}")
+        def tagItem = "${tagsMapReal}".split('=');
+        def key = tagItem[0]
+        def value = tagItem[1]
+        strTagsSearch = strTagsSearch + "        ,\"@${key}\":{\"\$match\":\"${value}\"}"
+
+    }
+    String notMatch="maven-metadata.xml"
+
+    String aqlQuery =
+            "items.find" + "\n" +
+                    "(" + "\n" +
+                    "    {" + "\n" +
+                    "        \"repo\":{\"\$eq\":\"${strRepo}\"}" + "\n" +
+                    "        ,\"@INSTALLATIONUNITGUID\":{\"\$match\":\"${strINSTALLATIONUNITGUID}\"}" + "\n" +
+                    "        ,\"@MajorRelease\":{\"\$match\":\"${strMajorRelease}\"}" + "\n" +
+                    "        ,\"@MinorRelease\":{\"\$match\":\"${strMinorRelease}\"}" + "\n" +
+                    "${strTagsSearch}" + "\n" +
+                    "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" + "\n" +
+                    "    }"  + "\n" +
+                    ").include(\"@GroupID\",\"@ArtifactID\").limit(2)" + "\n"
+
+    List resultsList  = search(aqlQuery)
+
+    if (resultsList.size()>0){
+        def resultItem=resultsList[0]
+        String strItemPath = resultItem."path"
+        // Exampel: com/verint/foundation/kbs/KB140042/15.2.2.51
+        int lastIndex = "${strItemPath}".lastIndexOf("/")
+        String strGA = strItemPath.substring(0,lastIndex)
+        lastIndex = "${strGA}".lastIndexOf("/")
+        String strG=strGA.substring(0,lastIndex).replaceAll("/",".")
+        String strA=strGA.substring(lastIndex+1)
+
+        gavMap.groupID=strG
+        gavMap.artifactID=strA
+    }
+
 
     return "${gavMap.groupID}:${gavMap.artifactID}:${gavMap.version}"
 }
+def List search(String aql ){
+    logger.quiet("Artifactory query: $aql")
 
+    def String resultsJsonText = executeAQL(aql)
+    def resultsJson = new JsonSlurper().parseText(resultsJsonText)
+
+    List resultsList  = resultsJson.results
+    File searchResultFile = new File ("searchResult.json")
+    searchResultFile.text = "${resultsJsonText}"
+
+    return resultsList
+}
+def String executeAQL(String query){
+    String filePath =""
+    File tempArtifactsList = File.createTempFile("aqlResult",".result");
+    filePath = tempArtifactsList.getAbsolutePath()
+    filePath = filePath.replaceAll("\\\\","/")
+
+    File aqlQueryFile=File.createTempFile("aqlQueryFile",".query");
+    String aqlQueryFilePath = aqlQueryFile.getAbsolutePath()
+    aqlQueryFilePath = aqlQueryFilePath.replaceAll("\\\\","/")
+
+    aqlQueryFile.text = "${query}"
+
+    String sCmd = "curl -f -X POST -u \"" + "$artifactory_user" + "\":\"" + "$artifactory_password" + "\" \"$artifactory_contextUrl/api/search/aql\" -T\"${aqlQueryFilePath}\"  -o \"$filePath\""
+    logger.quiet("Execute AQL: ${sCmd}")
+
+    try {
+        exec {
+            //commandLine 'sh', '-c', sCmd
+            commandLine 'cmd', '/c', sCmd
+        }
+    }
+    catch (Exception e) {
+        logger.quiet ("GRadleUtil yamlBuilder: some " + e.toString())
+
+    }
+
+    //def inputJSON = new JsonSlurper().parseText(tempArtifactsList.text)
+    String rtnText = tempArtifactsList.text
+    tempArtifactsList.delete()
+    //aqlQueryFile.delete()
+
+    return rtnText
+}
 //******************************************************Lib from declarative *******************
 
 def stringToMap(String mapAsString){

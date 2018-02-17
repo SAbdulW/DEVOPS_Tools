@@ -1,7 +1,9 @@
 ---
 # For reference only as this would be put to the jenkins file
-ResolveRepo: 'ci-release'
-Tags:
+ResolveRepo: 'cd-passed-pl'
+# TODO: Remove the below so action to be taken is both
+InstallAction: 'install'
+SearchTags:
     Tags: "Grey"
 Components: # The Product Name just to give idea of what the GUI is, usely woudl be the same
     81F973AD-7284-4c36-9637-16EEA43337B4:
@@ -11,7 +13,7 @@ Components: # The Product Name just to give idea of what the GUI is, usely woudl
         Version: "15.2.2.1929"
     4E693109-AB2D-41D8-A88D-1506E0D654B9:
         InstallationUnit:  'Framework Integration Server'
-        Tags:
+        SearchTags:
             Tags: "Grey"
             kit.number: "15.2.0.280"
 
