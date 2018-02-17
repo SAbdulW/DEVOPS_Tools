@@ -174,7 +174,12 @@ Map fillComponentData(String componentKey,Object componentMap, Object configData
     rtnMap.put("DisplayName",strComponentName)
 
     //Now try to get the GAV hahahha
-    def strGAV = getComponentGAVFromArtifactory(componentKey,componentMap, configData)
+    // First let get the component Informaiton from the Artifactory
+    def compInfo =getComponentInfoFromArtifactory(componentKey,componentMap, configData)
+    logger.quiet ("GradleUtils: data return form artifactory for: ${componentKey}:")
+    prettyPrintMapData(compInfo)
+    def strGAV =  "${compInfo.groupID}:${compInfo.artifactID}:${compInfo.version}"
+
     rtnMap.put("ComponentGAV",strGAV)
     return rtnMap
 }
@@ -228,9 +233,9 @@ def getDisplayNameFromRegistry(String strComponentGUID, String strVmIP, String s
 //    return "${gavMap.groupID}:${gavMap.artifactID}:${gavMap.version}"
 //}
 
-def String getComponentGAVFromArtifactory(String componentKey,Object componentMap, Object configData){
-    def gavMap = [groupID:"",artifactID:"",version:""] as HashMap
-    gavMap.version=componentMap."Version"
+def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap, Object configData){
+    def compInfo = [groupID:"",artifactID:"",version:"",installationGUID:""] as HashMap
+    compInfo.version=componentMap."Version"
 
     String strINSTALLATIONUNITGUID=componentKey
     String strRepo = componentMap."ResolveRepo"
@@ -278,7 +283,7 @@ def String getComponentGAVFromArtifactory(String componentKey,Object componentMa
                     "${strTagsSearch}" + "\n" +
                     "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" + "\n" +
                     "    }"  + "\n" +
-                    ").include(\"@GroupID\",\"@ArtifactID\").limit(2)" + "\n"
+                    ").include(\"@INSTALLATIONUNITGUID\",\"@GroupID\",\"@ArtifactID\").limit(5)" + "\n"
 
     List resultsList  = search(aqlQuery)
 
@@ -292,12 +297,26 @@ def String getComponentGAVFromArtifactory(String componentKey,Object componentMa
         String strG=strGA.substring(0,lastIndex).replaceAll("/",".")
         String strA=strGA.substring(lastIndex+1)
 
-        gavMap.groupID=strG
-        gavMap.artifactID=strA
+        compInfo.groupID=strG
+        compInfo.artifactID=strA
+        compInfo.installationGUID = getListItemValue(resultItem.properties,"INSTALLATIONUNITGUID")
     }
 
+    return compInfo
 
-    return "${gavMap.groupID}:${gavMap.artifactID}:${gavMap.version}"
+}
+def String getListItemValue(Object iProperties, String key){
+    String strRtn = ""
+
+    if (iProperties.size()>0){
+        for (int i=0; i< iProperties.size(); i++){
+            def itemList = iProperties[i]
+            //logger.quiet("itemList:${itemList}")
+            if (itemList."key"=="${key}")
+                return  itemList."value"
+        }
+    }
+    return  strRtn
 }
 def List search(String aql ){
     logger.quiet("Artifactory query: $aql")
