@@ -22,7 +22,6 @@ apply plugin: 'vebutu'
 apply plugin: 'artifactory'
 apply plugin: 'java'
 
-
 ext.supportedGradleVersion = '2.3'
 
 allprojects {
@@ -62,11 +61,12 @@ dependencies {
 // prepare environment, getting the tools
 task init() << {
 
-    logger.quiet ("GradleUtils: Version updated by May 25 2016- 2.01")
+    logger.quiet ("GradleUtils: Version updated by Feb 20 2018- 3.00")
 
     ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("PSTools-")}, dest: "${projectDir}\\Pstools\\")
     ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("paexec")}, dest: "${projectDir}\\PAExec\\")
 }
+
 
 task testPP() << {
     //loadPuppetLog ("ci_wfo_env_1438279679740", "ci_wfo_env" )
@@ -666,6 +666,7 @@ def fillSpecificVersionYAMLs (String iYamlFiles){
         fillSpecificVersionYAML (yamlSrcPath)
     }
 }
+
 def fillSpecificVersionYAML (String iYamlFile){
     //base on the GAV input, to get the specific version from artifactory and update the YAML
     File sourceFile = new File (iYamlFile);

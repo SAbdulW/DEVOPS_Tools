@@ -29,6 +29,10 @@ task yamlBuilder() << {
 
 }
 
+//TODO: change to this
+//runLocalDeployController.dependsOn yamlBuilder
+
+init.dependsOn yamlBuilder
 
 /******************** */
 def transformYamlFiles(String iYamlFiles){
