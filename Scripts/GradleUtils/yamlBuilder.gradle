@@ -21,14 +21,10 @@ buildscript {
     }
 }
 
-
-
-
-
 import org.yaml.snakeyaml.Yaml
 
 task yamlBuilder() << {
-    buildYaml("./Jenkinsfile.yaml")
+    buildYaml("./puppet.yaml")
 }
 
 
@@ -115,6 +111,8 @@ def Map mergeComponentMaps(Object defaultMap,Object userMap){
 
             if (defaultValue){
                 rtnMap."${key}" = mergeMaps( defaultValue, value)
+            }else{
+                rtnMap."${key}" = mergeMaps(  defaultMap."default", value)
             }
         }
         logger.quiet(" Merge map completed : result:${rtnMap}")

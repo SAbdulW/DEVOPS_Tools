@@ -7,15 +7,14 @@ SearchTags:
     Tags: "Grey"
 Components: # The Product Name just to give idea of what the GUI is, usely woudl be the same
     Framework Foundation:
-        InstallationUnitGUID: '81F973AD-7284-4c36-9637-16EEA43337B4'
     WFM Common:
-        InstallationUnitGUID:  '452F6916-AA15-48b0-B4BF-63CD6EC78590'
         Version: "15.2.2.1929"
     Framework Integration Server:
         SearchTags:
             Tags: "Grey"
             kit.number: "15.2.0.280"
     Framework Warehouse Database:
+    Performance Management: #This one not to know in the default will be set default setting
 
 # -------------------
 ...
