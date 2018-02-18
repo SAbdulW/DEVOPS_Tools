@@ -6,19 +6,16 @@ InstallAction: 'install'
 SearchTags:
     Tags: "Grey"
 Components: # The Product Name just to give idea of what the GUI is, usely woudl be the same
-    81F973AD-7284-4c36-9637-16EEA43337B4:
-        InstallationUnit: 'Framework Foundation'
-    452F6916-AA15-48b0-B4BF-63CD6EC78590:
-        InstallationUnit:  'WFM Common'
+    Framework Foundation:
+        InstallationUnitGUID: '81F973AD-7284-4c36-9637-16EEA43337B4'
+    WFM Common:
+        InstallationUnitGUID:  '452F6916-AA15-48b0-B4BF-63CD6EC78590'
         Version: "15.2.2.1929"
-    4E693109-AB2D-41D8-A88D-1506E0D654B9:
-        InstallationUnit:  'Framework Integration Server'
+    Framework Integration Server:
         SearchTags:
             Tags: "Grey"
             kit.number: "15.2.0.280"
-
-    621243F6-4743-4228-9364-574643D1CCE9:
-        InstallationUnit:  'Framework Warehouse Database'
+    Framework Warehouse Database:
 
 # -------------------
 ...

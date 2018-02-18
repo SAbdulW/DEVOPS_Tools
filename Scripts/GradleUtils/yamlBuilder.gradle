@@ -157,21 +157,7 @@ Map fillComponentsData(Object configData){
 Map fillComponentData(String componentKey,Object componentMap, Object configData){
     def rtnMap = [:] as HashMap
     rtnMap = componentMap
-    // Get the ComponentName (aka DisplayName) for uninstall from target machine with VM
-    def strInstallAction = componentMap."InstallAction"
-    def strComponentName= componentMap."InstallationUnit"
-    //TODO:
-    if ((strInstallAction=="both") || (strInstallAction=="uninstall")){
-        def String strComponentNameRemote = getDisplayNameFromRegistry(componentKey,
-                configData."vmIP",
-                configData."vmUser",
-                configData."vmPwd"
-        )
-        if (strComponentNameRemote!="") {
-            strComponentName=strComponentNameRemote
-        }
-    }
-    rtnMap.put("DisplayName",strComponentName)
+
 
     //Now try to get the GAV hahahha
     // First let get the component Informaiton from the Artifactory
@@ -179,8 +165,29 @@ Map fillComponentData(String componentKey,Object componentMap, Object configData
     logger.quiet ("GradleUtils: data return form artifactory for: ${componentKey}:")
     prettyPrintMapData(compInfo)
     def strGAV =  "${compInfo.groupID}:${compInfo.artifactID}:${compInfo.version}"
-
     rtnMap.put("ComponentGAV",strGAV)
+
+// Get the ComponentName (aka DisplayName) for uninstall from target machine with VM
+    def strInstallAction = componentMap."InstallAction"
+    def strComponentName= componentKey
+    def strInstallationUnitGUID = compInfo.installationUnitGUID
+    rtnMap.put("InstallationUnitGUID",strInstallationUnitGUID)
+
+    if ((strInstallationUnitGUID) && ("${strInstallationUnitGUID}"!="")) {
+        //TODO:
+        if ((strInstallAction == "both") || (strInstallAction == "uninstall")) {
+            def String strComponentNameRemote = getDisplayNameFromRegistry(strInstallationUnitGUID,
+                    configData."vmIP",
+                    configData."vmUser",
+                    configData."vmPwd"
+            )
+            if (strComponentNameRemote != "") {
+                strComponentName = strComponentNameRemote
+            }
+        }
+    }
+    rtnMap.put("DisplayName",strComponentName)
+
     return rtnMap
 }
 
@@ -234,10 +241,10 @@ def getDisplayNameFromRegistry(String strComponentGUID, String strVmIP, String s
 //}
 
 def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap, Object configData){
-    def compInfo = [groupID:"",artifactID:"",version:"",installationGUID:""] as HashMap
+    def compInfo = [groupID:"",artifactID:"",version:"",installationUnitGUID:""] as HashMap
     compInfo.version=componentMap."Version"
 
-    String strINSTALLATIONUNITGUID=componentKey
+    String strComponentKey=componentKey
     String strRepo = componentMap."ResolveRepo"
     String strMajorRelease=configData."MajorRelease"
     String strMinorRelease=configData."MinorRelease"
@@ -277,7 +284,7 @@ def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap,
                     "(" + "\n" +
                     "    {" + "\n" +
                     "        \"repo\":{\"\$eq\":\"${strRepo}\"}" + "\n" +
-                    "        ,\"@INSTALLATIONUNITGUID\":{\"\$match\":\"${strINSTALLATIONUNITGUID}\"}" + "\n" +
+                    "        ,\"@INSTALLATIONUNIT\":{\"\$match\":\"${strComponentKey}\"}" + "\n" +
                     "        ,\"@MajorRelease\":{\"\$match\":\"${strMajorRelease}\"}" + "\n" +
                     "        ,\"@MinorRelease\":{\"\$match\":\"${strMinorRelease}\"}" + "\n" +
                     "${strTagsSearch}" + "\n" +
@@ -299,7 +306,7 @@ def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap,
 
         compInfo.groupID=strG
         compInfo.artifactID=strA
-        compInfo.installationGUID = getListItemValue(resultItem.properties,"INSTALLATIONUNITGUID")
+        compInfo.installationUnitGUID = getListItemValue(resultItem.properties,"INSTALLATIONUNITGUID")
     }
 
     return compInfo

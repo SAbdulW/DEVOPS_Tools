@@ -13,40 +13,40 @@ SearchTags:
     Flavor: "green"
 
 Components: # The Product Name just to give idea of what the GUI is, usely woudl be the same
-    81F973AD-7284-4c36-9637-16EEA43337B4:
-        InstallationUnit: 'Framework Foundation'
+    Framework Foundation:
+        InstallationUnitGUID: '81F973AD-7284-4c36-9637-16EEA43337B4'
         InstallParams: ''
         InstallAction: "${InstallAction}"
         PromoteEnabled: "${PromoteEnabled}"
         ResolveRepo: "${ResolveRepo}"
         Version: "${InstallVersion}"
         SearchTags: "${SearchTags}"
-    452F6916-AA15-48b0-B4BF-63CD6EC78590:
-        InstallationUnit:  'WFM Common'
+    WFM Common:
+        InstallationUnitGUID:  '452F6916-AA15-48b0-B4BF-63CD6EC78590'
         InstallParams: 'ARPSYSTEMCOMPONENT=false'
         InstallAction: "${InstallAction}"
         PromoteEnabled: "${PromoteEnabled}"
         ResolveRepo: "${ResolveRepo}"
         Version: "${InstallVersion}"
         SearchTags: "${SearchTags}"
-    a0dfe68e-59f1-4eac-8ff3-88638dc8bbf8:
-        InstallationUnit:  'WFM Reporting'
+    WFM Reporting:
+        InstallationUnitGUID:  'a0dfe68e-59f1-4eac-8ff3-88638dc8bbf8'
         InstallParams: ''
         InstallAction: "${InstallAction}"
         PromoteEnabled: "${PromoteEnabled}"
         ResolveRepo: "${ResolveRepo}"
         Version: "${InstallVersion}"
         SearchTags: "${SearchTags}"
-    4E693109-AB2D-41D8-A88D-1506E0D654B9:
-        InstallationUnit:  'Framework Integration Server'
+    Framework Integration Server:
+        InstallationUnitGUID:  '4E693109-AB2D-41D8-A88D-1506E0D654B9'
         InstallParams: ''
         InstallAction: "${InstallAction}"
         PromoteEnabled: "${PromoteEnabled}"
         ResolveRepo: "${ResolveRepo}"
         Version: "${InstallVersion}"
         SearchTags: "${SearchTags}"
-    621243F6-4743-4228-9364-574643D1CCE9:
-        InstallationUnit:  'Framework Warehouse Database'
+    Framework Warehouse Database:
+        InstallationUnitGUID:  '621243F6-4743-4228-9364-574643D1CCE9'
         InstallParams: "${DBInstallParams}"
         InstallAction: "${InstallAction}"
         PromoteEnabled: "${PromoteEnabled}"
@@ -54,7 +54,7 @@ Components: # The Product Name just to give idea of what the GUI is, usely woudl
         Version: "${InstallVersion}"
         SearchTags: "${SearchTags}"
     default:
-        InstallationUnit:  'Unknown'
+        InstallationUnitGUID:  'Unknown'
         InstallParams: 'Unknown'
         InstallAction: "${InstallAction}"
         PromoteEnabled: false
