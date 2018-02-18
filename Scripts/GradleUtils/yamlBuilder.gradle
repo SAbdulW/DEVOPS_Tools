@@ -24,11 +24,36 @@ buildscript {
 import org.yaml.snakeyaml.Yaml
 
 task yamlBuilder() << {
-    buildYaml("./puppet.yaml")
+
+    transformYamlFiles("${yamlFiles}")
+
 }
 
 
 /******************** */
+def transformYamlFiles(String iYamlFiles){
+
+    def String[] yamlFiles = "${iYamlFiles}".split(',');
+    yamlValidation (yamlFiles)
+    for (String yamlSrcPath : yamlFiles) {
+        transformYamlFile (yamlSrcPath)
+    }
+}
+
+def transformYamlFile(String iYamlFile){
+    File sourceFile = new File (iYamlFile)
+    String sourceContent = sourceFile.getText("UTF-8")
+    if (sourceContent.indexOf("wfoComponents") >= 0){
+        logger.quiet("wfoComponents exists - THIS IS OLD YAML - No transformation needed : ${iYamlFile}")
+    }
+    else{
+        logger.quiet("THIS IS NEW YAML - Need transformation: ${iYamlFile}")
+        logger.quiet("Backup the yaml to : ${iYamlFile}.bak")
+        ant.copy (file: "${iYamlFile}", tofile: "${iYamlFile}.bak", verbose: true)
+        logger.quiet("Now do the tranformation...")
+        buildYaml(iYamlFile)
+    }
+}
 
 def buildYaml(String configFilePath){
     def strMasterBuildVersion="${currentVersion}"
@@ -66,9 +91,10 @@ def buildYaml(String configFilePath){
 
     //Let fill the information to the componentMap
     m_zData = fillComponentsData(m_zData )
-
-
     prettyPrintMapData (m_zData)
+
+    //Let generate the legacy yaml
+    generateLegacyYaml (configFilePath,m_zData)
 }
 
 
@@ -367,6 +393,45 @@ def String executeAQL(String query){
     //aqlQueryFile.delete()
 
     return rtnText
+}
+
+def generateLegacyYaml (String configFilePath, Object m_zData){
+    File fConfig = new File (configFilePath)
+    String strYamlContent = "---\n" +
+            "wfoComponents:"
+    def componentsMap =m_zData."Components"
+    def keys=componentsMap.keySet().toArray()
+    for(int i = 0; i < keys.size(); i++) { // Using "for" interator since it is serializable
+        def key=keys[i]
+        def componentItem = componentsMap.get(key)
+        String strComponentName=componentItem."DisplayName"
+        strYamlContent = strYamlContent + "\n" + "   - ComponentName: ${strComponentName}"
+
+        String strComponentGAV = componentItem."ComponentGAV"
+        strComponentGAV=strComponentGAV.replaceAll(" ", "%20" )
+        strYamlContent = strYamlContent + "\n" + "     ComponentGAV: '${strComponentGAV}'"
+
+        String strComponentPC=componentItem."PromoteEnabled"
+        strYamlContent = strYamlContent + "\n" + "     ComponentPC: ${strComponentPC}"
+
+        String strComponentRepo=componentItem."ResolveRepo"
+        strYamlContent = strYamlContent + "\n" + "     ComponentRepo: ${strComponentRepo}"
+
+        String strComponentActionReceive=componentItem."InstallAction"
+        strYamlContent = strYamlContent + "\n" + "     ComponentActionReceive: ${strComponentActionReceive}"
+
+        String strComponentInstallOptions=componentItem."InstallParams"
+        if (strComponentInstallOptions){
+            strYamlContent = strYamlContent + "\n" + "     ComponentInstallOptions: ${strComponentInstallOptions}"
+        }
+    }
+
+    logger.quiet("Yaml: ${configFilePath} : Transform result ")
+
+    logger.quiet("Source YAML:\n --> \n${fConfig.text}")
+    fConfig.text = strYamlContent
+    logger.quiet("Transform YAML:\n --> \n${fConfig.text}")
+
 }
 //******************************************************Lib from declarative *******************
 
