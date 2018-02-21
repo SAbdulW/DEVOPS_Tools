@@ -4,7 +4,8 @@ MasterBuildVersion: "15.2.2.0"
 MajorRelease: ''
 MinorRelease: ''
 # Steps default configuration
-ResolveRepo: 'cd-passed-pl'
+ResolveVirtualRepo: 'ftw-release-repos'
+ResolveRepo: 'ci-release'
 PromoteEnabled: true
 InstallAction: 'both' #uninstall, install, both
 DBInstallParams: 'ARPSYSTEMCOMPONENT=false,IMPACT360DATADIR=C:/Impact360/Data/,IMPACT360SOFTWAREDIR=C:/Impact360/Software/,SQLSERVERHOSTNAMECOMMON=consolidate,SQLSERVERPORTCOMMON=1433,IMSA_DOMAIN=consolidate,IMSA_NAME=ap2admin,IMSA_PASSWORD=verint1!,DMSA_DOMAIN=consolidate,DMSA_NAME=ap2admin,DMSA_PASSWORD=verint1!,INSTALLLANGUAGE=en_US,DATAFILESPATH=C:/Impact360/Databases,LOGFILESPATH=C:/Impact360/Databases,DBTYPE=WH,DBNAME=BPWAREHOUSEDB'
@@ -13,14 +14,6 @@ SearchTags:
     Flavor: "green"
 
 Components: # The Product Name just to give idea of what the GUI is, usely woudl be the same
-    Framework Foundation:
-        InstallationUnitGUID: ''
-        InstallParams: ''
-        InstallAction: "${InstallAction}"
-        PromoteEnabled: "${PromoteEnabled}"
-        ResolveRepo: "${ResolveRepo}"
-        Version: "${InstallVersion}"
-        SearchTags: "${SearchTags}"
     WFM Common:
         InstallationUnitGUID:  ''
         InstallParams: 'ARPSYSTEMCOMPONENT=false'
@@ -29,22 +22,8 @@ Components: # The Product Name just to give idea of what the GUI is, usely woudl
         ResolveRepo: "${ResolveRepo}"
         Version: "${InstallVersion}"
         SearchTags: "${SearchTags}"
-    WFM Reporting:
-        InstallationUnitGUID:  ''
-        InstallParams: ''
-        InstallAction: "${InstallAction}"
-        PromoteEnabled: "${PromoteEnabled}"
-        ResolveRepo: "${ResolveRepo}"
-        Version: "${InstallVersion}"
-        SearchTags: "${SearchTags}"
-    Framework Integration Server:
-        InstallationUnitGUID:  ''
-        InstallParams: ''
-        InstallAction: "${InstallAction}"
-        PromoteEnabled: "${PromoteEnabled}"
-        ResolveRepo: "${ResolveRepo}"
-        Version: "${InstallVersion}"
-        SearchTags: "${SearchTags}"
+        ComponentGAV:  ''
+        DisplayName: ''
     Framework Warehouse Database:
         InstallationUnitGUID:  ''
         InstallParams: "${DBInstallParams}"
@@ -53,6 +32,8 @@ Components: # The Product Name just to give idea of what the GUI is, usely woudl
         ResolveRepo: "${ResolveRepo}"
         Version: "${InstallVersion}"
         SearchTags: "${SearchTags}"
+        ComponentGAV:  ''
+        DisplayName: ''
     default:
         InstallationUnitGUID:  ''
         InstallParams: ''
@@ -61,5 +42,7 @@ Components: # The Product Name just to give idea of what the GUI is, usely woudl
         ResolveRepo: "${ResolveRepo}"
         Version: "${InstallVersion}"
         SearchTags: "${SearchTags}"
+        ComponentGAV:  ''
+        DisplayName: ''
 
 ...

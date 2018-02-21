@@ -78,24 +78,28 @@ def buildYaml(String configFilePath){
 
     //Merge the component Map as it is special
     def mergedComponentMap = mergeComponentMaps(m_zData."Components" , userConfigData."Components" )
-    prettyPrintMapData (mergedComponentMap)
+    //prettyPrintMapData (mergedComponentMap)
+
+
     userConfigData.put("Components",mergedComponentMap)
     m_zData.remove("Components")
 
     //Now mergeMaps
     m_zData= mergeMaps(m_zData, userConfigData )
     //logger.quiet ("GradleUtils: m_zData: ${m_zData}")
-    prettyPrintMapData (m_zData)
+    //prettyPrintMapData (m_zData)
 
     //Do the translation now
     m_zData = fillParameterizedMapWithData(m_zData,m_zData)
+
+    //prettyPrintMapData (m_zData)
 
     //Fill other data like version
     m_zData = fillOtherData(m_zData)
 
     //Let fill the information to the componentMap
     m_zData = fillComponentsData(m_zData )
-    prettyPrintMapData (m_zData)
+    //prettyPrintMapData (m_zData)
 
     //Let generate the legacy yaml
     generateLegacyYaml (configFilePath,m_zData)
@@ -126,26 +130,37 @@ def loadUserConfig(String configFilePath){
 def Map mergeComponentMaps(Object defaultMap,Object userMap){
 
     def rtnMap = [:] as HashMap
-
-    rtnMap = userMap
+    rtnMap += userMap
 
     if (userMap)
     {
-        prettyPrintMapData(userMap)
+        //prettyPrintMapData(userMap)
 
         def keys=userMap.keySet().toArray()
+
         for(int i = 0; i < keys.size(); i++) { // Using "for" interator since it is serializable
             def key=keys[i]
             def value = userMap.get(key)
-            def defaultValue = defaultMap."${key}"
-
-            if (defaultValue){
+            def defaultValue = [:] as HashMap
+            def defaultFromDefaultValue = [:] as HashMap
+//            logger.quiet(" key : ${key} ")
+//            prettyPrintMapData(value)
+            if (defaultMap."${key}"){
+                defaultValue += defaultMap."${key}"
+//                logger.quiet(" defaultValue : ")
+//                prettyPrintMapData(defaultValue)
                 rtnMap."${key}" = mergeMaps( defaultValue, value)
             }else{
-                rtnMap."${key}" = mergeMaps(  defaultMap."default", value)
+                defaultFromDefaultValue += defaultMap."default"
+//                logger.quiet(" defaultFromDefaultValue: ")
+//                prettyPrintMapData(defaultFromDefaultValue)
+                rtnMap."${key}" = mergeMaps( defaultFromDefaultValue, value)
             }
+//            logger.quiet(" ====================> ")
+//            prettyPrintMapData(rtnMap."${key}")
         }
-        logger.quiet(" Merge map completed : result:${rtnMap}")
+        logger.quiet(" Merge map completed : ")
+        prettyPrintMapData(rtnMap)
     }
     else
     {
@@ -166,25 +181,50 @@ Map fillOtherData(Object configData){
 }
 Map fillComponentsData(Object configData){
 
-    def componentsMap =configData."Components"
+    def componentsMap = [:] as HashMap
+    componentsMap +=configData."Components"
 
     def rtnMap = [:] as HashMap
-    rtnMap = configData
+    def rtnComponentsMap = [:] as HashMap
+    rtnMap += configData
 
     def keys=componentsMap.keySet().toArray()
     for(int i = 0; i < keys.size(); i++) { // Using "for" interator since it is serializable
         def key=keys[i]
-        def value = componentsMap.get(key)
-        componentsMap.put(key,fillComponentData(key,value,configData)) //Get more information aobut the componet
+        def valueMap = [:] as HashMap
+        valueMap += componentsMap.get(key)
+
+        def rtnAfterFill= fillComponentData(key,valueMap,configData)
+
+        def mapItem = [:] as HashMap
+        mapItem.put(key,rtnAfterFill)
+
+//        logger.quiet("-------------------------------------------------------------------------------------")
+//        logger.quiet("-------------------------------------------------------------------------------------")
+//        prettyPrintMapData(mapItem)
+//        logger.quiet("-------------------------------------------------------------------------------------")
+//        logger.quiet("-------------------------------------------------------------------------------------")
+
+        rtnComponentsMap = rtnComponentsMap + mapItem
+
+//        logger.quiet("-------------------------------------------------------------------------------------")
+//        logger.quiet("-------------------------------------------------------------------------------------")
+//        prettyPrintMapData(rtnComponentsMap)
+//        logger.quiet("-------------------------------------------------------------------------------------")
+//        logger.quiet("-------------------------------------------------------------------------------------")
+
     }
-    rtnMap.put("Components",componentsMap)
+
+//    prettyPrintMapData(rtnComponentsMap)
+
+    rtnMap.put("Components",rtnComponentsMap)
 
     return rtnMap
 }
 
 Map fillComponentData(String componentKey,Object componentMap, Object configData){
     def rtnMap = [:] as HashMap
-    rtnMap = componentMap
+    rtnMap += componentMap
 
 
     //Now try to get the GAV hahahha
@@ -257,23 +297,13 @@ def getDisplayNameFromRegistry(String strComponentGUID, String strVmIP, String s
 
 }
 
-//String getComponentGAVFromArtifactory (String componentKey,Object componentMap, Object configData){
-//    def gavMap = [groupID:"",artifactID:"",version:""] as HashMap
-//    gavMap.groupID="com.verint.foundation.kbs"
-//    gavMap.artifactID="KB140042"
-//    gavMap.version=componentMap."Version"
-//
-//    getArtifactsInformation(componentKey,componentMap,configData)
-//
-//    return "${gavMap.groupID}:${gavMap.artifactID}:${gavMap.version}"
-//}
-
 def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap, Object configData){
     def compInfo = [groupID:"",artifactID:"",version:"",installationUnitGUID:""] as HashMap
     compInfo.version=componentMap."Version"
 
     String strComponentKey=componentKey
-    String strRepo = componentMap."ResolveRepo"
+    //String strRepo = componentMap."ResolveRepo"
+    String strRepo = configData."ResolveVirtualRepo"  // This so it can resolve the path in case the metadata is not ready and there happen to have one sastify
     String strMajorRelease=configData."MajorRelease"
     String strMinorRelease=configData."MinorRelease"
 
@@ -335,6 +365,8 @@ def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap,
         compInfo.groupID=strG
         compInfo.artifactID=strA
         compInfo.installationUnitGUID = getListItemValue(resultItem.properties,"INSTALLATIONUNITGUID")
+    }else{
+        throw new GradleException ("Couldn't find out the information about component need to install: ${componentKey}. Build failed")
     }
 
     return compInfo
@@ -403,11 +435,27 @@ def generateLegacyYaml (String configFilePath, Object m_zData){
     File fConfig = new File (configFilePath)
     String strYamlContent = "---\n" +
             "wfoComponents:"
-    def componentsMap =m_zData."Components"
+
+    def componentsMap = [:] as HashMap
+    componentsMap += m_zData."Components"
     def keys=componentsMap.keySet().toArray()
     for(int i = 0; i < keys.size(); i++) { // Using "for" interator since it is serializable
         def key=keys[i]
-        def componentItem = componentsMap.get(key)
+        def componentItem = [:] as HashMap
+        componentItem += componentsMap.get(key)
+
+//        logger.quiet("Yaml: key: ${key} :  ")
+//        logger.quiet("Yaml: componentItem: ${componentItem} :  ")
+
+//    for (componentsMapItem in componentsMap){
+//        logger.quiet("Yaml: componentsMapItem: ${componentsMapItem} :  ")
+//        logger.quiet("Yaml: key: ${componentsMapItem.key} :  ")
+//        logger.quiet("Yaml: value: ${componentsMapItem.value} :  ")
+//
+//        componentItem = componentsMapItem.value
+
+//        logger.quiet("Yaml: componentItem: ${componentItem} :  ")
+
         String strComponentName=componentItem."DisplayName"
         strYamlContent = strYamlContent + "\n" + "   - ComponentName: ${strComponentName}"
 
@@ -458,7 +506,7 @@ def Map fillParameterizedMapWithData(Object parameterizedMap,Object iData){
 
     def rtnMap = [:] as HashMap
 
-    rtnMap = parameterizedMap
+    rtnMap =rtnMap+ parameterizedMap
 
     if (parameterizedMap)
     {
@@ -468,12 +516,16 @@ def Map fillParameterizedMapWithData(Object parameterizedMap,Object iData){
         for(int i = 0; i < keys.size(); i++) { // Using "for" interator since it is serializable
             def key=keys[i]
             def value = parameterizedMap.get(key)
+
             //logger.quiet "zDevLib: fillParameterizedMapWithData:parameterizedMap :value \n ${value} "
 
             if ( isMapObject(value) ){
-                value =  fillParameterizedMapWithData(value, iData)
+                def valueMap = [:] as HashMap
+                valueMap +=value
+
+                valueMap =  fillParameterizedMapWithData(valueMap, iData)
                 //logger.quiet "zDevLib: fillParameterizedMapWithData:parameterizedMap :value after translation:  ${value} "
-                rtnMap.put(key,value)
+                rtnMap.put(key,valueMap)
             } else {
                 value = getParameterizedValue(value,iData)
                 //logger.quiet "zDevLib: fillParameterizedMapWithData:parameterizedMap :value after translation:  ${value} "
@@ -484,7 +536,7 @@ def Map fillParameterizedMapWithData(Object parameterizedMap,Object iData){
     }
     else
     {
-        logger.quiet "zDevLib: fillParameterizedMapWithData: There are not parameters to update!"
+        logger.quiet "GradleUtil: fillParameterizedMapWithData: There are not parameters to update!"
     }
     return rtnMap
 }
@@ -564,7 +616,7 @@ def Map mergeMaps(Object secondaryMap,Object primaryMap){
 
     def rtnMap = [:] as HashMap
 
-    rtnMap = secondaryMap
+    rtnMap =rtnMap+ secondaryMap
 
     if (primaryMap)
     {
