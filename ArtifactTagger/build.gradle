@@ -72,7 +72,7 @@ def process (String conf){
                     String minorRelease = ""
                     String tags = ""
                     if(artifactId.indexOf("KB") == 0){
-                        tags = "Grey"
+                        tags = "Gray"
                     }
                     else{
                         tags = "Green"
