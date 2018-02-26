@@ -24,6 +24,26 @@
       "repoName" : "gate0-master",
       "pathMatch" : "com/verint/",
       "pathExclude" : ""
+    },
+    {
+      "repoName" : "gate0-int",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "gate1-master",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "gate1-int",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "gate1-test-int",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
     }
   ]
 }
