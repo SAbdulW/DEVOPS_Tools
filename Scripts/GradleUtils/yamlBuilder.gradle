@@ -309,8 +309,8 @@ def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap,
 
     logger.quiet ("GradleUtils:componentMap:${componentMap}")
 
-    def tagsMap = componentMap."SearchTags"
-    logger.quiet ("GradleUtils:tagsMap:${tagsMap}")
+    def tagsMap = componentMap."SearchProperties"
+    logger.quiet ("GradleUtils:SearchProperties:${tagsMap}")
 
     String strTagsSearch=""
     if ( isMapObject(tagsMap) ) {
