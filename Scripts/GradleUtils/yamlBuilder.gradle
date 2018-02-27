@@ -238,13 +238,18 @@ Map fillComponentData(String componentKey,Object componentMap, Object configData
 // Get the ComponentName (aka DisplayName) for uninstall from target machine with VM
     def strInstallAction = componentMap."InstallAction"
     def strComponentName= componentKey
+
     def strInstallationUnitGUID = compInfo.installationUnitGUID
     rtnMap.put("InstallationUnitGUID",strInstallationUnitGUID)
 
-    if ((strInstallationUnitGUID) && ("${strInstallationUnitGUID}"!="")) {
+    def strProductCode = compInfo.productCode
+    rtnMap.put("ProductCode",strProductCode)
+
+
+    if ((strProductCode) && ("${strProductCode}"!="")) {
         //TODO:
         if ((strInstallAction == "both") || (strInstallAction == "uninstall")) {
-            def String strComponentNameRemote = getDisplayNameFromRegistry(strInstallationUnitGUID,
+            def String strComponentNameRemote = getDisplayNameFromRegistry(strProductCode,
                     configData."vmIP",
                     configData."vmUser",
                     configData."vmPwd"
@@ -298,7 +303,7 @@ def getDisplayNameFromRegistry(String strComponentGUID, String strVmIP, String s
 }
 
 def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap, Object configData){
-    def compInfo = [groupID:"",artifactID:"",version:"",installationUnitGUID:""] as HashMap
+    def compInfo = [groupID:"",artifactID:"",version:"",installationUnitGUID:"",productCode:""] as HashMap
     compInfo.version=componentMap."Version"
 
     String strComponentKey=componentKey
@@ -348,7 +353,7 @@ def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap,
                     "${strTagsSearch}" + "\n" +
                     "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" + "\n" +
                     "    }"  + "\n" +
-                    ").include(\"@INSTALLATIONUNITGUID\",\"@GroupID\",\"@ArtifactID\").limit(5)" + "\n"
+                    ").include(\"@INSTALLATIONUNITGUID\",\"@GroupID\",\"@ArtifactID\",\"@ProductCode\").limit(5)" + "\n"
 
     List resultsList  = search(aqlQuery)
 
@@ -365,6 +370,7 @@ def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap,
         compInfo.groupID=strG
         compInfo.artifactID=strA
         compInfo.installationUnitGUID = getListItemValue(resultItem.properties,"INSTALLATIONUNITGUID")
+        compInfo.productCode = getListItemValue(resultItem.properties,"ProductCode")
     }else{
         throw new GradleException ("Couldn't find out the information about component need to install: ${componentKey}. Build failed")
     }
