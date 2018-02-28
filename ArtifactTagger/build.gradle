@@ -218,6 +218,7 @@ def List getListOfMSI(String repo, String pathMatch, String watermark){
 
 def downloadMSI(String repo, String path, String name){
     String artifactUrl = "${contextURL}/${repo}/${path}/${name}"
+    artifactUrl = artifactUrl.replaceAll(" ", "%20")
     String sCmd = "curl -f -X GET -u \"" + "${uname}" + "\":\"" + "${pword}" + "\" \"${artifactUrl}\" -o \"${name}\""
     logger.quiet("Execute cmd: ${sCmd}")
 
