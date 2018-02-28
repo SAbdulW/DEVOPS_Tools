@@ -61,6 +61,9 @@ def transformYamlFile(String iYamlFile){
 
 def buildYaml(String configFilePath){
     def strMasterBuildVersion="${currentVersion}"
+
+    logger.quiet("Current version: ${strMasterBuildVersion}")
+
 // Build Params
     def m_zData = [ MasterBuildVersion          : "${strMasterBuildVersion}",
                     configFilePath       : "${configFilePath}",
@@ -69,16 +72,16 @@ def buildYaml(String configFilePath){
                     vmPwd       : "${vmPw}"
                     ]
     // Get default config
-    m_zData = m_zData + loadDefaultConfig()
-    prettyPrintMapData (m_zData)
+    m_zData = loadDefaultConfig() + m_zData
+//    prettyPrintMapData (m_zData)
 
     // Get user config
     def userConfigData = loadUserConfig("${m_zData.configFilePath}")
-    prettyPrintMapData (userConfigData)
+//    prettyPrintMapData (userConfigData)
 
     //Merge the component Map as it is special
     def mergedComponentMap = mergeComponentMaps(m_zData."Components" , userConfigData."Components" )
-    //prettyPrintMapData (mergedComponentMap)
+//    prettyPrintMapData (mergedComponentMap)
 
 
     userConfigData.put("Components",mergedComponentMap)
@@ -87,12 +90,12 @@ def buildYaml(String configFilePath){
     //Now mergeMaps
     m_zData= mergeMaps(m_zData, userConfigData )
     //logger.quiet ("GradleUtils: m_zData: ${m_zData}")
-    //prettyPrintMapData (m_zData)
+//    prettyPrintMapData (m_zData)
 
     //Do the translation now
     m_zData = fillParameterizedMapWithData(m_zData,m_zData)
 
-    //prettyPrintMapData (m_zData)
+//    prettyPrintMapData (m_zData)
 
     //Fill other data like version
     m_zData = fillOtherData(m_zData)
@@ -323,21 +326,37 @@ def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap,
         for (int i = 0; i < keys.size(); i++) { // Using "for" interator since it is serializable
             def key = keys[i]
             def value = tagsMap.get(key)
-            strTagsSearch = strTagsSearch + "        ,\"@${key}\":{\"\$match\":\"${value}\"}"
+            if (strTagsSearch==""){
+                strTagsSearch = strTagsSearch + "        ,\"@${key}\":{\"\$match\":\"${value}\"}"
+            }else{
+                strTagsSearch = strTagsSearch + "\n" + "        ,\"@${key}\":{\"\$match\":\"${value}\"}"
+            }
         }
     }else{
-        String strTagsMap="${tagsMap}"
-        int firstIndex = "${strTagsMap}".indexOf("{")+1
-        int lastIndex = "${strTagsMap}".lastIndexOf("}")
+        String strTagsMapString="${tagsMap}"
 
-        logger.quiet ("GradleUtils:${firstIndex}:${lastIndex}")
-        String tagsMapReal = strTagsMap.substring(firstIndex, lastIndex)
+        int firstIndex = "${strTagsMapString}".indexOf("{")+1
+        int lastIndex = "${strTagsMapString}".lastIndexOf("}")
 
-        logger.quiet ("GradleUtils:tagsMapReal:${tagsMapReal}")
-        def tagItem = "${tagsMapReal}".split('=');
-        def key = tagItem[0]
-        def value = tagItem[1]
-        strTagsSearch = strTagsSearch + "        ,\"@${key}\":{\"\$match\":\"${value}\"}"
+        //logger.quiet ("GradleUtils:strTagsMapString:${strTagsMapString}")
+        String strTagsMapStringReal = strTagsMapString.substring(firstIndex, lastIndex)
+        logger.quiet ("GradleUtils:searchProperties:${strTagsMapStringReal}")
+
+        def strTagsMaps = "${strTagsMapStringReal}".split(', ')
+
+        for (int i=0; i< strTagsMaps.length; i++){
+            String strTagsMap="${strTagsMaps[i]}"
+            //logger.quiet ("GradleUtils:strTagsMap : ${strTagsMap}")
+            def tagItem = "${strTagsMap}".split('=');
+            def key = tagItem[0]
+            def value = tagItem[1]
+            if (strTagsSearch==""){
+                strTagsSearch = strTagsSearch + "        ,\"@${key}\":{\"\$match\":\"${value}\"}"
+            }else{
+                strTagsSearch = strTagsSearch + "\n" + "        ,\"@${key}\":{\"\$match\":\"${value}\"}"
+            }
+
+        }
 
     }
     String notMatch="maven-metadata.xml"
