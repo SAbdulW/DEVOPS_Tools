@@ -71,8 +71,15 @@ def process (String conf){
                     String majorRelease = ""
                     String minorRelease = ""
                     String tags = ""
+                    String artifactOrigin = ""
                     if(artifactId.indexOf("KB") == 0){
                         tags = "Gray"
+                        if(artifactId.indexOf("KB99") == 0){
+                            artifactOrigin = "snapshot"
+                        }
+                        else{
+                            artifactOrigin = "dev"
+                        }
                     }
                     else{
                         tags = "Green"
