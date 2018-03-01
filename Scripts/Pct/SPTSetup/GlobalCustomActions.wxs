@@ -1,0 +1,1700 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <?include UserProperties.wxi ?>
+    <Binary Id="HFCustomActions" SourceFile="HFCustomActions.CA.dll" />
+    <CustomAction Id="ImpersonateAction_LogonAsInteractive" BinaryKey="HFCustomActions" DllEntry="ImpersonateAction_LogonAsInteractive" Execute="deferred" Return="check" />
+    <CustomAction Id="ImpersonateAction_LogonAsService" BinaryKey="HFCustomActions" DllEntry="ImpersonateAction_LogonAsService" Execute="deferred" Return="check" Impersonate="no"/>
+    <CustomAction Id="CallGenerateImpersonateTableData" BinaryKey="HFCustomActions" DllEntry="GenerateImpersonateTableData" Execute="immediate" Return="check" />
+    <CustomAction Id="CallCreateUCMTriggerFileIfRequired" BinaryKey="HFCustomActions" DllEntry="CreateUCMTriggerFileIfRequired" Execute="immediate" Return="check" />    
+    <CustomAction Id="CallGenerateDataForImpersonatedUninstall" BinaryKey="HFCustomActions" DllEntry="GenerateDataForImpersonatedUninstall" Execute="immediate" Return="check" />
+    <CustomAction Id="SetImpersonateCustomActionDataValue_I" Return="check" Property="ImpersonateAction_LogonAsInteractive" Value="ImpersonatedProcessesData=[IMPERSONATECOMMANDS];ULTRAUSERNAME=[ULTRAUSERNAME];ULTRAUSERPASSWORD=[ULTRAUSERPASSWORD];ULTRAUSERDOMAIN=[ULTRAUSERDOMAIN]" />
+    <CustomAction Id="SetImpersonateCustomActionDataValue_S" Return="check" Property="ImpersonateAction_LogonAsService" Value="ImpersonatedProcessesData=[IMPERSONATECOMMANDS];ULTRAUSERNAME=[ULTRAUSERNAME];ULTRAUSERPASSWORD=[ULTRAUSERPASSWORD];ULTRAUSERDOMAIN=[ULTRAUSERDOMAIN]" />
+    <CustomAction Id="Set_INSTALLDIR_To_IMPACT360SOFTWAREDIR" Property="INSTALLDIR" Value="[IMPACT360SOFTWAREDIR]" />
+    <CustomAction Id="set_ARPBRANDComments" Property="ARPCOMMENTS" Value="[BRANDNAME]Patch" />
+    <CustomAction Id="set_GACUTILPATH" Property="GACUTILPATH" Value="[I360BINDIR]" />
+    <CustomAction Id="set_OLDHFVERSION" Property="OLDHFVERSION" Value="[OLDINSTALLATIONUNITVERSION]" />
+    <CustomAction Id="SetPatchReinstallMode" Property="REINSTALLMODE" Value="amus" />
+    <CustomAction Id="Set_HotFixRootDis" Script="vbscript" >
+      <![CDATA[
+        'SetHotFixRootDis 17.11.2010
+
+        Set WshShell = CreateObject("WScript.Shell")
+        impactSoftDir = WshShell.ExpandEnvironmentStrings("%IMPACT360SOFTWAREDIR%")
+        impactDataDir = WshShell.ExpandEnvironmentStrings("%IMPACT360DATADIR%")
+        Session.Property("HOTFIXSOFTWAREDIRROOT") = Replace(impactSoftDir,":\","_")
+        Session.Property("HOTFIXDATADIRROOT") = Replace(impactDataDir,":\","_")
+
+        Session.Property("OEM_BRAND_NAME") = WshShell.ExpandEnvironmentStrings("%OEM_BRAND_NAME%")
+        Session.Property("OEM_PRODUCT_NAME") = WshShell.ExpandEnvironmentStrings("%OEM_PRODUCT_NAME%")
+        Session.Property("OEM_PRODUCT_SHORT_NAME") = WshShell.ExpandEnvironmentStrings("%OEM_PRODUCT_SHORT_NAME%")
+        
+        'Default Values
+        if (Session.Property("OEM_BRAND_NAME") = "%OEM_BRAND_NAME%") Then 
+          Session.Property("OEM_BRAND_NAME") = "Verint"
+        End If
+        if (Session.Property("OEM_PRODUCT_NAME") = "%OEM_PRODUCT_NAME%") Then 
+          Session.Property("OEM_PRODUCT_NAME") = "Impact 360"
+        End If
+
+        if (Session.Property("OEM_PRODUCT_SHORT_NAME") = "%OEM_PRODUCT_SHORT_NAME%") Then 
+          Session.Property("OEM_PRODUCT_SHORT_NAME") = "I360"
+        Else
+          Session.Property("BRANDNAME") = Session.Property("OEM_PRODUCT_SHORT_NAME")
+        End If        
+      ]]>
+    </CustomAction>
+    <CustomAction Id="CheckIfPatchIDIsAlreadyExist" Script="vbscript">
+      <![CDATA[
+        'CheckIfPatchIDIsAlreadyExist 11.10.2010
+
+        const HKEY_LOCAL_MACHINE = &H80000002
+
+        Dim strComputer
+        Dim oReg
+        Dim strKeyPath, subkey, strValueName, strValue
+	      Dim bFound
+
+	      bFound = False        
+        strComputer = "."
+
+        On Error Resume Next
+
+        Set oReg=MyGetObject()
+         
+        strKeyPath = "SOFTWARE\Impact360\Hotfixes"
+        oReg.EnumKey HKEY_LOCAL_MACHINE, strKeyPath, arrSubKeys
+
+        For Each subkey In arrSubKeys
+	        strKeyPath = "SOFTWARE\Impact360\Hotfixes\" & subkey 
+	        strValueName = "Patch ID"
+	        oReg.GetExpandedStringValue HKEY_LOCAL_MACHINE,strKeyPath, strValueName,strValue
+    	    if (strValue = Session.Property("HOTFIXID")) then
+            SetProperty "HOTFIXID_ALREADY_EXIST", "true"
+			      bFound = True
+          End If
+
+        Next
+	      If bFound = False Then
+	        strKeyPath = "SOFTWARE\Wow6432Node\Impact360\Hotfixes"
+        	oReg.EnumKey HKEY_LOCAL_MACHINE, strKeyPath, arrSubKeys
+	
+	        For Each subkey In arrSubKeys
+		        strKeyPath = "SOFTWARE\Wow6432Node\Impact360\Hotfixes\" & subkey 
+	        	strValueName = "Patch ID"
+	        	oReg.GetExpandedStringValue HKEY_LOCAL_MACHINE,strKeyPath, strValueName,strValue
+      	    if (strValue = Session.Property("HOTFIXID")) then
+              SetProperty "HOTFIXID_ALREADY_EXIST", "true"
+			        bFound = True
+	        	End If
+
+	        Next
+
+	      End If
+
+        Set oReg = NOTHING
+
+        Function MyGetObject()
+	        Set MyGetObject = GetObject("winmgmts:{impersonationLevel=impersonate}!\\" & strComputer & "\root\default:StdRegProv")
+        End Function
+        
+        Function SetProperty(sProperty, sPropertyValue)
+          Session.Property(sProperty) = sPropertyValue
+        End Function
+      ]]>
+    </CustomAction>
+
+    <CustomAction Id="GetInstallationUNITFromInstallationUNITName" Script="vbscript">
+      <![CDATA[
+        'GetInstallationUNITFromInstallationUNITName 11.10.2010
+
+        const HKEY_LOCAL_MACHINE = &H80000002
+
+        Dim strComputer
+        Dim oReg
+        Dim strKeyPath, subkey, strValueName, strValue
+        Dim strProductKey, sInstallationUNITName
+        Dim arrSubKeysDim, sINSTALLATIONUNITSUBSystemTemp
+	      Dim bFound
+
+	      bFound = False
+
+        sInstallationUNITName = Session.Property("INSTALLATIONUNIT")
+        
+        strComputer = "."
+
+        On Error Resume Next
+
+        Set oReg=MyGetObject()
+         
+        strKeyPath = "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
+        oReg.EnumKey HKEY_LOCAL_MACHINE, strKeyPath, arrSubKeys
+
+        For Each subkey In arrSubKeys
+	        strKeyPath = "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" & subkey 
+	        strValueName = "DisplayName"
+	        oReg.GetExpandedStringValue HKEY_LOCAL_MACHINE,strKeyPath, strValueName,strValue
+    	    if (strValue = sInstallationUNITName)then
+            SetProperty "INSTALLATIONUNITGUID", subkey
+			      bFound = True
+          End If
+
+        Next
+	      If bFound = False Then
+	        strKeyPath = "SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+        	oReg.EnumKey HKEY_LOCAL_MACHINE, strKeyPath, arrSubKeys
+	
+	        For Each subkey In arrSubKeys
+		        strKeyPath = "SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\" & subkey 
+	        	strValueName = "DisplayName"
+	        	oReg.GetExpandedStringValue HKEY_LOCAL_MACHINE,strKeyPath, strValueName,strValue
+
+
+		  	    if (strValue = sInstallationUNITName)then
+              SetProperty "INSTALLATIONUNITGUID", subkey
+			        bFound = True
+	        	End If
+
+	        Next
+
+	      End If
+
+        Set oReg = NOTHING
+
+        Function MyGetObject()
+	        Set MyGetObject = GetObject("winmgmts:{impersonationLevel=impersonate}!\\" & strComputer & "\root\default:StdRegProv")
+        End Function
+        
+        Function SetProperty(sProperty, sPropertyValue)
+          Session.Property(sProperty) = sPropertyValue
+        End Function
+      ]]>
+    </CustomAction>
+    <CustomAction Id="CompareVersion" Script="vbscript">
+      <![CDATA[      
+      Dim sOldHFVersion, sHotFixVersion
+      Dim iVersionCompare
+      'MsgBox "CompareVersion"
+      LogInfo  "===== Starting CompareVersion ====="
+
+      sOldHFVersion = Session.Property("OLDHFVERSION")
+
+      LogInfo  "===== CompareVersion ==== sOldHFVersion =" & sOldHFVersion
+      ' HotFixVersion should look like -> "11.0.0.001"
+      sHotFixVersion = Session.Property("HOTFIXVERSION")
+      LogInfo  "===== CompareVersion ==== sHotFixVersion =" & sHotFixVersion
+      LogInfo  "===== CompareVersion ==== sHotFixVersion =" & sHotFixVersion & " And sOldHFVersion =" & sOldHFVersion
+      If sOldHFVersion = "0" Then
+        LogInfo  "===== CompareVersion ==== sOldHFVersion = 0 "
+      Else
+        LogInfo  "===== CompareVersion ==== sOldHFVersion <> 0 And sHotFixVersion <> 0 =========="
+        iVersionCompare = StrComp(SplitVersionToSubVersion(sOldHFVersion), SplitVersionToSubVersion(sHotFixVersion))
+        If iVersionCompare = 0 Then
+          Session.Property("OLDPATCHISSAME") = "true"
+          'MsgBox "Same HF versions"
+          LogInfo  "===== CompareVersion ==== Same HF versions =========="
+        Elseif iVersionCompare = 1 then
+          Session.Property("OLDPATCHISNEW") = "true"
+          LogInfo  "===== CompareVersion ==== Old is bigger =========="
+          'MsgBox "Old is bigger"
+        Else
+          LogInfo  "===== CompareVersion ==== New is bigger =========="
+          'MsgBox "New is bigger"
+        End if
+      End if
+      LogInfo  "===== CompareVersion ==== Ended =========="
+
+      Function SplitVersionToSubVersion(sVersion)
+
+          Dim sMajorVersio, sMinorVersion, sSP, sRevision
+          Dim ifuieldNumbers
+          Dim aVersions
+
+          aVersions = Split(sVersion, ".")
+          ifuieldNumbers = UBound(aVersions)
+
+          sMajorVersio = AddZiroToString(aVersions(0))
+          sMinorVersion = AddZiroToString(aVersions(1))
+          sSP = AddZiroToString(aVersions(2))
+          If ifuieldNumbers = 3 Then
+            sRevision = AddZiroToString(aVersions(3))
+          Else
+            sRevision = AddZiroToString("0")
+          End If
+
+          sVersion = sMajorVersio & sMinorVersion & sSP & sRevision
+    
+          SplitVersionToSubVersion = sVersion
+      End Function      
+      
+      Function AddZiroToString(sString)
+          Dim i
+        
+          i = Len(sString)
+          Do While i < 5
+              sString = "0" & sString
+              i = i + 1
+          Loop
+
+          AddZiroToString = sString
+      End Function
+
+      Function LogInfo ( msg )
+        dim rec
+
+        Set rec = Session.Installer.CreateRecord(1)
+        rec.StringData(0) = msg
+        LogInfo = Session.Message(&H04000000, rec)
+      End Function
+
+      ]]>
+
+    </CustomAction>
+    <CustomAction Id="CheckIfApplicableToUltraVersion" Script="vbscript">
+      ' CheckIfApplicableToUltraVersion_25-06-09
+      Dim currentLocale
+      currentLocale = GetLocale
+      SetLocale(1033)
+
+      sMajordVersion = Session.Property("ULTRAVERSION")
+      sMinorVersion = Session.Property("ULTRAMINORVERSION")
+      sSP = Session.Property("ULTRASP")
+
+      sMinUltraVer = Session.Property("MINULTRAVERSION")
+      sMaxUltraVer = Session.Property("MAXULTRAVERSION")
+      sMinSP = Session.Property("MINSP")
+      sMaxSP = Session.Property("MAXSP")
+      'sBeta = Session.Property("BETA")
+
+      'MsgBox "sMinUltraVer=" &amp; sMinUltraVer &amp; " sMaxUltraVer=" &amp; sMaxUltraVer &amp; " sMinSP=" &amp; sMinSP &amp; " sMaxSP=" &amp; sMaxSP
+
+      ' saving the service pack string for the error message
+      If strComp(sMinSP,"SP0",1) = 0 Then
+        Session.Property("TempMinSP")= "GA"
+      Else
+        Session.Property("TempMinSP")= sMinSP
+      End If
+      If strComp(sMaxSP,"SP0",1) = 0 Then
+        Session.Property("TempMaxSP")= "GA"
+      Else
+        Session.Property("TempMaxSP")= sMaxSP
+      End If
+
+      Pos = InStr(1,sMinUltraVer,".")
+      if Pos &gt; 0 Then
+        sMinMinorVer = Right(sMinUltraVer,Len(sMinUltraVer) - Pos)
+        If IsNumeric(sMinMinorVer) = false Then
+          sMinMinorVer = -1
+        End If
+      else
+        sMinMinorVer = -1
+      End If
+
+    'MsgBox " sMinMinorVer =" &amp; sMinMinorVer
+
+      sUltraVer = sMajordVersion &amp; "." &amp; sMinorVersion
+
+     ' minor version 0 means it is beta version - Not support beta anymore.
+      If sSP &gt;= 0 Then
+        'bBeta = 0
+        sSPVer = "SP" &amp; sSP
+      End If
+
+      if IsNumeric(sUltraVer) And IsNumeric(sMaxUltraVer) And IsNumeric(sMinUltraVer) Then ' verify that the version is numaric
+          If CDbl(sUltraVer) &lt;= CDbl(sMaxUltraVer)  And CDbl(sUltraVer) &gt;= CDbl(sMinUltraVer) Then
+              'MsgBox "if1"
+              Session.Property("CORRECTULTRAVERSION") = "true"
+              If sMinUltraVer = sMaxUltraVer Then
+                  If sSPVer &lt;= sMaxSP And sSPVer &gt;= sMinSP Then
+                      Session.Property("CORRECTSPVERSION") = "true"
+                  Else
+                      Session.Property("CORRECTSPVERSION") = "false"
+                  End If
+              Else
+                  ' in cross versions there is no need to check the service pack ver
+                  Session.Property("CORRECTSPVERSION") = "true"
+              End If
+          Else ' The Ultra Version is not applicable
+                Session.Property("CORRECTULTRAVERSION") = "false"
+          End If
+      Else
+          Session.Property("CORRECTULTRAVERSION") = "false"
+      End If
+      
+      SetLocale(currentLocale)      
+      'MsgBox "f2"
+      '-------------------------
+    </CustomAction>
+    
+    <CustomAction Id="UseVerintSDK" Script="vbscript">
+      ' UseVerintSDK_03-10-10
+
+      bAddVerintSDK = Session.Property("ADD_VERINTSDK")
+
+      ' Extract Ultra admin login name from Secured container
+      Dim cmdGetUserName
+      LogInfo  "=====  UseVerintSDK ====  =========="
+
+      If bAddVerintSDK = 1 Then
+      cmdGetUserName = """%Impact360SoftwareDir%\VerintSDK\Verint.SDK.SecuredContentAccess.exe"" g UltraUserName"
+
+      Dim objExecGetUserName
+      Set objExecGetUserName = objShell.Exec(cmdGetUserName)
+
+      login = objExecGetUserName.StdOut.readline()
+      If login = "" Then
+      LogInfo  "=====  UseVerintSDK ====  ========== Need to do somthing - ERROR -"
+      End If
+      ' Extract ultra admin user password from Secured container
+      Dim cmdGetUserPwd
+      cmdGetUserPwd = """%Impact360SoftwareDir%\VerintSDK\Verint.SDK.SecuredContentAccess.exe"" g UltraUserPwd"
+
+      Dim objExecGetUserPwd
+      Set objExecGetUserPwd = objShell.Exec(cmdGetUserPwd)
+
+      pwd = objExecGetUserPwd.StdOut.readLine()
+      If pwd = "" Then
+      LogInfo  "=====  UseVerintSDK ====  ========== Need to do somthing - ERROR -"
+      End If
+      End If
+      'do somthing and use login ,pwd
+
+      Function LogInfo ( msg )
+      dim rec
+
+      Set rec = Session.Installer.CreateRecord(1)
+      rec.StringData(0) = msg
+      LogInfo = Session.Message(&amp;H04000000, rec)
+      End Function
+    </CustomAction>    
+    
+    <CustomAction Id="Set_GACUTILTempBatchFile" Property="GACUTILTempBatchFile" Value="[RollbackDir][GACUTILTempBatchFile]" />
+    <CustomAction Id="Set_Ultra_Brandname_INSTALLATIONUNIT_Patch_String" Property="TEMPBRAND" Value="[BRANDNAME] [INSTALLATIONUNIT] Patch" />
+    <CustomAction Id="Set_Ultra_Brand_Sub_HOTFIXID_String" Property="TEMPBRANDWITHHOTFIXID" Value="[BRANDNAME] $(var.InstallationUnitName) HotFix [HOTFIXID]" />
+    <CustomAction Id="SetIgnoreVerifacation2false" Property="IGNORE_VERSION_VERIFICATION" Value="false" />
+    <CustomAction Id="Set_INSTALLDIR_on_Server_EI" Property="IMPACT360SOFTWAREDIR" Value="[CUSTOMINSTALLDIR]" />
+    <CustomAction Id="RunGACUTIL_BatchFile" Directory="IMPACT360SOFTWAREDIR" ExeCommand="[GACUTILTempBatchFile]" Execute="deferred" Impersonate="no" />
+    <CustomAction Id="AddInstallationAuditLogEntry" Directory="IMPACT360SOFTWAREDIR" ExeCommand="cmd /c echo [DATEYYYYMMDD],[HOTFIXID],[INSTALLATIONUNIT],[HOTFIXVERSION],[PRODUCTID],[INSTALLATIONUNITGUID],was installed>> [IMPACT360SOFTWAREDIR]InstallerAudit\[InstallerAuditLogName]" Execute="deferred" Impersonate="no" />
+    <CustomAction Id="CreateInstallationAuditFolder" Script="vbscript">
+      <![CDATA[
+        'RunInstallationAuditLog 16.03.2011
+        
+        Dim objFSO, objFolder, objShell, objTextFile, objFile
+        Dim strDirectory, strFile, strText
+        strFile = Session.Property("InstallerAuditLogName")
+        strText = "Date,HotfixId,ProductName,HotFixVersion,Guid,ParentGuid"
+                
+        Set WshShell = CreateObject("WScript.Shell")
+        strDirectory =  WshShell.ExpandEnvironmentStrings("%IMPACT360SOFTWAREDIR%") & "InstallerAudit\"
+
+        ' Create the File System Object
+        Set objFSO = CreateObject("Scripting.FileSystemObject")
+
+         ' Check that the strDirectory folder exists
+        If objFSO.FolderExists(strDirectory) Then
+           Set objFolder = objFSO.GetFolder(strDirectory)
+        Else
+           Set objFolder = objFSO.CreateFolder(strDirectory)
+        End If
+
+        If objFSO.FileExists(strDirectory & strFile) Then
+           Set objFolder = objFSO.GetFolder(strDirectory)
+        Else
+           Set objFile = objFSO.CreateTextFile(strDirectory & strFile)
+
+          set objFile = nothing
+          set objFolder = nothing
+          ' OpenTextFile Method needs a Const value
+          ' ForAppending = 8 ForReading = 1, ForWriting = 2
+          Const ForAppending = 8
+
+          Set objTextFile = objFSO.OpenTextFile _
+          (strDirectory & strFile, ForAppending, True)
+
+          ' Writes strText every time you run this VBScript
+          objTextFile.WriteLine(strText)
+          objTextFile.Close
+      End If 
+      ]]>
+    </CustomAction>
+    <CustomAction Id="Set_DEFAULTWWW_EI" Property="DEFAULTWWW" Value="C:\Inetpub\wwwroot\" />
+    <CustomAction Id="Getwwwroot_dir_EI" Script="vbscript" Return="ignore" >
+      On Error Resume Next
+      Set objIIS = GetObject("IIS://127.0.0.1/W3SVC/1/root")
+      ' MsgBox objIIS.Path
+      Session.Property("DEFAULTWWW")= objIIS.Path
+    </CustomAction>
+    <CustomAction Id="Create_DATEYYYYMMDD" Script="vbscript">
+      <![CDATA[
+      Function pd(n, totalDigits) 
+	      if totalDigits > len(n) then 
+		      pd = String(totalDigits-len(n),"0") & n 
+	      else 
+		      pd = n 
+	      end if 
+      End Function
+      
+      Function LogInfo ( msg )
+        dim rec
+
+        Set rec = Session.Installer.CreateRecord(1)
+        rec.StringData(0) = msg
+        LogInfo = Session.Message(&H04000000, rec)
+      End Function
+      
+      dim sCurrentFormattedDate
+      sCurrentFormattedDate = YEAR(Date()) & Pd(Month(date()),2) & Pd(DAY(date()),2)
+      LogInfo "Setting DATEYYYYMMDD to be " & sCurrentFormattedDate
+      
+      Session.Property("DATEYYYYMMDD") = sCurrentFormattedDate
+      ]]>
+    </CustomAction>    
+
+    <CustomAction Id="Create_TempIMSAFolder" Script="vbscript" Return="ignore">
+      <![CDATA[
+      Function SetPermFolder(strHomeFolder) 
+        Dim intRunError, objFSO
+
+        Set objFSO = CreateObject("Scripting.FileSystemObject")
+
+        LogInfo "Started SetPermFolder for folder " & strHomeFolder
+        If  Not objFSO.FolderExists(strHomeFolder) Then
+           newfolder = objFSO.CreateFolder (strHomeFolder)
+           LogInfo "A new folder '" & newfolder & "' has been created" 
+        End If
+
+
+        If objFSO.FolderExists(strHomeFolder) Then
+          intRunError = objShell.Run("%COMSPEC% /c Echo Y| Icacls " _
+           & strHomeFolder & " /c /t /grant *S-1-5-32-545:(OI)(CI)F", 2, True)
+        		
+          If intRunError <> 0 Then
+            LogInfo "Error assigning permissions" & intRunError & " to home folder " & strHomeFolder
+          Else
+            LogInfo "Permissions were assigned successfully to home folder " & strHomeFolder          
+          End If
+        End If      
+      End Function
+      
+      Function LogInfo ( msg )
+        dim rec
+
+        Set rec = Session.Installer.CreateRecord(1)
+        rec.StringData(0) = msg
+        LogInfo = Session.Message(&H04000000, rec)
+      End Function
+      
+      Dim objShell
+      Set objShell = CreateObject("Wscript.Shell")
+      SetPermFolder(objShell.ExpandEnvironmentStrings("%ALLUSERSPROFILE%") & "\Verint")
+      SetPermFolder(objShell.ExpandEnvironmentStrings("%ALLUSERSPROFILE%") & "\I360")      
+      ]]>
+    </CustomAction>
+
+    <CustomAction Id="GetInactiveDCvalueFromXML" Script="vbscript" >
+      Set WshShell = CreateObject("WScript.Shell")
+      strXmlConfigFile = WshShell.ExpandEnvironmentStrings("%IMPACT360SOFTWAREDIR%") &amp; "Conf\cache\Enterprise-Settings.xml"
+      Set objDoc = CreateObject("msxml2.DOMDocument.3.0")
+      objDoc.Load(strXmlConfigFile)
+      Set ElemList = objDoc.getElementsByTagName("EnterpriseSettings")
+      if (ElemList.length=0) then
+        LogInfo "File Enterprise-Settings.xml doesn't exist in" &amp; strXmlConfigFile
+      else
+        filepath = ElemList.item(0).getAttribute("ServerOnInactiveDC")
+        if IsNull(filepath) then
+          LogInfo "Attribute ServerOnInactiveDC is not exist in the xml file"
+        Else
+          LogInfo "Attribute SERVER_ON_INACTIVE_DC is found = " &amp; filepath
+          Session.Property("SERVER_ON_INACTIVE_DC") = filepath
+        end if
+        Set objDoc = Nothing
+      end if
+      
+      Function LogInfo ( msg )
+        dim rec
+
+        Set rec = Session.Installer.CreateRecord(1)
+        rec.StringData(0) = msg
+        LogInfo = Session.Message(&amp;H04000000, rec)
+      End Function
+    </CustomAction>
+
+    <CustomAction Id="Set_Impersonation" Script="vbscript">
+      <![CDATA[
+      
+      Function LogInfo ( msg )
+        dim rec
+
+        Set rec = Session.Installer.CreateRecord(1)
+        rec.StringData(0) = msg
+        LogInfo = Session.Message(&H04000000, rec)
+      End Function
+
+      Function RunImpersonationTable
+
+      dim view
+      dim proceedFetch
+      dim record
+      dim exists
+
+      LogInfo "=====[Set_Impersonation] Started "
+      exists = "false"
+
+        On Error resume next
+        if database is nothing then
+          LogInfo  "=====[VerintImpersonatedProcesses] Database is nothing ====="
+          RunImpersonationTable = exists
+          Exit Function
+        end if
+
+        Set view = database.OpenView ("SELECT * FROM VerintImpersonatedProcesses ")
+        if view is Nothing then
+          LogInfo  "=====[VerintImpersonatedProcesses] View is nothing ====="
+          RunImpersonationTable = exists
+          Exit Function
+        end if
+        Call view.Execute()
+        proceedFetch = True
+        On Error resume next
+        While proceedFetch = True
+          set record = view.Fetch()
+          if record is Nothing then
+            proceedFetch  = False
+          else
+            LogInfo  "===== Impersonation record exists "
+            exists = "true"
+            RunImpersonationTable = exists
+            Exit Function
+          end if
+        Wend      
+      RunImpersonationTable = exists
+      End Function
+
+      dim impersonateRecordExist 
+      impersonateRecordExist = RunImpersonationTable()
+      LogInfo "Setting RUNIMPERSONATION to be " & LCase(CStr(impersonateRecordExist))      
+      Session.Property("RUNIMPERSONATION") = LCase(CStr(impersonateRecordExist))
+      ]]>
+    </CustomAction>
+
+    <CustomAction Id="Create_ESTIMATEDSIZE" Script="vbscript">
+      <![CDATA[      
+      Function LogInfo ( msg )
+        dim rec
+
+        Set rec = Session.Installer.CreateRecord(1)
+        rec.StringData(0) = msg
+        LogInfo = Session.Message(&H04000000, rec)
+      End Function
+
+      Function RunFileSizeTable
+
+      dim view
+      dim proceedFetch
+      dim record
+      dim size
+
+      LogInfo "=====[Create_ESTIMATEDSIZE] Started "
+      size = 0
+
+        On Error resume next
+        'Set view = database.OpenView("SELECT `FileSize` FROM File")
+        if database is nothing then
+          LogInfo  "=====[File] Database is nothing ====="
+          Exit Function
+        end if
+
+        Set view = database.OpenView ("SELECT `FileSize` FROM `File` ")
+        if view is Nothing then
+          LogInfo  "=====[File] View is nothing ====="
+          Exit Function
+        end if
+        Call view.Execute()
+        proceedFetch = True
+        On Error resume next
+        While proceedFetch = True
+          set record = view.Fetch()
+          if record is Nothing then
+            proceedFetch  = False
+          else
+            'LogInfo  "===== Size FileName is " & record.StringData(1)
+            size = size + CInt(Round(record.StringData(1) / 1024, 1))
+            'LogInfo "calculates size = " & size
+          end if
+        Wend
+        LogInfo  "=====[Create_ESTIMATEDSIZE] Done . Total Size is " & size & " ====="
+      
+      RunFileSizeTable = size
+      End Function
+
+      dim totalSize 
+      totalSize = RunFileSizeTable()
+      LogInfo "Setting ESTIMATEDSIZE to be " & totalSize      
+      Session.Property("ESTIMATEDSIZE") = CStr(totalSize)
+
+      ]]>
+    </CustomAction>
+    
+    <CustomAction Id="InstallGac" Script="vbscript">
+      ' InstallGac
+
+      dim sCommandline
+      dim sGacUtilPath
+      dim sTempDir, sTempBatch
+      dim oBatchts
+      dim oFSO
+
+      LogInfo  "===== Starting InstallGac Custom Action ====="
+      Set WshShell = CreateObject("WScript.Shell")
+      sGacUtilPath =  WshShell.ExpandEnvironmentStrings("%IMPACT360SOFTWAREDIR%") &amp; "Utils\"
+      sTempBatch = Session.Property("GACUTILTempBatchFile")
+
+      Set oFSO = CreateObject("Scripting.FileSystemObject")
+      Set oBatchts = oFSO.CreateTextFile(sTempBatch )
+
+      flag = False
+      Call RunGacOnFileTable ()
+
+      if flag then
+        Session.Property("GACUTILRUN")= "true"
+      else
+        oBatchts.Close()
+        Set oBatchts = oFSO.GetFile(sTempBatch )
+        oBatchts.Delete()
+        LogInfo  "===== GACUTILTempBatchFile Deleted ====="
+      end if
+
+      LogInfo  "===== InstallGac Custom Action Ended ====="
+
+      Sub RunGacOnFileTable (  )
+
+      dim proceedFetch
+      dim record, view
+      dim sFileName,sFilePath,sFileLogicalName
+      dim sFileNameArr
+
+      LogInfo "===== Started RunGacOnFileTable ====="
+
+      On Error resume next
+      if database is nothing then
+        LogInfo  "===== Database is nothing ====="
+        LogInfo  "===== Done RunGacOnFileTable ====="
+        Exit SUB
+      end if
+      Err.Clear
+      on error resume next
+      Set view = database.OpenView ("SELECT `LogicalFileName`,`FileName`,`Directory_` FROM `VerintGACAssemblies`,`File`,`Component` WHERE File=LogicalFileName and Component_= Component ")
+      if Err.number =0 then
+        if view is Nothing then
+          LogInfo  "===== View is nothing so nothing to do ====="
+          LogInfo  "===== Done RunGacOnFileTable ====="
+          Exit SUB
+        end if
+
+        Call view.Execute()
+        proceedFetch = True
+        IsGacFile = False
+        RecNum = 0
+
+        On Error resume next
+        While proceedFetch = True
+
+          set record = view.Fetch()
+
+          if record is Nothing then
+            proceedFetch  = False
+            if RecNum = 0 then flag = False
+              LogInfo  "===== Number of Table Records:" &amp; RecNum &amp; " ====="
+            else
+              sFileLogicalName = record.StringData(1)
+              sFileName = record.StringData(2)
+              sFilePath = record.StringData(3)
+              LogInfo "Calling gacutil for file " &amp; sFileName  &amp; " Path: "  &amp; Session.Property(sFilePath)  &amp; " for logicalfilename: " &amp; sFileLogicalName
+              sFileNameArr = Split(sFileName  ,"|")
+              Call WriteToGacUtilBatch  ( Session.Property(sFilePath)   &amp;  sFileNameArr(1))
+              RecNum = RecNum + 1
+              flag = True
+           end if
+        Wend
+      end if
+
+      LogInfo  "===== Done RunGacOnFileTable ====="
+
+      End Sub
+
+      Sub WriteToGacUtilBatch (sFile)
+        dim sCommand,WshShell,oExec
+        On error resume next
+        sCommand = """" &amp; sGacUtilPath &amp; "gacutil.exe"" /if """ &amp;  sFile &amp; """"
+        LogInfo "===== ExecGacUtil command:" &amp;  sCommand &amp; " ====="
+
+        oBatchts.WriteLine sCommand &amp; vbCrlf
+
+      End Sub
+
+      Function LogInfo ( msg )
+        dim rec
+
+        Set rec = Session.Installer.CreateRecord(1)
+        rec.StringData(0) = msg
+        LogInfo = Session.Message(&amp;H04000000, rec)
+      End Function
+
+      '---------------------
+    </CustomAction>
+    <CustomAction Id="Set_INSTALLDIR_FROM_INSTALL_LOCATION" Property="INSTALLDIR" Value="[INSTALL_LOCATION]" />
+
+    <CustomAction Id="PrepareDynamicCustomAction" Script="vbscript">
+      <![CDATA[
+      set fso = CreateObject("Scripting.FileSystemObject")      
+      Set ts = fso.CreateTextFile(Session.Property("RollbackDir") & "DynamicCustomActionRun.vbs")      
+      ts.WriteLine "'command = ""Program.EXE someparam:[[REG!HKEY_LOCAL_MACHINE\SOFTWARE\Comverse\Install\ULTRA Version]]  someotherparam[[SEC!UltraUserName]]"""
+      ts.WriteLine ""
+      ts.WriteLine "const REG_TOKEN = ""[[REG:"""
+      ts.WriteLine "const SEC_TOKEN = ""[[SEC:"""
+      ts.WriteLine "const REG_EX_PATTERN = ""\[\[REG\:.+?\]\]|\[\[SEC\:.+?\]\]"""
+      ts.WriteLine ""
+      ts.WriteLine "if WScript.Arguments.Count = 0 Then"
+      ts.WriteLine "	WScript.Quit(-1)"
+      ts.WriteLine "end if "
+      ts.WriteLine ""
+      ts.WriteLine "arguments = GetArguments"
+      ts.WriteLine "WScript.Echo(""Before: "" & arguments)"
+      ts.WriteLine "command = ProcessArg(arguments)"
+      ts.WriteLine "WScript.Echo(""After: "" & command)"
+      ts.WriteLine ""
+      ts.WriteLine "'ShellExectue the command here"
+      ts.WriteLine "Set shell = WScript.CreateObject(""WScript.Shell"")   "
+      ts.WriteLine "WScript.Echo(""Executing command: "" & command) "
+      ts.WriteLine "result = shell.Run(command, 0, True)"
+      ts.WriteLine "WScript.Echo(""Execution completed. Returned "" & result)"
+      ts.WriteLine "set shell = Nothing"
+      ts.WriteLine ""
+      ts.WriteLine "Private Function ProcessArg(arg)"
+      ts.WriteLine "	Set regEx = New RegExp"
+      ts.WriteLine "	regEx.IgnoreCase = True"
+      ts.WriteLine "	regEx.Global = True"
+      ts.WriteLine "	regEx.Pattern = REG_EX_PATTERN"
+      ts.WriteLine "	"
+      ts.WriteLine "	actualValue = arg"
+      ts.WriteLine "	"
+      ts.WriteLine "	WScript.Echo(""Processing Argument: "" & actualValue)"
+      ts.WriteLine "	Set matches = regEx.Execute(actualValue)"
+      ts.WriteLine ""
+      ts.WriteLine "	For Each match in matches"
+      ts.WriteLine "	    temp = Split(match, "":"")"
+      ts.WriteLine "	    If UBound(temp) > 0 Then"
+      ts.WriteLine "	        value = Replace(temp(1), ""]]"", """")"
+      ts.WriteLine "	    End If"
+      ts.WriteLine "			"
+      ts.WriteLine "	   if left(match, len(REG_TOKEN)) = REG_TOKEN then"
+      ts.WriteLine "	      value = ProcessRegValue(value)	  "
+      ts.WriteLine "	   elseif left(match, len(SEC_TOKEN)) = SEC_TOKEN then	"
+      ts.WriteLine "	      value = ProcessSecValue(value) "
+      ts.WriteLine "	   end if"
+      ts.WriteLine "	   "
+      ts.WriteLine "       On Error Resume Next"
+      ts.WriteLine "       actualValue = Replace(actualValue, match, value)                          "
+      ts.WriteLine "       if Err.Number <> 0 Then"
+      ts.WriteLine "                      WScript.Echo(""Error: Processed value resolved to NULL and will not be replaced."")"
+      ts.WriteLine "       End if "
+      ts.WriteLine "	Next"
+      ts.WriteLine "	"
+      ts.WriteLine "	WScript.Echo(""Processed argument returns: "" & actualValue)"
+      ts.WriteLine "	ProcessArg = actualValue"
+      ts.WriteLine "End Function"
+      ts.WriteLine ""
+      ts.WriteLine "Private Function ProcessRegValue(path)"
+      ts.WriteLine "    Const HKEY_LOCAL_MACHINE = &H80000002"
+      ts.WriteLine "     "
+      ts.WriteLine "    pos = InStrRev(path, ""\"")"
+      ts.WriteLine "    Value = Mid(path, pos + 1, Len(path) - pos)"
+      ts.WriteLine "    key = Mid(path, 1, pos - 1)"
+      ts.WriteLine "    pos = InStr(1, key, ""\"", vbTextCompare)"
+      ts.WriteLine "    key = Mid(key, pos + 1, Len(key) - pos)"
+      ts.WriteLine "     "
+      ts.WriteLine "    On Error Resume Next"
+      ts.WriteLine "    Set oReg = GetObject(""winmgmts:{impersonationLevel=impersonate}!\\.\root\default:StdRegProv"")"
+      ts.WriteLine "    If Err.Number <> 0 Then"
+      ts.WriteLine "        Err.Raise Err.Number, ""ProcessRegValue"", ""FAILED get WMI object. "" & Err.Description"
+      ts.WriteLine "    End If"
+      ts.WriteLine "    "
+      ts.WriteLine "    oReg.GetStringValue HKEY_LOCAL_MACHINE, key, Value, outValue"
+      ts.WriteLine "    If Err.Number <> 0 Then"
+      ts.WriteLine "        Err.Raise Err.Number, ""ProcessRegValue"", ""FAILED read registry. "" & Err.Description"
+      ts.WriteLine "    End If"
+      ts.WriteLine "    "
+      ts.WriteLine "    If IsNull(outValue) Then"
+      ts.WriteLine "        oReg.GetDWORDValue HKEY_LOCAL_MACHINE, key, Value, outValue"
+      ts.WriteLine "        If Err.Number <> 0 Then"
+      ts.WriteLine "            Err.Raise Err.Number, ""ProcessRegValue"", ""FAILED read registry. "" & Err.Description"
+      ts.WriteLine "        End If"
+      ts.WriteLine "    End If"
+      ts.WriteLine "    "
+      ts.WriteLine "	WScript.Echo(""ProcessRegValue returns: "" & outValue)"
+      ts.WriteLine "    ProcessRegValue = outValue"
+      ts.WriteLine "    "
+      ts.WriteLine "End Function"
+      ts.WriteLine ""
+      ts.WriteLine "Private Function ProcessSecValue(key)"
+      ts.WriteLine "   On Error Resume Next"
+      ts.WriteLine "    Set sec = CreateObject(""Verint.SDK.SecuredContent.SecuredContentAccess"")"
+      ts.WriteLine "    If Err.Number <> 0 Then"
+      ts.WriteLine "        Err.Raise Err.Number, ""ProcessSecValue"", ""FAILED to create Verint.SDK.SecuredContent.SecuredContentAccess. "" & Err.Description"
+      ts.WriteLine "    End If"
+      ts.WriteLine "    "
+      ts.WriteLine "    ProcessSecValue = sec.Get(key)"
+      ts.WriteLine "    If Err.Number <> 0 Then"
+      ts.WriteLine "        Err.Raise Err.Number, ""ProcessSecValue"", ""Verint.SDK.SecuredContent.SecuredContentAccess.Get FAILED "" & Err.Description"
+      ts.WriteLine "    End If"
+      ts.WriteLine "End Function"
+      ts.WriteLine ""
+      ts.WriteLine "function GetArguments()"
+      ts.WriteLine "	arguments = GetCommandLine"
+      ts.WriteLine "	pos = instr(1, arguments, WScript.ScriptName)"
+      ts.WriteLine "	pos = instr(pos + len(WScript.ScriptName), arguments, chr(32))"
+      ts.WriteLine "	arguments = trim(mid(arguments, pos))"
+      ts.WriteLine "		"
+      ts.WriteLine "	GetArguments = arguments"
+      ts.WriteLine "end function"
+      ts.WriteLine "	"
+      ts.WriteLine "function GetCommandLine()"
+      ts.WriteLine "	Set wmi = GetObject(""winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2"")"
+      ts.WriteLine "	Set processes = wmi.ExecQuery(""SELECT * FROM Win32_Process WHERE ProcessID="" & getScriptPID)"
+      ts.WriteLine "	For Each proc in processes"
+      ts.WriteLine "		'wscript.echo proc.CommandLine	"
+      ts.WriteLine "		GetCommandLine = proc.CommandLine"
+      ts.WriteLine "	Next"
+      ts.WriteLine "end function"
+      ts.WriteLine ""
+      ts.WriteLine "function getScriptPID()"
+      ts.WriteLine "	Set objSWbemServices = GetObject (""WinMgmts:Root\Cimv2"") "
+      ts.WriteLine "	Set colProcess = objSWbemServices.ExecQuery _ "
+      ts.WriteLine "	(""Select * From Win32_Process"") "
+      ts.WriteLine "	For Each objProcess In colProcess "
+      ts.WriteLine "		If InStr (objProcess.CommandLine, WScript.ScriptName) <> 0 Then "
+      ts.WriteLine "			'WScript.Echo objProcess.Name, _ "
+      ts.WriteLine "			'objProcess.ProcessId, _ "
+      ts.WriteLine "			'objProcess.CommandLine "
+      ts.WriteLine "			getScriptPID = objProcess.ProcessId"
+      ts.WriteLine "		End If "
+      ts.WriteLine "	Next "
+      ts.WriteLine "end function"
+      ts.Close
+      ]]>    
+    </CustomAction>
+    
+    <CustomAction Id="PrepareRollBack" Script="vbscript">
+      ' PrepareRollBack_28-02-17
+
+      Dim oFSO, oFile, ts, oDB, oBatchts, oVerintSDK, oVerintSDKBAT
+      Dim sFileFrom, sFileTo, sNameField, sFileBackupPath, sRollBackDir
+      Dim sFileList, sUninstallList, sStringList, sDestinationList, sRegFileList, sPathField, sNameExt
+      Dim sFileListR, sUninstallListR
+      Dim sGacFiles, sServicesToStopPost, sServicesToStopPre , sRenameFolder
+      Dim sGacUtilPath, sAddVerintSDK
+      Dim sWriteLineName, sWriteUninstall, sWriteULTRAVersionKey
+      Dim sWriteUninstallPrompt, sWriteUninstallName, sWriteSmartRebot
+      Dim sDelRegList,sAddRegList
+      Dim sDeleteNewFilesInRollBack
+
+      Dim sInstallDir
+
+      const HKEY_CLASSES_ROOT   = &amp;H80000000
+      const HKEY_CURRENT_USER   = &amp;H80000001
+      const HKEY_LOCAL_MACHINE  = &amp;H80000002
+      const HKEY_USERS          = &amp;H80000003
+      const HKEY_CURRENT_CONFIG = &amp;H80000005
+      const HKEY_DYN_DATA       = &amp;H80000006
+
+      sDelRegList = ""
+      sAddRegList = ""
+      sDeleteNewFilesInRollBack = ""
+
+      sInstallDir = Session.Property("INSTALLDIR")
+      LogInfo  ("===== PrepareRollBack Custom Action Started ===== installdir = " &amp; sInstallDir)
+      LogInfo  ("===== PrepareRollBack Custom Action Started =====")
+      sDeleteNewFilesInRollBack = Session.Property("DELETE_NEW_FILES_IN_ROLLBACK")
+
+      sWriteLineName = "Name=" &amp; Session.Property("OEM_PRODUCT_NAME") &amp; " " &amp; Session.Property("INSTALLATIONUNIT") &amp; " HotFix " &amp; Session.Property("HOTFIXID") 
+      sWriteUninstall = "UninstallKey=""SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" &amp; Session.Property("PRODUCTID") &amp; ""
+      sWriteULTRAVersionKey = "ULTRAVersionKey=""SOFTWARE\Impact360\Hotfixes\" &amp; Session.Property("ROOT_REGISTRY_KEY") &amp; """"
+      sWriteUninstallPrompt = "UninstallPrompt=""Are you sure you want to uninstall " &amp; Session.Property("OEM_PRODUCT_NAME") &amp; " HotFix " &amp; Session.Property("HOTFIXID") &amp; """"
+      sWriteUninstallName = "UninstallName=""ULTRA " &amp; Session.Property("INSTALLATIONUNIT") &amp; " Patch " &amp; Session.Property("HOTFIXID") &amp; " (Remove Only)"""
+      sWriteSmartRebot = ""
+      sAddVerintSDK = Session.Property("ADD_VERINTSDK")
+
+      LogInfo  ("===== PrepareRollBack Custom Action 1 =====")
+
+      Set oFSO = CreateObject("Scripting.FileSystemObject")
+      Set WshShell = CreateObject("WScript.Shell")
+      strComputer = "."
+      Set oReg=GetObject("winmgmts:{impersonationLevel=impersonate}!\\" &amp; strComputer &amp; "\root\default:StdRegProv")
+
+      ' create rollback path
+      sRollBackDir = Session.Property("RollbackDir")
+      LogInfo  ("===== PrepareRollBack Custom Action 2 ===== BuildPath " &amp; sRollBackDir)
+      BuildPath sRollBackDir
+      LogInfo  ("===== PrepareRollBack Custom Action 2 ===== sRollBackDir ->" &amp; sRollBackDir)
+      sGacUtilPath =  WshShell.ExpandEnvironmentStrings("%IMPACT360SOFTWAREDIR%") &amp; "Utils\"
+
+      LogInfo  ("===== PrepareRollBack Custom Action 2.5 =====")
+
+      ' create file and get files
+      Set ts = oFSO.CreateTextFile(sRollBackDir &amp; "rollback.inf")
+
+      LogInfo  ("===== PrepareRollBack Custom Action 2.75 =====")
+
+      ' create a batch file for GACutil
+      Set oBatchts = oFSO.CreateTextFile(sRollBackDir &amp; "rollbackGac.bat")
+
+      LogInfo  ("===== PrepareRollBack Custom Action 3 =====")
+      
+      ' create a batch file for post actions Services
+      Set oStopServicesBatchtsPost = oFSO.CreateTextFile(sRollBackDir &amp; "rollbackRunServicesPost.bat")
+      
+      ' create a batch file for pre actions Services
+      Set oStopServicesBatchtsPre = oFSO.CreateTextFile(sRollBackDir &amp; "rollbackRunServicesPre.bat")
+
+      ' create a batch file to rename folder in uninstall
+      Set oRenFolderBatchts = oFSO.CreateTextFile(sRollBackDir &amp; "renameFolder.bat")
+
+      ' create a batch file for UserName Password
+      Set oVerintSDK = oFSO.CreateTextFile(sRollBackDir &amp; "VerintSDK.vbs")
+
+      ' create a batch file for UserName Password
+      Set oVerintSDKBAT = oFSO.CreateTextFile(sRollBackDir &amp; "VerintSDK.bat")
+
+      LogInfo  ("===== PrepareRollBack Custom Action 4 =====")
+
+      if (Session.Property("AUTO_RESTART_SERVICES")="true") Then
+      RunOnServicesTable
+      else
+      LogInfo ("====== No need to check services table ===========")
+      end if
+
+      Set oDB = Session.Database
+      Err.Clear
+      on error resume next
+
+      LogInfo  "===== Selecting from Components ====="
+      Set view = database.OpenView("SELECT `FileName`,`Directory_` FROM File, Component WHERE Component_=Component")
+      LoopFilesList(view)
+
+      LogInfo  "===== Selecting from RemoveFile ====="
+      if (IfTableContainsData ("RemoveFile") = "true") Then
+      Set view = database.OpenView("SELECT `FileName`,`Directory_` FROM RemoveFile, Component WHERE Component_=Component and FileName IS NOT NULL")
+      LoopFilesList(view)
+      else
+      LogInfo ("====== table RemoveFile doesn't exist or empty ===========")
+      end if
+
+      LogInfo  "===== Selecting from DuplicateFiles ====="
+      Set view = database.OpenView("SELECT `FileName`,`DestFolder` FROM File, DuplicateFile WHERE File_=File")
+      if Err.number =0 then
+      LoopFilesList(view)
+      end if
+
+      ' remove uneeded chars
+      if sUninstallList&lt;&gt;"" then
+        sUninstallList = left(sUninstallList, len(sUninstallList)-1)
+      end if
+      if sUninstallListR&lt;&gt;"" then
+      sUninstallListR = left(sUninstallListR, len(sUninstallListR)-1)
+      end if
+      'read add reg chnages
+
+      Set view = database.OpenView("SELECT `Registry`.`Root`, `Registry`.`Key`, `Registry`.`Name`, `Component`.`Attributes`  FROM `Registry`, `Component` WHERE `Component`.`Component`=`Registry`.`Component_`")
+
+      UpdateRegINI view, "0"
+      Err.Clear
+      'read remove reg changes
+      on error resume next
+      Set view = database.OpenView("SELECT `RemoveRegistry`.`Root`,`RemoveRegistry`.`Key`,`RemoveRegistry`.`Name`,`Component`.`Attributes` FROM `RemoveRegistry`, `Component` WHERE `Component`.`Component`=`RemoveRegistry`.`Component_`")
+      if Err.number = 0 then
+      UpdateRegINI view, "1"
+      end if
+      Err.Clear
+
+      ' action to remove patch key
+      sDelRegList = sDelRegList &amp; "HKLM,""SOFTWARE\Impact360\Hotfixes\" &amp; Session.Property("ROOT_REGISTRY_KEY") &amp; """" &amp; vbCRLF
+      impactSoftDir = WshShell.ExpandEnvironmentStrings("%IMPACT360SOFTWAREDIR%")
+      impactDataDir = WshShell.ExpandEnvironmentStrings("%IMPACT360DATADIR%")
+      ' ###############################################
+
+      ts.WriteLine "[PreCustomActions]"
+      
+      if (Session.Property("UseZIP")="true") Then
+        '  Output format is:
+        '  cmd /c %IMPACT360SOFTWAREDIR%Utils\_7za.exe x -tzip """%IMPACT360SOFTWAREDIR%\HotFixes\HotFix U510_0001\HotFix U510_0001.zip""" -aoa -o"""%IMPACT360SOFTWAREDIR%\HotFixes\""">"""%IMPACT360SOFTWAREDIR%\HotFixes\HotFix U510_0001\U510_0001.log"""
+        ts.WriteLine "cmd /c %IMPACT360SOFTWAREDIR%Utils\_7za.exe x -tzip " &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp;"%IMPACT360SOFTWAREDIR%\HotFixes\HotFix " &amp; Session.Property("HOTFIXID") &amp; "\HotFix " &amp; Session.Property("HOTFIXID") &amp; ".zip" &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; " -aos -o" &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; "%IMPACT360SOFTWAREDIR%\HotFixes\" &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; ">" &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; "%IMPACT360SOFTWAREDIR%\HotFixes\HotFix " &amp; Session.Property("HOTFIXID") &amp; "\" &amp; Session.Property("HOTFIXID") &amp; ".log" &amp; chr(34) &amp; chr(34) &amp; chr(34)
+      end if
+
+      ts.WriteLine """" &amp; sRollBackDir &amp; "rollbackRunServicesPre.bat"""
+
+      ts.WriteLine Session.Property("PREACTIONLIST")
+      if (Session.Property("UninstallCommandsPre")="true") Then
+        ts.WriteLine Session.Property("PRE_IMPERSONATEDROLLBACKCOMMANDS")
+      end if
+      if(sAddVerintSDK = "true")then
+        ts.WriteLine """" &amp; sRollBackDir &amp; "VerintSDK.bat"""
+      end if
+      ts.WriteLine ""
+      ts.WriteLine "[DefaultInstall]"
+      ts.WriteLine "AddReg=RegUninstallKey"
+      ts.WriteLine ""
+      ts.WriteLine "[Strings]"
+      ts.WriteLine sWriteLineName
+      ts.WriteLine sWriteUninstall
+      ts.WriteLine "OldUninstallString=""" &amp; Session.Property("OLDUNINSTALLSTRING") &amp; """"
+      ts.WriteLine "OldUninstallName=""" &amp; Session.Property("OLDDISPLAYNAME") &amp; """"
+      ts.WriteLine "OldRegValue=""" &amp; Session.Property("OLDMYREG") &amp; """"
+      ts.WriteLine "RollBackDir=""" &amp; sRollBackDir &amp; """"
+      ts.WriteLine "HotFixName=""" &amp; Session.Property("HOTFIXID") &amp; """"
+      ts.WriteLine "IMPACT360SOFTWAREDIR=""" &amp; impactSoftDir &amp; """"
+      ts.WriteLine "IMPACT360DATADIR=""" &amp; impactDataDir &amp; """"
+      ts.WriteLine "HOTFIXSOFTWAREDIRROOT=""" &amp; Replace(impactSoftDir,":\","_") &amp; """"
+      ts.WriteLine "HOTFIXDATADIRROOT=""" &amp; Replace(impactDataDir,":\","_") &amp; """"
+      ts.WriteLine "SERVER_ON_INACTIVE_DC=""" &amp; Session.Property("SERVER_ON_INACTIVE_DC") &amp; """"
+      ts.WriteLine sWriteULTRAVersionKey
+      ts.WriteLine sWriteUninstallPrompt
+      ts.WriteLine sWriteUninstallName
+      ts.WriteLine "INF_Provider=""" &amp; Session.Property("OEM_PRODUCT_NAME") &amp; """"
+      ts.WriteLine sStringList
+      ts.WriteLine "[PostCustomActions]"
+
+      if (Session.Property("UninstallCommandsPost")="true") Then
+        ts.WriteLine Session.Property("POST_IMPERSONATEDROLLBACKCOMMANDS")
+      end if
+
+      ts.WriteLine "cmd /c echo " &amp; chr(34) &amp; "," &amp; Session.Property("HOTFIXID") &amp; ",,,,,was uninstalled" &amp; chr(34) &amp; ">>%IMPACT360SOFTWAREDIR%InstallerAudit\" &amp; Session.Property("InstallerAuditLogName")
+      ts.WriteLine sRegFileList
+      ts.WriteLine """" &amp; sRollBackDir &amp; "rollbackGac.bat"""
+      'ts.WriteLine sGacFiles
+      ts.WriteLine """" &amp; sRollBackDir &amp; "rollbackRunServicesPost.bat"""
+      ts.WriteLine Session.Property("POSTACTIONLIST")
+
+      if (Session.Property("UseZIP")="true") Then
+        '------------
+        'Output format is:
+        'cmd /c cscript """%RollBackDir%DynamicCustomActionRun.vbs""" c:\temp\test.vbs param:[[REG:HKEY_LOCAL_MACHINE\SOFTWARE\vadim\test]] "[[SEC:UltraUserName]]" >c:\temp\out.txt
+        'cmd /c attrib +r """%IMPACT360SOFTWAREDIR%\HotFixes\HotFix U510_0001\HotFix U510_0001.zip""">>"""%IMPACT360SOFTWAREDIR%\HotFixes\HotFix U510_0001\U510_0001.log"""
+        'cmd /c attrib +r """%IMPACT360SOFTWAREDIR%\HotFixes\HotFix U510_0001\rollback.inf""">>"""%IMPACT360SOFTWAREDIR%\HotFixes\HotFix U510_0001\U510_0001.log"""
+        'cmd /c del /Q /S """%IMPACT360SOFTWAREDIR%\HotFixes\HotFix U510_0001\*""">>"""%IMPACT360SOFTWAREDIR%\HotFixes\HotFix U510_0001\U510_0001.log"""
+        'cmd /c attrib -r """%IMPACT360SOFTWAREDIR%\HotFixes\HotFix U510_0001\HotFix U510_0001.zip""">>"""%IMPACT360SOFTWAREDIR%\HotFixes\HotFix U510_0001\U510_0001.log"""
+        'cmd /c attrib -r """%IMPACT360SOFTWAREDIR%\HotFixes\HotFix U510_0001\rollback.inf""">>"""%IMPACT360SOFTWAREDIR%\HotFixes\HotFix U510_0001\U510_0001.log"""
+        '------------
+        ts.WriteLine "cmd /c attrib +r " &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; "%IMPACT360SOFTWAREDIR%\HotFixes\HotFix " &amp; Session.Property("HOTFIXID") &amp; "\HotFix " &amp; Session.Property("HOTFIXID") &amp; ".zip" &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; ">>" &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; "%IMPACT360SOFTWAREDIR%\HotFixes\HotFix " &amp; Session.Property("HOTFIXID") &amp; "\" &amp; Session.Property("HOTFIXID") &amp; ".log" &amp; chr(34) &amp; chr(34) &amp; chr(34)
+        ts.WriteLine "cmd /c attrib +r " &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; "%IMPACT360SOFTWAREDIR%\HotFixes\HotFix " &amp; Session.Property("HOTFIXID") &amp; "\rollback.inf" &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; ">>" &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; "%IMPACT360SOFTWAREDIR%\HotFixes\HotFix " &amp; Session.Property("HOTFIXID") &amp; "\" &amp; Session.Property("HOTFIXID") &amp; ".log" &amp; chr(34) &amp; chr(34) &amp; chr(34)
+        ts.WriteLine "cmd /c attrib +r " &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; "%IMPACT360SOFTWAREDIR%\HotFixes\HotFix " &amp; Session.Property("HOTFIXID") &amp; "\renameFolder.bat" &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; ">>" &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; "%IMPACT360SOFTWAREDIR%\HotFixes\HotFix " &amp; Session.Property("HOTFIXID") &amp; "\" &amp; Session.Property("HOTFIXID") &amp; ".log" &amp; chr(34) &amp; chr(34) &amp; chr(34)
+        ts.WriteLine "cmd /c del /Q /S " &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; "%IMPACT360SOFTWAREDIR%\HotFixes\HotFix " &amp; Session.Property("HOTFIXID") &amp; "\*" &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; ">>" &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; "%IMPACT360SOFTWAREDIR%\HotFixes\HotFix " &amp; Session.Property("HOTFIXID") &amp; "\" &amp; Session.Property("HOTFIXID") &amp; ".log" &amp; chr(34) &amp; chr(34) &amp; chr(34)
+        ts.WriteLine "cmd /c attrib -r " &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; "%IMPACT360SOFTWAREDIR%\HotFixes\HotFix " &amp; Session.Property("HOTFIXID") &amp; "\HotFix " &amp; Session.Property("HOTFIXID") &amp; ".zip" &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; ">>" &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; "%IMPACT360SOFTWAREDIR%\HotFixes\HotFix " &amp; Session.Property("HOTFIXID") &amp; "\" &amp; Session.Property("HOTFIXID") &amp; ".log" &amp; chr(34) &amp; chr(34) &amp; chr(34)
+        ts.WriteLine "cmd /c attrib -r " &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; "%IMPACT360SOFTWAREDIR%\HotFixes\HotFix " &amp; Session.Property("HOTFIXID") &amp; "\rollback.inf" &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; ">>" &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; "%IMPACT360SOFTWAREDIR%\HotFixes\HotFix " &amp; Session.Property("HOTFIXID") &amp; "\" &amp; Session.Property("HOTFIXID") &amp; ".log" &amp; chr(34) &amp; chr(34) &amp; chr(34)
+        ts.WriteLine "cmd /c attrib -r " &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; "%IMPACT360SOFTWAREDIR%\HotFixes\HotFix " &amp; Session.Property("HOTFIXID") &amp; "\renameFolder.bat" &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; ">>" &amp; chr(34) &amp; chr(34) &amp; chr(34) &amp; "%IMPACT360SOFTWAREDIR%\HotFixes\HotFix " &amp; Session.Property("HOTFIXID") &amp; "\" &amp; Session.Property("HOTFIXID") &amp; ".log" &amp; chr(34) &amp; chr(34) &amp; chr(34)
+
+      end if
+      ts.WriteLine """" &amp; sRollBackDir &amp; "renameFolder.bat"""
+
+      ts.WriteLine ""
+      ts.WriteLine "[DelRegistryInfo]"
+      ts.WriteLine sDelRegList
+      ts.WriteLine ""
+      ts.WriteLine "[ConfirmUninstall]"
+      ts.WriteLine "Title=%Name%"
+      ts.WriteLine "ButtonType=OKCANC"
+      ts.WriteLine "Prompt=%UninstallPrompt%"
+      ts.WriteLine ""
+      ts.WriteLine "[OldRegistryInfo]"
+      ts.WriteLine sAddRegList
+      ts.WriteLine ""
+      ts.WriteLine "[Uninstall]"
+      ts.WriteLine "BeginPrompt=ConfirmUninstall"
+      ts.WriteLine "RegisterOCXs=RegDllFiles"
+      ts.WriteLine "Copyfiles=" &amp; sUninstallList
+      ts.WriteLine "DelReg=DelRegistryInfo"
+      ts.WriteLine "AddReg=OldRegistryInfo"
+      ts.WriteLine sWriteSmartRebot
+      ts.WriteLine "RunPostSetupCommands=PostCustomActions"
+      ts.WriteLine "RunPreSetupCommands=PreCustomActions"
+      if(sDeleteNewFilesInRollBack = "true")then
+        ts.WriteLine "Delfiles=" &amp; sUninstallListR
+      end if
+      ts.WriteLine ""
+
+      'ts.WriteLine "[RegDllFiles]"
+      'ts.WriteLine sRegFileList
+
+      ts.WriteLine sFileList
+      ts.WriteLine ""
+      if(sDeleteNewFilesInRollBack = "true")then
+        ts.WriteLine sFileListR
+      end if
+      ts.WriteLine ""
+      ts.WriteLine "[DestinationDirs]"
+      ts.WriteLine sDestinationList
+
+      ts.WriteLine "[RegUninstallKey]"
+      ts.WriteLine "1=HKLM,%UninstallKey%,""DisplayName"",,%UninstallName%"
+      ts.WriteLine "2=HKLM,%UninstallKey%,""UninstallString"",,""RunDll32 advpack.dll,LaunchINFSection " &amp; sRollBackDir &amp; "rollback.inf, Uninstall"""
+      ts.WriteLine ""
+      ts.WriteLine "[version]"
+      ts.WriteLine "Provider=%INF_Provider%"
+      ts.WriteLine "signature=""$Chicago$"""
+
+      oBatchts.WriteLine sGacFiles
+
+      LogInfo "===== GacFiles Line = " &amp; sGacFiles &amp; " ====="
+
+      oStopServicesBatchtsPost.WriteLine sServicesToStopPost
+      LogInfo "===== StopServicesPost Line = " &amp; sServicesToStopPost &amp; " ====="
+
+      oStopServicesBatchtsPre.WriteLine sServicesToStopPre
+      LogInfo "===== StopServicesPre Line = " &amp; sServicesToStopPre &amp; " ====="
+
+      Dim strFolderRollback
+      strFolderRollback = impactSoftDir &amp; "Hotfixes\HotFix " &amp; Session.Property("HOTFIXID")
+      sRenameFolder =  "move " &amp; """" &amp; strFolderRollback &amp; """" &amp; " " &amp; """" &amp; strFolderRollback &amp; "_%date:~-4,4%%date:~-7,2%%date:~-10,2%_%time:~-11,2%%time:~-8,2%%time:~-5,2%" &amp; """" &amp; vbCRLF
+      oRenFolderBatchts.WriteLine sRenameFolder
+
+      LogInfo "===== oVerintSDK Line ===== CreateVerintSDKFile()  ====="
+      oVerintSDK.WriteLine CreateVerintSDKFile
+
+      LogInfo "===== oVerintSDKBAT Line ===== CreateVerintSDKFileBat()  ====="
+      oVerintSDKBAT.WriteLine CreateVerintSDKFileBat(sRollBackDir)
+
+      Session.Property("PREPAREROLLBACK") = "true"
+      LogInfo "===== PrepareRollBack Ended ====="
+      ' end of main
+
+      Function CreateVerintSDKFileBat(sRollBackDir)
+
+      Dim strFile
+      strFile = """" &amp; sRollBackDir &amp; "VerintSDK.vbs""" &amp; vbCRLF
+
+        CreateVerintSDKFileBat = strFile
+
+      End Function
+
+    Function CreateVerintSDKFile()
+
+    Dim strFile
+    Dim iPropCounter, iIndex, iActionCounter
+    Dim strProperty, strNameToGet, strAction, strActionToDo
+
+    iPropCounter = Cint(Session.Property("VERINTSDK_PROPERTIES_COUNTER"))
+    If iPropCounter &gt; "0" Then
+          strFile = "Dim objShell" &amp; vbCRLF
+          strFile =  strFile &amp; "Set objShell = CreateObject(""WScript.Shell"")" &amp; vbCRLF
+          iIndex = 1
+          
+          Do While iIndex &lt; iPropCounter +1
+            strProperty = "VERINTSDK_PARAM_" &amp; iIndex
+            strNameToGet = Session.Property(strProperty)
+            strFile = strFile &amp; "' Extract " &amp; strNameToGet &amp; " from Secured container" &amp; vbCRLF
+            strFile = strFile &amp; "Dim " &amp; strNameToGet &amp; vbCRLF
+            strFile = strFile &amp; "Dim cmdGet" &amp; strNameToGet &amp; vbCRLF
+            strFile = strFile &amp; "Dim objExecGet" &amp; strNameToGet &amp; vbCRLF
+            strFile = strFile &amp; "cmdGet" &amp; strNameToGet &amp; " = ""%Impact360SoftwareDir%\VerintSDK\Verint.SDK.SecuredContentAccess.exe g " &amp; strNameToGet  &amp;  """" &amp; vbCRLF
+            strFile = strFile &amp; "Set objExecGet" &amp; strNameToGet &amp; " = objShell.Exec(cmdGet" &amp; strNameToGet &amp; ")" &amp; vbCRLF
+            strFile = strFile &amp; strNameToGet &amp; " = objExecGet" &amp; strNameToGet &amp; ".StdOut.readline()" &amp; vbCRLF
+            iIndex = iIndex + 1
+          Loop
+          
+          iIndex = 1
+          iActionCounter = Cint(Session.Property("VERINTSDK_ACTION_COUNTER"))
+          Do While iIndex &lt; iActionCounter +1
+            strAction = "VERINTSDK_ACTION_" &amp; iIndex
+            strActionToDo = Session.Property(strAction)
+            strFile = strFile &amp; "' Do Action " &amp; strActionToDo &amp; " With Secured container" &amp; vbCRLF
+            strFile = strFile &amp; "Set objShell = WScript.CreateObject (""WScript.shell"")" &amp; vbCRLF
+            strFile = strFile &amp; "objShell.run""" &amp; strActionToDo &amp; """" &amp; vbCRLF
+            strFile = strFile &amp; "Set objShell = Nothing" &amp; vbCRLF
+            iIndex = iIndex + 1
+          Loop
+          CreateVerintSDKFile = strFile
+        End If
+      End Function
+
+      Sub RunOnServicesTable (  )
+
+      Dim proceedFetch
+      Dim recordServices, viewServices
+      Dim sServiceName,sAction
+      Dim sServicesNameArr
+      Dim RecNum
+
+      LogInfo "===== Started RunOnServicesTable ====="
+
+      On Error resume next
+      if database is nothing then
+      LogInfo  "===== Database is nothing ====="
+      LogInfo  "===== Done RunOnServicesTable ====="
+      Exit SUB
+      end if
+      Err.Clear
+      Set viewServices = Database.OpenView("SELECT `ServiceName`, `Action` FROM `VerintServices`")
+      If viewServices Is Nothing Then
+      LogInfo "===== viewServices is nothing so nothing to do ====="
+      LogInfo "===== Done RunOnServicesTable ====="
+      Exit Sub
+      End If
+
+      Call viewServices.Execute()
+      proceedFetch = True
+      RecNum = 0
+
+      On Error Resume Next
+      While proceedFetch = True
+        Set recordServices = viewServices.Fetch()
+        If recordServices Is Nothing Then
+          proceedFetch = False
+          LogInfo "===== Number of Table Records:" &amp; RecNum &amp; " ====="
+       Else
+        sServiceName = recordServices.StringData(1)
+        sAction = recordServices.StringData(2)
+        LogInfo "Calling ServiceUtils for service " &amp; sServiceName &amp; " " &amp; sAction
+        sServicesToStopPost = sServicesToStopPost &amp; "%IMPACT360SOFTWAREDIR%Utils\ServicesUtils.exe -status:restore -name:" &amp; """" &amp; sServiceName &amp; """" &amp; vbCRLF
+        LogInfo "===== ExecStopSerivcesPost command:" &amp; sServicesToStopPost &amp; " ====="
+        sServicesToStopPre = sServicesToStopPre &amp; "%IMPACT360SOFTWAREDIR%Utils\ServicesUtils.exe -status:" &amp; sAction &amp; " -name:" &amp; """" &amp; sServiceName &amp; """" &amp; vbCRLF
+        LogInfo "===== ExecStopSerivcesPre command:" &amp; sServicesToStopPre &amp; " ====="
+        RecNum = RecNum + 1
+       End If
+      Wend
+
+      LogInfo  "===== Done RunOnServicesTable ====="
+
+      End Sub
+
+      Sub BackupFile()
+
+      LogInfo "=====[BackupFile] Started Backing up " &amp; sFileFrom &amp; " ====="
+        ' create roolback only for updated files
+
+        If oFSO.FileExists(sFileFrom) or sDeleteNewFilesInRollBack = "false" then
+          ' when delete new file is disabled then tere are some steps that need to be done only for existing files
+          If oFSO.FileExists(sFileFrom) then
+            ' build path where the drive is also a dirctory
+            sFileBackupPath = left(sFileFrom,1) + "_" + mid(sFileFrom, 4)
+            sFileTo = sRollBackDir &amp; sFileBackupPath
+
+            ' check if the file already exist in rollback path - can occur after patch uninstall &amp; install again
+            if oFSO.FileExists(sFileTo) then
+              Set oFile = oFSO.GetFile(sFileTo)
+
+              ' does the file has readonly attribute? if yes remove it for overwriting
+            if (oFile.Attributes And 1) = 1 then
+            oFile.Attributes = oFile.Attributes - 1
+            end if
+          end if
+
+          BuildPath sFileTo
+          oFSO.CopyFile sFileFrom, sFileTo
+        End if
+        ' check if this file path already exist in files list
+        pos = instr(sFileList, "[" &amp; sPathField &amp; "]")
+        if pos = 0 then
+          ' first time - create section and add path in the relevant locations
+          If oFSO.FileExists(sFileFrom) then
+            sFileList = sFileList &amp; vbCRLF &amp; vbCRLF &amp; "[" &amp; sPathField &amp; "]" &amp; vbCRLF &amp; """" &amp; sNameField &amp; """" &amp; "," &amp; sFileBackupPath &amp; ",,0x00000004"
+            sUninstallList = sUninstallList &amp; sPathField &amp; ","
+          End If
+          sStringList = sStringList &amp; sPathField &amp; "=""" &amp; Session.Property(sPathField) &amp; """" &amp; vbCRLF
+          sDestinationList = sDestinationList &amp; sPathField &amp; "= -1,%" &amp; sPathField &amp; "%" &amp; vbCRLF
+        else
+          ' path key already exit - just add file after the section
+          If oFSO.FileExists(sFileFrom) then
+            sFileList = left(sFileList,pos+len(sPathField)+1) &amp; vbCRLF &amp; """" &amp; sNameField &amp; """" &amp; "," &amp; sFileBackupPath &amp; ",,0x00000004" &amp; mid(sFileList,pos+len(sPathField)+2)
+          End If
+        end if
+        If oFSO.FileExists(sFileFrom) then
+          If sNameExt = "dll" or sNameExt = "ocx" then
+            LogInfo "=====[BackupFile] Backing up dll:" &amp; sNameField &amp; " ====="
+            if IsGacFile ( sNameField ) then                            
+              sGacFiles = sGacFiles &amp;  """" &amp; sGacUtilPath &amp; "gacutil.exe"" /if  """  &amp; Session.Property(sPathField) &amp; sNameField &amp; """" &amp; vbCRLF              
+            else
+              sRegFileList = sRegFileList &amp; "regsvr32 /s " &amp; """" &amp; Session.Property(sPathField) &amp; sNameField &amp; """" &amp; vbCRLF
+            end if
+          End If
+        End If
+      LogInfo "=====[BackupFile] Backed up " &amp; sFileFrom &amp; " ====="
+      Else
+        ' check if we need to uninstall assembly from GAC
+          If sNameExt = "dll" or sNameExt = "ocx" then
+            if IsGacFile ( sNameField ) then                            
+              LogInfo "=====[Uninstall] Uninstalling dll from GAC:" &amp; sNameField &amp; " ====="
+              sGacFiles = sGacFiles &amp;  """" &amp; sGacUtilPath &amp; "gacutil.exe"" /uf  """  &amp; Replace(sNameField,"." &amp; sNameExt,"") &amp; """" &amp; vbCRLF
+            end if
+          End If
+
+        ' check if this file path already exist in files list
+        posR = instr(sFileListR, "[" &amp; sPathField &amp; "-REMOVE]")
+        if posR = 0 then
+        ' first time - create section and add path in the relevant locations
+          sFileListR = sFileListR &amp; vbCRLF &amp; vbCRLF &amp; "[" &amp; sPathField &amp; "-REMOVE]" &amp; vbCRLF &amp; """" &amp; sNameField &amp; """" &amp; ",,,0x00010001"
+          sUninstallListR = sUninstallListR &amp; sPathField &amp; "-REMOVE" &amp; ","
+          sStringList = sStringList &amp; sPathField &amp; "-REMOVE" &amp; "=""" &amp; Session.Property(sPathField) &amp; """" &amp; vbCRLF
+          sDestinationList = sDestinationList &amp; sPathField &amp; "-REMOVE" &amp; "= -1,%" &amp; sPathField &amp; "-REMOVE%" &amp; vbCRLF
+        else
+          ' path key already exit - just add file after the section
+          sFileListR = left(sFileListR,posR+len(sPathField)+8) &amp; vbCrlf &amp; """"&amp; sNameField &amp; """" &amp; ",,,0x00010001" &amp; mid(sFileListR,posR+len(sPathField)+9)
+        end if
+        LogInfo "=====[BackupFile] Put in the Remove List " &amp; sFileFrom &amp; " ====="
+      End If
+      End Sub
+
+      Sub BuildPath(sPath)
+
+        dim aFolder, sFolderSum
+        aFolder = Split(sPath, "\")
+        For i = 0 To UBound(aFolder)-1
+          sFolderSum = sFolderSum &amp; aFolder(i) &amp; "\"
+          On Error Resume Next
+          oFSO.CreateFolder sFolderSum
+          On Error GoTo 0
+        Next
+
+      End Sub
+
+      'Checks If the file is included in the VerintGACAssemblies Table
+      'This table is populated by the patch author with files to be registered in the GAC
+      Function IsGacFile ( fileName )
+      dim view
+      dim proceedFetch
+      dim record
+
+      LogInfo "=====[IsGacFile] Started IsGacFile for " &amp;  fileName &amp; " ====="
+
+        On Error resume next
+        'Set view = database.OpenView("SELECT `LogicalFileName `,`DotNetVersion`,`File` FROM VerintGACAssemblies , File WHERE File=LogicalFileName")
+        if database is nothing then
+          LogInfo  "=====[IsGacFile] Database is nothing ====="
+          Exit Function
+        end if
+
+        Set view = database.OpenView ("SELECT `FileName`,`DotNetVersion` FROM `VerintGACAssemblies`,`File` WHERE File=LogicalFileName ")
+        if view is Nothing then
+          LogInfo  "=====[IsGacFile] View is nothing ====="
+          Exit Function
+        end if
+        Call view.Execute()
+        proceedFetch = True
+        IsGacFile = False
+        On Error resume next
+        While proceedFetch = True
+          set record = view.Fetch()
+          if record is Nothing then
+            proceedFetch  = False
+          else
+            LogInfo  "=====[IsGacFile] FileName is " &amp; record.StringData(1) &amp; " ====="
+            if InStr(record.StringData(1),fileName ) &gt; 0 then
+              IsGacFile  = True
+              LogInfo  "=====[IsGacFile] Done IsGacFile result True ====="
+              Exit Function
+            end If
+          end if
+        Wend
+        LogInfo  "=====[IsGacFile] Done IsGacFile result False ====="
+      End Function
+
+      Sub LoopFilesList(view)
+
+        LogInfo "=====[LoopFilesList] Started LoopFilesList ====="
+        view.Execute
+
+        ' loop on each file and prepare variable for inf file
+        Do
+          Set record = view.Fetch
+          If record Is Nothing Then
+            LogInfo  "=====[LoopFilesList] View is nothing ====="
+            Exit Do
+          End If
+          ' get file data
+          sNameField = record.StringData(1)
+
+          ' retrieve only long name
+          pos = instr(sNameField,"|")
+          if pos&gt;0 then
+            sNameField = mid(sNameField,pos+1)
+          end if
+
+          sPathField = record.StringData(2)
+          pos = instrrev(sNameField, ".")
+          sNameExt = lcase(mid(sNameField, pos+1))
+
+          ' prepare to copy files to rollback path
+          sFileFrom = Session.Property(sPathField) &amp; sNameField
+
+          BackupFile
+
+          ' backup the resources original file for caption editor
+          if sNameExt = "resx" or sNameExt = "txt" or sNameExt = "resources" then
+
+            sFileFrom = sFileFrom &amp; ".org"
+            sFileTo = sFileTo &amp; ".org"
+            sNameField = sNameField &amp; ".org"
+
+            BackupFile
+          end if
+        Loop
+        LogInfo  "=====[LoopFilesList] Done LoopFilesList ====="
+      End Sub
+
+      Function LogInfo ( msg )
+        dim rec
+
+        Set rec = Session.Installer.CreateRecord(1)
+        rec.StringData(0) = msg
+        LogInfo = Session.Message(&amp;H04000000, rec)
+      End Function
+
+      Function IfTableContainsData ( table )
+
+        dim view
+        dim proceedFetch
+        dim record
+        dim exists
+
+        LogInfo "=====[IfTableContainsData] Started "
+        exists = "false"
+
+        On Error resume next
+        if database is nothing then
+          LogInfo  "=====[IfTableContainsData] Database is nothing ====="
+          IfTableContainsData = exists
+          Exit Function
+        end if
+
+        Set view = database.OpenView ("SELECT * FROM " &amp; table)
+        if view is Nothing then
+          LogInfo  "=====[IfTableContainsData] View is nothing ====="
+          IfTableContainsData = exists
+          Exit Function
+        end if
+        Call view.Execute()
+        proceedFetch = True
+        On Error resume next
+        While proceedFetch = True
+          set record = view.Fetch()
+          if record is Nothing then
+            proceedFetch  = False
+          else
+            LogInfo  "===== at least one record exists "
+            exists = "true"
+            IfTableContainsData = exists
+            Exit Function
+          end if
+        Wend
+        IfTableContainsData = exists
+      End Function
+
+      Sub UpdateRegINI(view,Delete)
+        view.Execute
+        ' loop on each registry item and prepare variable for inf file
+        Do
+          Set record = view.Fetch
+          If record Is Nothing Then Exit Do
+          
+          ' get file data
+          sKeyField = record.StringData(2)
+          sNameField = record.StringData(3)
+          sAttribute = record.StringData(4)
+          nAttribute = CInt(sAttribute)
+          
+          Select Case record.StringData(1)
+          case "0"
+          sRootField = "HKCR"
+          SRootNum = HKEY_CLASSES_ROOT
+          case "1"
+          sRootField = "HKCU"
+          SRootNum = HKEY_CURRENT_USER
+          case "2"
+          sRootField = "HKLM"
+          SRootNum = HKEY_LOCAL_MACHINE
+          case "3"
+          sRootField = "HKU"
+          SRootNum = HKEY_USERS
+          end select
+          ' when key includes parameters (as patch registry)
+          pos = instr(sKeyField,"[")
+          
+          While pos &gt; 0
+                  pos2 = instr(pos,sKeyField,"]")
+                  sKeyField = left(sKeyField,pos-1) &amp; Session.Property(mid(sKeyField,pos+1,pos2-pos-1)) &amp; Mid(sKeyField,pos2+1)
+                  pos = instr(pos+1,sKeyField,"[")
+          Wend
+          
+          If (nAttribute AND 256) = 0 Then
+            pos = instr(sKeyField,"SOFTWARE\")
+            pos2 = instr(pos + 1,sKeyField,"\")
+            sKeyField = left(sKeyField,pos2) &amp; "Wow6432Node\" &amp; Mid(sKeyField,pos2+1)
+          End If
+
+            If sNameField = "-" And Delete = "1" Then
+              ' if delete key save key and its subkey &amp; values
+              GetTheValues sKeyField,sRootField,SRootNum
+            Else
+              on error resume next
+              sCurrentValue = Null
+              sCurrentValue = WshShell.RegRead(sRootField &amp; "\" &amp; sKeyField &amp; "\" &amp; sNameField)
+
+              errnumber = err.number
+              ub = 0
+              ub = UBound(sCurrentValue)
+
+              if errnumber&lt;&gt;0 and ub = 0 then
+                If Delete = "0" Then
+                  sDelRegList = sDelRegList &amp; sRootField &amp; ",""" &amp; sKeyField &amp; """,""" &amp; sNameField &amp; """" &amp; vbCRLF
+                  err = 0
+                  iRet = 0
+                  iRet = oReg.EnumKey( SRootNum, sKeyField, arrTmpSubKeys)
+                  WshShell.RegRead(sRootField &amp; "\" &amp; sKeyField &amp; "\" )
+                  if iRet&lt;&gt;0 then
+                    ' delete the all key if empty
+                    sDelRegList = sDelRegList &amp; sRootField &amp; ",""" &amp; sKeyField &amp; """" &amp; vbCRLF
+                    iRet = 0
+                  End if
+                End If
+              Else
+                UpdateRegType sCurrentValue,sRootField,sKeyField,sNameField
+              end if
+              On Error goto 0
+            End if
+          Loop
+      End Sub
+
+      Sub UpdateRegType (sCurrentValue,sRootField,sKeyField,sNameField)
+          ' retreiving the type of the registry (binary, dword, etc.)
+          sRegType = typename(sCurrentValue)
+          Select Case sRegType
+            Case "Variant()"
+                  'this can be either multi string or binary
+                  Dim bMultiString
+                  bMultiString = False
+                  numDl = ""
+                  numStr = ""
+                  strStr = ""
+                  For Each v In sCurrentValue
+                    If IsNumeric(v) Then
+                        'this string is for binary values
+			                  numStr = numStr &amp; numDl &amp; right("0" &amp; hex(v),2)
+		                Else
+                        bMultiString = True
+                    End If                   
+
+                    'this string is for multistring values
+                    strStr = strStr &amp; numDl &amp; """" &amp; v &amp; """"
+                    numDl = ","
+                  Next
+                  If bMultiString Then
+                    flag = "0x00010000"
+                    sAddRegList = sAddRegList &amp; sRootField &amp; ",""" &amp; sKeyField &amp; """,""" &amp; sNameField &amp; """," &amp; flag &amp; "," &amp; strStr &amp; "" &amp; vbCrlf
+                  Else
+                    flag = "0x00000001"
+                    sAddRegList = sAddRegList &amp; sRootField &amp; ",""" &amp; sKeyField &amp; """,""" &amp; sNameField &amp; """," &amp; flag &amp; "," &amp; numStr &amp; "" &amp; vbCrlf
+                  End If
+            Case "Long"
+                  flag = "0x00010001"
+                  sAddRegList = sAddRegList &amp; sRootField &amp; ",""" &amp; sKeyField &amp; """,""" &amp; sNameField &amp; """," &amp; flag &amp; ",""" &amp; sCurrentValue &amp; """" &amp; vbCrlf
+            Case "String"
+                  flag = "0x00000000"
+                  sAddRegList = sAddRegList &amp; sRootField &amp; ",""" &amp; sKeyField &amp; """,""" &amp; sNameField &amp; """," &amp; flag &amp; ",""" &amp; sCurrentValue &amp; """" &amp; vbCrlf
+          End Select
+      End Sub
+
+      Sub  GetTheValues(strKeyPath,sRootField,SRootNum)
+        GetKeyValues strKeyPath,sRootField,SRootNum
+        On Error Resume Next
+        iRet = oReg.EnumKey( SRootNum, strKeyPath, arrSubKeys)
+        if iRet = 0 then
+          For Each subkey In arrSubKeys
+            if err = 0 Or subkey &lt;&gt; "" then
+              ' GetTheValues strKeyPath &amp; "\" &amp; subkey
+              GetKeyValues strKeyPath &amp; "\" &amp; subkey,sRootField,SRootNum
+            Else
+              err = 0
+            End If
+          Next
+        Else
+        End If
+      End Sub
+
+      Sub  GetKeyValues(strKeyPath,sRootField,SRootNum)
+        oReg.EnumValues SRootNum, strKeyPath,arrValueNames, arrValueTypes
+        On Error Resume Next
+        For i=0 To UBound(arrValueNames)
+          if err = 0 then
+            sCurrentValue = WshShell.RegRead(sRootField &amp; "\" &amp; strKeyPath &amp; "\" &amp; arrValueNames(i))
+            if err = 0 then
+              UpdateRegType sCurrentValue,sRootField,strKeyPath,arrValueNames(i)
+            else
+              err = 0
+            End If
+          Else
+            err = 0
+          End If
+        Next
+
+     End Sub
+
+     '------------------------
+    </CustomAction>
+    <CustomAction Id="Detect9xVersion" Script="vbscript">
+      ' Detect v 9.x
+      sInstalledVersion = Session.Property("INSTALLED93ULTRAVERSION")
+      if sInstalledVersion &lt;&gt; "0" and Session.Property("ULTRAVERSION") = "0" Then
+        sUltraStr = Left(sInstalledVersion,5)
+        ' if the string starts with ULTRA, then then format is
+        ' ULTRA 9.X SPX
+        If InStr(1,sInstalledVersion,"SP",1)&gt; 0 Then
+          sUltraVer = mid(sInstalledVersion,InStr(1,sInstalledVersion,"9.",1),3)
+          sSPVer =  mid(sInstalledVersion,InStr(1,sInstalledVersion,"SP",1),3)
+          ' in ULTRA9.1 the string can be ULTRA 9.1 SP 1
+          If StrComp(sSPVer,"SP ",1) = 0 Then
+            sSPVer = "SP1"
+          End If
+          Session.Property("ULTRAVERSION") = "9"
+          Session.Property("ULTRAMINORVERSION") = Right(sUltraVer,1)
+          Session.Property("ULTRASP") = Right(sSPVer,1)
+
+        ElseIf InStr(1,sInstalledVersion,"Service Pack",1)&gt; 0 Then
+          bSP = 1
+          sUltraVer = mid(sInstalledVersion,InStr(1,sInstalledVersion,"9.",1),3)
+          sSPVer =  "SP" &amp; Right(sInstalledVersion,InStr(1,sInstalledVersion,"Service Pack",1) + 13)		' in impact express sp3 and up the string can be Impact360 Express 9.3 Service Pack 3
+          If StrComp(sSPVer,"SP ",1) = 0 Then
+            sSPVer = "SP" &amp; StrComp
+          End If
+          Session.Property("ULTRAVERSION") = "9"
+          Session.Property("ULTRAMINORVERSION") = Right(sUltraVer,1)
+          Session.Property("ULTRASP") = Right(sSPVer,1)
+        Else
+          sUltraVer = mid(sInstalledVersion,1,3)
+          Session.Property("ULTRAVERSION") = "9"
+          Session.Property("ULTRAMINORVERSION") = Right(sUltraVer,1)
+          Session.Property("ULTRASP") = "0"
+        End If
+      End If
+      '---------
+
+
+    </CustomAction>
+
+    <CustomAction Id="RunStopServicesPre_Installation" Directory="IMPACT360SOFTWAREDIR" ExeCommand="[RollbackDir]rollbackRunServicesPre.bat" Execute="deferred" Impersonate="no"  Return="check"/>
+    <CustomAction Id="RunStopServicesPost_Installation" Directory="IMPACT360SOFTWAREDIR" ExeCommand="[RollbackDir]rollbackRunServicesPost.bat" Execute="deferred" Impersonate="no" Return="check"/>
+
+
+    <CustomAction Id="DeleteLogFileAction" ExeCommand='cmd /c del /Q /S /F "[RollbackDir]$(var.HOTFIXID).log"' Directory="IMPACT360SOFTWAREDIR" Return="ignore"></CustomAction>
+    <CustomAction Id="DeleteZipFileAction" ExeCommand='cmd /c del /Q /S /F "[RollbackDir]HotFix $(var.HOTFIXID).zip"' Directory="IMPACT360SOFTWAREDIR" Return="ignore"></CustomAction>
+    <CustomAction Id="ZipHFDirAction" ExeCommand='"[IMPACT360SOFTWAREDIR]Utils\_7za.exe" a -tzip "[RollbackDir]HotFix $(var.HOTFIXID).zip" "[RollbackDir]"' Directory="IMPACT360SOFTWAREDIR" Return="check"></CustomAction>
+    <CustomAction Id="MakeZipFileReadOnly" ExeCommand='cmd /c attrib +r "[RollbackDir]HotFix $(var.HOTFIXID).zip"' Directory="IMPACT360SOFTWAREDIR" Return="check"></CustomAction>
+    <CustomAction Id="MakeInfFileReadOnly" ExeCommand='cmd /c attrib +r "[RollbackDir]rollback.inf"' Directory="IMPACT360SOFTWAREDIR" Return="check"></CustomAction>
+    <CustomAction Id="MakeBatchFileReadOnly" ExeCommand='cmd /c attrib +r "[RollbackDir]renameFolder.bat"' Directory="IMPACT360SOFTWAREDIR" Return="check"></CustomAction>
+    <CustomAction Id="DelFolderContent" ExeCommand='cmd /c del /Q /S "[RollbackDir]*"' Directory="IMPACT360SOFTWAREDIR" Return="check"></CustomAction>
+    <CustomAction Id="UndoZipFileReadOnly" ExeCommand='cmd /c attrib -r "[RollbackDir]HotFix $(var.HOTFIXID).zip"' Directory="IMPACT360SOFTWAREDIR" Return="check"></CustomAction>
+    <CustomAction Id="UndoInfFileReadOnly" ExeCommand='cmd /c attrib -r "[RollbackDir]rollback.inf"' Directory="IMPACT360SOFTWAREDIR" Return="check"></CustomAction>
+    <CustomAction Id="UndoBatchFileReadOnly" ExeCommand='cmd /c attrib -r "[RollbackDir]renameFolder.bat"' Directory="IMPACT360SOFTWAREDIR" Return="check"></CustomAction>
+
+
+
+    <CustomActionRef Id="UserCustomActionToRef" />
+  </Fragment>
+</Wix>

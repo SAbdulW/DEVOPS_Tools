@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--Folder Locations and Permissions-->
+<!--Possible Accounts: IMSA, DMSA, SQLServices, IUSR,InstallUser-->
+<NTFSRights>
+  <Folders>
+    <Softwaredir>
+      <Name>Softwaredir</Name>
+      <Path>E:\Impact360\Software</Path>
+      <ReadExecute>IUSR</ReadExecute>
+      <ReadExecuteWrite>NA</ReadExecuteWrite>
+      <ReadExecuteWriteDelete>IMSA, DMSA</ReadExecuteWriteDelete>
+	    <FullControl>NA</FullControl>
+    </Softwaredir>
+    <Datadir>
+      <Name>Datadir</Name>
+      <Path>K:\Impact360\Data</Path>
+      <ReadExecute>NA</ReadExecute>
+      <ReadExecuteWrite>NA</ReadExecuteWrite>
+      <ReadExecuteWriteDelete>IMSA, DMSA</ReadExecuteWriteDelete>
+	    <FullControl>NA</FullControl>
+    </Datadir>
+    <DatabaseDir>
+      <Name>DatabaseDir</Name>
+      <Path>I:\Impact360\Databases</Path>
+      <ReadExecute>NA</ReadExecute>
+      <ReadExecuteWrite>NA</ReadExecuteWrite>
+      <ReadExecuteWriteDelete>NA</ReadExecuteWriteDelete>
+	    <FullControl>SQLServices</FullControl>
+    </DatabaseDir>
+    <TransactionLogDir>
+      <Name>TransactionLogDir</Name>
+      <Path>L:\Impact360\Databases</Path>
+      <ReadExecute>NA</ReadExecute>
+      <ReadExecuteWrite>NA</ReadExecuteWrite>
+      <ReadExecuteWriteDelete>NA</ReadExecuteWriteDelete>
+	    <FullControl>SQLServices</FullControl>
+    </TransactionLogDir>
+    <ContactOLTPDir>
+      <Name>ContactOLTPDir</Name>
+      <Path>F:\Impact360\Databases</Path>
+      <ReadExecute>NA</ReadExecute>
+      <ReadExecuteWrite>NA</ReadExecuteWrite>
+      <ReadExecuteWriteDelete>NA</ReadExecuteWriteDelete>
+	    <FullControl>SQLServices</FullControl>
+    </ContactOLTPDir>
+    <TempDBDir>
+      <Name>TempDBDir</Name>
+      <Path>F:\Impact360\Databases</Path>
+      <ReadExecute>NA</ReadExecute>
+      <ReadExecuteWrite>NA</ReadExecuteWrite>
+      <ReadExecuteWriteDelete>NA</ReadExecuteWriteDelete>
+      <FullControl>SQLServices</FullControl>
+    </TempDBDir>
+    <SpeechDatadir>
+      <Name>SpeechDatadir</Name>
+      <Path>K:\Impact360\SpeechData</Path>
+      <ReadExecute>NA</ReadExecute>
+      <ReadExecuteWrite>NA</ReadExecuteWrite>
+      <ReadExecuteWriteDelete>IMSA, DMSA</ReadExecuteWriteDelete>
+	    <FullControl>NA</FullControl>
+    </SpeechDatadir>
+    <SRFolder>
+      <Name>SRFolder</Name>
+      <Path>C:\Program Files (x86)\Server Readiness</Path>
+      <ReadExecute>NA</ReadExecute>
+      <ReadExecuteWrite>NA</ReadExecuteWrite>
+      <ReadExecuteWriteDelete>IMSA, DMSA</ReadExecuteWriteDelete>
+	    <FullControl>NA</FullControl>
+    </SRFolder>
+    <WindowsTempFolder>
+      <Name>WindowsTempFolder</Name>
+      <Path>C:\Windows\Temp</Path>
+      <ReadExecute>NA</ReadExecute>
+      <ReadExecuteWrite>NA</ReadExecuteWrite>
+      <ReadExecuteWriteDelete>IMSA, DMSA</ReadExecuteWriteDelete>
+	    <FullControl>NA</FullControl>
+    </WindowsTempFolder>
+    <MediaFolder>
+      <Name>MediaFolder</Name>
+      <Path>G:\Calls</Path>
+      <ReadExecute>NA</ReadExecute>
+      <ReadExecuteWrite>NA</ReadExecuteWrite>
+      <ReadExecuteWriteDelete>IMSA</ReadExecuteWriteDelete>
+	    <FullControl>NA</FullControl>
+    </MediaFolder>
+    <Media2Folder>
+      <Name>Media2Folder</Name>
+      <Path>G:\CFVerbatim</Path>
+      <ReadExecute>NA</ReadExecute>
+      <ReadExecuteWrite>NA</ReadExecuteWrite>
+      <ReadExecuteWriteDelete>IMSA</ReadExecuteWriteDelete>
+	    <FullControl>NA</FullControl>
+    </Media2Folder>
+    <SQLRootFolder>
+      <Name>SQLRootFolder</Name>
+      <Path>C:\Program Files\Microsoft SQL Server</Path>
+      <ReadExecute>NA</ReadExecute>
+      <ReadExecuteWrite>NA</ReadExecuteWrite>
+      <ReadExecuteWriteDelete>NA</ReadExecuteWriteDelete>
+	    <FullControl>NA</FullControl>
+    </SQLRootFolder>
+    <SQL2008Folder>
+      <Name>SQL2008Folder</Name>
+      <Path>C:\Program Files\Microsoft SQL Server\100\Tools\Binn</Path>
+      <ReadExecute>DMSA</ReadExecute>
+      <ReadExecuteWrite>NA</ReadExecuteWrite>
+      <ReadExecuteWriteDelete>NA</ReadExecuteWriteDelete>
+	    <FullControl>NA</FullControl>
+    </SQL2008Folder>
+    <SQL2012Folder>
+      <Name>SQL2012Folder</Name>
+      <Path>NA</Path>
+      <ReadExecute>DMSA</ReadExecute>
+      <ReadExecuteWrite>NA</ReadExecuteWrite>
+      <ReadExecuteWriteDelete>NA</ReadExecuteWriteDelete>
+	    <FullControl>NA</FullControl>
+    </SQL2012Folder>
+    <SQL2014Folder>
+      <Name>SQL2014Folder</Name>
+      <Path>NA</Path>
+      <ReadExecute>DMSA</ReadExecute>
+      <ReadExecuteWrite>NA</ReadExecuteWrite>
+      <ReadExecuteWriteDelete>NA</ReadExecuteWriteDelete>
+      <FullControl>NA</FullControl>
+    </SQL2014Folder>
+  </Folders>
+</NTFSRights>

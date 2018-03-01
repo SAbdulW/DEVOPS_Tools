@@ -1,0 +1,1 @@
+powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File "%~dp0\Setup_signed.ps1"

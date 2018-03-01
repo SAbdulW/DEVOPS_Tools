@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Fragment>
+    <?include UserProperties.wxi ?>
+    <!-- ****************************************************************************************************************-->
+    <!--            Add your condition please note that the condition fail the installation when the condition is false  -->
+    <!-- ****************************************************************************************************************-->
+    <!-- <Condition Message="Installation terminated&#xD;&#xA;The BO Server is not installed"><![CDATA[((INSTALLATIONUNITSEARCH <> 0) AND (BO_COMMON_DIR_SEARCH <> ""))]]></Condition> -->
+    <InstallUISequence>
+      <!-- *************************************************************************************************-->
+      <!--            Add your custom action for condition (action before CompareVersion).            -->
+      <!-- *************************************************************************************************-->
+
+    </InstallUISequence>
+    <InstallExecuteSequence>
+      <!-- *************************************************************************************************-->
+      <!--            Add your custom action for directory settings (action < PrepareRollBack).            -->
+      <!-- *************************************************************************************************-->
+      <Custom Action="set_directory" Before="PrepareRollBack">0</Custom>
+
+      <!-- *************************************************************************************************-->
+      <!--            Add your custom action befor file copy here  (action < InstallInitialize).            -->
+      <!-- *************************************************************************************************-->
+      <Custom Action="DummyBeforeCopy" Before="InstallInitialize">0</Custom>
+
+
+     
+      
+      
+      <!-- *******************************************************************-->
+
+      <!-- ****************************************************************************-->
+      <!--            Add your custom action After file copy here.   Seq- 6501 - 6599  -->
+      <!-- ****************************************************************************-->
+      <Custom Action="DummyAfterCopy" Sequence="6501">0</Custom>
+
+
+
+      <!-- *******************************************************************-->
+  
+    </InstallExecuteSequence>
+
+    <!-- *******************************************************************-->
+    <!--            Add your custom operation here                          -->
+    <!-- *******************************************************************-->
+
+    <CustomAction Id="DummyBeforeCopy" Property="INSTALLLEVEL" Value="3" />
+    <CustomAction Id="DummyAfterCopy" Property="INSTALLLEVEL" Value="3" />
+    <CustomAction Id="set_directory" Directory="IMPACT360SOFTWAREDIR" Value=" " />
+    
+    <!-- DummyUseVerintSDKGet should not be used YET -->
+    <CustomAction Id="DummyUseVerintSDKGet" Script="vbscript">
+            <![CDATA[
+      ' UseVerintSDK_03-10-10
+
+      bAddVerintSDK = Session.Property("ADD_VERINTSDK")
+
+      ' Extract Ultra admin login name from Secured container
+      Dim cmdGetUserName
+      LogInfo  "=====  UseVerintSDK ====  =========="
+
+      If bAddVerintSDK = 1 Then
+        cmdGetUserName = """%Impact360SoftwareDir%\VerintSDK\Verint.SDK.SecuredContentAccess.exe"" g UltraUserName"
+
+        Dim objExecGetUserName
+        Set objExecGetUserName = objShell.Exec(cmdGetUserName)
+
+        login = objExecGetUserName.StdOut.readline()
+        If login = "" Then
+          LogInfo  "=====  UseVerintSDK ====  ========== Need to do somthing - ERROR -"
+        End If
+        ' Extract ultra admin user password from Secured container
+        Dim cmdGetUserPwd
+        cmdGetUserPwd = """%Impact360SoftwareDir%\VerintSDK\Verint.SDK.SecuredContentAccess.exe"" g UltraUserPwd"
+
+        Dim objExecGetUserPwd
+        Set objExecGetUserPwd = objShell.Exec(cmdGetUserPwd)
+
+        pwd = objExecGetUserPwd.StdOut.readLine()
+        If pwd = "" Then
+          LogInfo  "=====  UseVerintSDK ====  ========== Need to do somthing - ERROR -"
+        End If
+      End If
+      'do somthing and use login ,pwd
+
+      Function LogInfo ( msg )
+        dim rec
+
+        Set rec = Session.Installer.CreateRecord(1)
+        rec.StringData(0) = msg
+        LogInfo = Session.Message(&H04000000, rec)
+      End Function
+
+
+
+      ]]>
+    </CustomAction>
+
+    <!-- *******************************************************************-->
+    <!--            Do No change anything beyond  this line                  -->
+    <!-- *******************************************************************-->
+
+    <CustomAction Id="UserCustomActionToRef" Property="INSTALLLEVEL" Value="3" />
+    <!-- Donot remove this line it is a reference to user custom action-->
+
+
+  </Fragment>
+</Wix>

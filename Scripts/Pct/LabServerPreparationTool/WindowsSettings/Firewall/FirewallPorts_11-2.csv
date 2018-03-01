@@ -1,0 +1,595 @@
+Application Server,Framework Applications,TCP,80,All
+Application Server,Framework Applications,TCP,443,All
+Application Server,Interaction Applications,TCP,80,All
+Application Server,Interaction Applications,TCP,443,All
+Mobile Gateway Server,Mobile Gateway,TCP,80,All
+Mobile Gateway Server,Mobile Gateway,TCP,443,All
+Application Load Balancer,Application Load Balancer,TCP,80,All
+Application Load Balancer,Application Load Balancer,TCP,443,All
+Application Server,Framework Applications,TCP,7001,All
+Application Server,Framework Applications,TCP,7,All
+Application Server,Framework Applications,TCP,8088,All
+Application Server,Framework Applications,UDP,8088-8089,All
+Application Server,Interaction Applications,TCP,50000,All
+Application Server,Interaction Applications,TCP,135,All
+Application Server,Interaction Applications,TCP,29180-29279,All
+Application Server,System,TCP,80,All
+Application Server,System,TCP,443,All
+Centralized Archive Server,Content Server,TCP,80,All
+Centralized Archive Server,Content Server,TCP,443,All
+Centralized Archive Server,System,TCP,80,All
+Centralized Archive Server,System,TCP,443,All
+Contact & QM Database Server,Contact Database,TCP,80,All
+Contact & QM Database Server,Contact Database,TCP,443,All
+Contact & QM Database Server,Interaction Flow Manager,TCP,80,All
+Contact & QM Database Server,Interaction Flow Manager,TCP,443,All
+Contact & QM Database Server,QM Database,TCP,80,All
+Contact & QM Database Server,QM Database,TCP,443,All
+Contact & QM Database Server,QM Database,TCP,50000,All
+Contact & QM Database Server,QM Database,TCP,135,All
+Contact & QM Database Server,QM Database,TCP,29180-29279,All
+Contact & QM Database Server,SQL Server,TCP,1433,All
+Contact & QM Database Server,System,TCP,80,All
+Contact & QM Database Server,System,TCP,443,All
+Contact OLTP & Archive Database Server,SQL Server,TCP,1433,All
+Contact OLTP & Archive Database Server,System,TCP,80,All
+Contact OLTP & Archive Database Server,System,TCP,443,All
+Data Warehouse Server,Framework Data Warehouse,TCP,80,All
+Data Warehouse Server,Framework Data Warehouse,TCP,443,All
+Data Warehouse Server,SQL Server,TCP,1433,All
+Data Warehouse Server,System,TCP,80,All
+Data Warehouse Server,System,TCP,443,All
+Database Management Server,Contact Database,TCP,80,All
+Database Management Server,Contact Database,TCP,443,All
+Database Management Server,Framework Data Warehouse,TCP,80,All
+Database Management Server,Framework Data Warehouse,TCP,443,All
+Database Management Server,Framework Database,TCP,80,All
+Database Management Server,Framework Database,TCP,443,All
+Database Management Server,Framework Integration Service,TCP,80,All
+Database Management Server,Framework Integration Service,TCP,443,All
+Database Management Server,Interaction Flow Manager,TCP,80,All
+Database Management Server,Interaction Flow Manager,TCP,443,All
+Database Management Server,QM Database,TCP,80,All
+Database Management Server,QM Database,TCP,443,All
+Database Management Server,QM Database,TCP,50000,All
+Database Management Server,QM Database,TCP,135,All
+Database Management Server,QM Database,TCP,29180-29279,All
+Database Management Server,Reporting Services,TCP,80,All
+Database Management Server,Reporting Services,TCP,443,All
+Database Management Server,System,TCP,80,All
+Database Management Server,System,TCP,443,All
+Database Server,Contact Database,TCP,80,All
+Database Server,Contact Database,TCP,443,All
+Database Server,Framework Data Warehouse,TCP,80,All
+Database Server,Framework Data Warehouse,TCP,443,All
+Database Server,Framework Database,TCP,80,All
+Database Server,Framework Database,TCP,443,All
+Database Server,Framework Integration Service,TCP,80,All
+Database Server,Framework Integration Service,TCP,443,All
+Database Server,Interaction Analytics Services,TCP,80,All
+Database Server,Interaction Analytics Services,TCP,443,All
+Database Server,Interaction Flow Manager,TCP,80,All
+Database Server,Interaction Flow Manager,TCP,443,All
+Database Server,QM Database,TCP,80,All
+Database Server,QM Database,TCP,443,All
+Database Server,QM Database,TCP,50000,All
+Database Server,QM Database,TCP,135,All
+Database Server,QM Database,TCP,29180-29279,All
+Database Server,Reporting Services,TCP,80,All
+Database Server,Reporting Services,TCP,443,All
+Database Server,Speech Products Database,TCP,80,All
+Database Server,Speech Products Database,TCP,443,All
+Database Server,SQL Server,TCP,1433,All
+Database Server,System,TCP,80,All
+Database Server,System,TCP,443,All
+EFM Application Server,EFM Application Role,TCP,80,All
+EFM Application Server,EFM Application Role,TCP,443,All
+EFM Database Server,EFM Application Role,TCP,80,All
+EFM Database Server,EFM Application Role,TCP,443,All
+Encryption Key Management Server,Encryption Key Management ,TCP,7443,All
+Export Manager,System,TCP,80,All
+Export Manager,System,TCP,443,All
+Forecasting and Scheduling Server,Forecasting and Scheduling Service,TCP,80,All
+Forecasting and Scheduling Server,Forecasting and Scheduling Service,TCP,443,All
+Forecasting and Scheduling Server,Forecasting and Scheduling Service,TCP,15667-15700,All
+Forecasting and Scheduling Server,Forecasting and Scheduling Service,TCP,45731,All
+Forecasting and Scheduling Server,Framework Integration Service,TCP,80,All
+Forecasting and Scheduling Server,Framework Integration Service,TCP,443,All
+Forecasting and Scheduling Server,System,TCP,80,All
+Forecasting and Scheduling Server,System,TCP,443,All
+Framework Database & Reporting Server,Framework Data Warehouse,TCP,80,All
+Framework Database & Reporting Server,Framework Data Warehouse,TCP,443,All
+Framework Database & Reporting Server,Framework Database,TCP,80,All
+Framework Database & Reporting Server,Framework Database,TCP,443,All
+Framework Database & Reporting Server,Framework Integration Service,TCP,80,All
+Framework Database & Reporting Server,Framework Integration Service,TCP,443,All
+Framework Database & Reporting Server,Reporting Services,TCP,80,All
+Framework Database & Reporting Server,Reporting Services,TCP,443,All
+Framework Database & Reporting Server,SQL Server,TCP,1433,All
+Framework Database & Reporting Server,System,TCP,80,All
+Framework Database & Reporting Server,System,TCP,443,All
+Framework DB Server,Framework Database,TCP,80,All
+Framework DB Server,Framework Database,TCP,443,All
+Framework DB Server,Framework Integration Service,TCP,80,All
+Framework DB Server,Framework Integration Service,TCP,443,All
+Framework DB Server,SQL Server,TCP,1433,All
+Framework DB Server,System,TCP,80,All
+Framework DB Server,System,TCP,443,All
+Framework Integration Service Server,Framework Integration Service,TCP,80,All
+Framework Integration Service Server,Framework Integration Service,TCP,443,All
+Framework Integration Service Server,System,TCP,80,All
+Framework Integration Service Server,System,TCP,443,All
+Import Manager Server,Content Server,TCP,80,All
+Import Manager Server,Content Server,TCP,443,All
+Import Manager Server,System,TCP,80,All
+Import Manager Server,System,TCP,443,All
+Import Manager With Transcription Server,Content Server,TCP,80,All
+Import Manager With Transcription Server,Content Server,TCP,443,All
+Import Manager With Transcription Server,System,TCP,80,All
+Import Manager With Transcription Server,System,TCP,443,All
+IP Analyzer Server,System,TCP,80,All
+IP Analyzer Server,System,TCP,443,All
+Lync Proxy Server,System,TCP,8080,All
+Lync Proxy Server,System,TCP,8443,All
+Post Processing Voice Biometrics Server,System,TCP,80,All
+Post Processing Voice Biometrics Server,System,TCP,443,All
+Recorder Integration Service Server,Recorder Integration Service,TCP,29520,All
+Recorder Integration Service Server,System,TCP,80,All
+Recorder Integration Service Server,System,TCP,443,All
+Recorder Server,Content Server,TCP,80,All
+Recorder Server,Content Server,TCP,443,All
+Recorder Server,Recorder Integration Service,TCP,29520,All
+Recorder Server,System,TCP,80,All
+Recorder Server,System,TCP,443,All
+Recording & QM Database Server,Contact Database,TCP,80,All
+Recording & QM Database Server,Contact Database,TCP,443,All
+Recording & QM Database Server,Interaction Analytics Services,TCP,80,All
+Recording & QM Database Server,Interaction Analytics Services,TCP,443,All
+Recording & QM Database Server,Interaction Flow Manager,TCP,80,All
+Recording & QM Database Server,Interaction Flow Manager,TCP,443,All
+Recording & QM Database Server,QM Database,TCP,80,All
+Recording & QM Database Server,QM Database,TCP,443,All
+Recording & QM Database Server,QM Database,TCP,50000,All
+Recording & QM Database Server,QM Database,TCP,135,All
+Recording & QM Database Server,QM Database,TCP,29180-29279,All
+Recording & QM Database Server,Speech Products Database,TCP,80,All
+Recording & QM Database Server,Speech Products Database,TCP,443,All
+Recording & QM Database Server,SQL Server,TCP,1433,All
+Recording & QM Database Server,System,TCP,80,All
+Recording & QM Database Server,System,TCP,443,All
+Remote SQL Server,Remote SQL Server,TCP,1433,All
+Reporting Server,Reporting Services,TCP,80,All
+Reporting Server,Reporting Services,TCP,443,All
+Reporting Server,SQL Server,TCP,1433,All
+Reporting Server,System,TCP,80,All
+Reporting Server,System,TCP,443,All
+Speech Analytics Application Server,Speech Application Service,TCP,80,All
+Speech Analytics Application Server,Speech Application Service,TCP,80,All
+Speech Analytics Application Server,Speech Application Service,TCP,443,All
+Speech Analytics Application Server,Speech Application Service,TCP,443,All
+Speech Analytics Application Server,System,TCP,80,All
+Speech Analytics Application Server,System,TCP,443,All
+Speech Analytics Transcription Server,System,TCP,80,All
+Speech Analytics Transcription Server,System,TCP,443,All
+Speech Database Server,Interaction Analytics Services,TCP,80,All
+Speech Database Server,Interaction Analytics Services,TCP,443,All
+Speech Database Server,Speech Products Database,TCP,80,All
+Speech Database Server,Speech Products Database,TCP,443,All
+Speech Database Server,SQL Server,TCP,1433,All
+Speech Database Server,System,TCP,80,All
+Speech Database Server,System,TCP,443,All
+Survey Server with Telephony Interface,System,TCP,80,All
+Survey Server with Telephony Interface,System,TCP,443,All
+Survey Server with VXML Interface,System,TCP,80,All
+Survey Server with VXML Interface,System,TCP,443,All
+Telephone Playback Service Server,System,TCP,80,All
+Telephone Playback Service Server,System,TCP,443,All
+Text Analytics Application Server,Text Analytics Application Role,TCP,80,All
+Text Analytics Application Server,Text Analytics Application Role,TCP,443,All
+Text Analytics Application Server,Text Analytics Application Role,TCP,2181,All
+Text Analytics Application Server,Text Analytics Application Role,TCP,2888,All
+Text Analytics Application Server,Text Analytics Application Role,TCP,3888,All
+Text Analytics Consolidated Server,Text Analytics Application Role,TCP,80,All
+Text Analytics Consolidated Server,Text Analytics Application Role,TCP,443,All
+Text Analytics Consolidated Server,Text Analytics Application Role,TCP,2181,All
+Text Analytics Consolidated Server,Text Analytics Application Role,TCP,2888,All
+Text Analytics Consolidated Server,Text Analytics Application Role,TCP,3888,All
+Voiceprint Enrollment Server,System,TCP,80,All
+Voiceprint Enrollment Server,System,TCP,443,All
+Consolidated Server,Content Server,TCP,80,All
+Consolidated Server,Content Server,TCP,443,All
+Consolidated Server,Framework Applications,TCP,80,All
+Consolidated Server,Framework Applications,TCP,443,All
+Consolidated Server,Interaction Applications,TCP,80,All
+Consolidated Server,Interaction Applications,TCP,443,All
+Consolidated Server,IP Recorder,TCP,29504,All
+Consolidated Server,IP Recorder,TCP,29510,All
+Consolidated Server,Recorder Integration Service,TCP,29520,All
+Consolidated Server,Screen Recorder,TCP,29503,All
+Consolidated Server,TDM Recorder,TCP,29502,All
+Data Center Server,Framework Applications,TCP,80,All
+Data Center Server,Framework Applications,TCP,443,All
+Data Center Server,Interaction Applications,TCP,80,All
+Data Center Server,Interaction Applications,TCP,443,All
+Recorder Server,IP Recorder,TCP,29504,All
+Recorder Server,IP Recorder,TCP,29510,All
+Recorder Server,Screen Recorder,TCP,29503,All
+Recorder Server,TDM Recorder,TCP,29502,All
+Centralized Archive Server,Telephone Playback Service,UDP,8500-8698,All
+Desktop,Desktop Components,TCP,4001,All
+Desktop,Desktop Components,UDP,8500-8503,All
+Lync Proxy Server,Lync Proxy,TCP,29524,All
+Telephone Playback Service Server,Telephone Playback Service,UDP,8500-8698,All
+TeTCPnal Server,TeTCPnal Server,TCP,4002,All
+TeTCPnal Server,TeTCPnal Server,UDP,8500-8698,All
+Application Server,Interaction Applications,TCP,80,All
+Application Server,Interaction Applications,TCP,443,All
+Application Server,DPA Application,TCP,80,All
+Application Server,DPA Application,TCP,443,All
+Consolidated Server,DPA Application,TCP,80,All
+Consolidated Server,DPA Application,TCP,443,All
+Consolidated Server,Interaction Applications,TCP,80,All
+Consolidated Server,Interaction Applications,TCP,443,All
+Consolidated Server,Recorder Integration Service,TCP,3020,All
+Consolidated Server,Recorder Integration Service,TCP,29522,All
+Data Center Server,DPA Application,TCP,80,All
+Data Center Server,DPA Application,TCP,443,All
+Data Center Server,Interaction Applications,TCP,80,All
+Data Center Server,Interaction Applications,TCP,443,All
+Recorder Integration Service Server,Recorder Integration Service,TCP,3020,All
+Recorder Integration Service Server,Recorder Integration Service,TCP,29522,All
+Recorder Server,Recorder Integration Service,TCP,3020,All
+Recorder Server,Recorder Integration Service,TCP,29522,All
+Consolidated Server,Framework Applications,TCP,7001,All
+Consolidated Server,SQL Server,TCP,1433,All
+Data Center Server,Framework Applications,TCP,7001,All
+Data Center Server,SQL Server,TCP,1433,All
+Consolidated Server,RTP Proxy,TCP,29509,All
+Recorder Server,RTP Proxy,TCP,29509,All
+Mobile Gateway Server,Mobile Gateway,TCP,26379,All
+Mobile Gateway Server,Mobile Gateway,TCP,6379,All
+Centralized Archive Server,Telephone Playback Service,TCP,5060,All
+Centralized Archive Server,Telephone Playback Service,UDP,5060,All
+Consolidated Server,Telephone Playback Service,TCP,5060,All
+Consolidated Server,Telephone Playback Service,UDP,5060,All
+Survey Server with Telephony Interface,Customer Feedback Survey,TCP,5060,All
+Survey Server with Telephony Interface,Customer Feedback Survey,UDP,5060,All
+Survey Server with VXML Interface,Customer Feedback Survey,TCP,5060,All
+Survey Server with VXML Interface,Customer Feedback Survey,UDP,5060,All
+Telephone Playback Service Server,Telephone Playback Service,TCP,5060,All
+Telephone Playback Service Server,Telephone Playback Service,UDP,5060,All
+Consolidated Server,Telephone Playback Service,UDP,8500-8698,All
+Consolidated Server,Archive Database,TCP,137,All
+Consolidated Server,Archive Database,TCP,139,All
+Consolidated Server,Archive Database,TCP,445,All
+Consolidated Server,Archive Database,UDP,137,All
+Consolidated Server,Archive Database,UDP,138,All
+Consolidated Server,Contact Database,TCP,137,All
+Consolidated Server,Contact Database,TCP,139,All
+Consolidated Server,Contact Database,TCP,445,All
+Consolidated Server,Contact Database,UDP,137,All
+Consolidated Server,Contact Database,UDP,138,All
+Consolidated Server,Contact OLTP Database,TCP,137,All
+Consolidated Server,Contact OLTP Database,TCP,139,All
+Consolidated Server,Contact OLTP Database,TCP,445,All
+Consolidated Server,Contact OLTP Database,UDP,137,All
+Consolidated Server,Contact OLTP Database,UDP,138,All
+Consolidated Server,DPA Database,TCP,137,All
+Consolidated Server,DPA Database,TCP,139,All
+Consolidated Server,DPA Database,TCP,445,All
+Consolidated Server,DPA Database,UDP,137,All
+Consolidated Server,DPA Database,UDP,138,All
+Consolidated Server,Framework Data Warehouse,TCP,137,All
+Consolidated Server,Framework Data Warehouse,TCP,139,All
+Consolidated Server,Framework Data Warehouse,TCP,445,All
+Consolidated Server,Framework Data Warehouse,UDP,137,All
+Consolidated Server,Framework Data Warehouse,UDP,138,All
+Consolidated Server,Framework Database,TCP,137,All
+Consolidated Server,Framework Database,TCP,139,All
+Consolidated Server,Framework Database,TCP,445,All
+Consolidated Server,Framework Database,UDP,137,All
+Consolidated Server,Framework Database,UDP,138,All
+Consolidated Server,Interaction Data Warehouse,TCP,137,All
+Consolidated Server,Interaction Data Warehouse,TCP,139,All
+Consolidated Server,Interaction Data Warehouse,TCP,445,All
+Consolidated Server,Interaction Data Warehouse,UDP,137,All
+Consolidated Server,Interaction Data Warehouse,UDP,138,All
+Consolidated Server,QM Database,TCP,137,All
+Consolidated Server,QM Database,TCP,139,All
+Consolidated Server,QM Database,TCP,445,All
+Consolidated Server,QM Database,UDP,137,All
+Consolidated Server,QM Database,UDP,138,All
+Consolidated Server,Speech Analytics Database,TCP,137,All
+Consolidated Server,Speech Analytics Database,TCP,139,All
+Consolidated Server,Speech Analytics Database,TCP,445,All
+Consolidated Server,Speech Analytics Database,UDP,137,All
+Consolidated Server,Speech Analytics Database,UDP,138,All
+Consolidated Server,Speech Products Database,TCP,137,All
+Consolidated Server,Speech Products Database,TCP,139,All
+Consolidated Server,Speech Products Database,TCP,445,All
+Consolidated Server,Speech Products Database,UDP,137,All
+Consolidated Server,Speech Products Database,UDP,138,All
+Contact & QM Database Server,Contact Database,TCP,137,All
+Contact & QM Database Server,Contact Database,TCP,139,All
+Contact & QM Database Server,Contact Database,TCP,445,All
+Contact & QM Database Server,Contact Database,UDP,137,All
+Contact & QM Database Server,Contact Database,UDP,138,All
+Contact & QM Database Server,DPA Database,TCP,137,All
+Contact & QM Database Server,DPA Database,TCP,139,All
+Contact & QM Database Server,DPA Database,TCP,445,All
+Contact & QM Database Server,DPA Database,UDP,137,All
+Contact & QM Database Server,DPA Database,UDP,138,All
+Contact & QM Database Server,QM Database,TCP,137,All
+Contact & QM Database Server,QM Database,TCP,139,All
+Contact & QM Database Server,QM Database,TCP,445,All
+Contact & QM Database Server,QM Database,UDP,137,All
+Contact & QM Database Server,QM Database,UDP,138,All
+Contact OLTP & Archive Database Server,Archive Database,TCP,137,All
+Contact OLTP & Archive Database Server,Archive Database,TCP,139,All
+Contact OLTP & Archive Database Server,Archive Database,TCP,445,All
+Contact OLTP & Archive Database Server,Archive Database,UDP,137,All
+Contact OLTP & Archive Database Server,Archive Database,UDP,138,All
+Contact OLTP & Archive Database Server,Contact OLTP Database,TCP,137,All
+Contact OLTP & Archive Database Server,Contact OLTP Database,TCP,139,All
+Contact OLTP & Archive Database Server,Contact OLTP Database,TCP,445,All
+Contact OLTP & Archive Database Server,Contact OLTP Database,UDP,137,All
+Contact OLTP & Archive Database Server,Contact OLTP Database,UDP,138,All
+Data Center Server,Archive Database,TCP,137,All
+Data Center Server,Archive Database,TCP,139,All
+Data Center Server,Archive Database,TCP,445,All
+Data Center Server,Archive Database,UDP,137,All
+Data Center Server,Archive Database,UDP,138,All
+Data Center Server,Contact Database,TCP,137,All
+Data Center Server,Contact Database,TCP,139,All
+Data Center Server,Contact Database,TCP,445,All
+Data Center Server,Contact Database,UDP,137,All
+Data Center Server,Contact Database,UDP,138,All
+Data Center Server,Contact OLTP Database,TCP,137,All
+Data Center Server,Contact OLTP Database,TCP,139,All
+Data Center Server,Contact OLTP Database,TCP,445,All
+Data Center Server,Contact OLTP Database,UDP,137,All
+Data Center Server,Contact OLTP Database,UDP,138,All
+Data Center Server,DPA Database,TCP,137,All
+Data Center Server,DPA Database,TCP,139,All
+Data Center Server,DPA Database,TCP,445,All
+Data Center Server,DPA Database,UDP,137,All
+Data Center Server,DPA Database,UDP,138,All
+Data Center Server,Framework Data Warehouse,TCP,137,All
+Data Center Server,Framework Data Warehouse,TCP,139,All
+Data Center Server,Framework Data Warehouse,TCP,445,All
+Data Center Server,Framework Data Warehouse,UDP,137,All
+Data Center Server,Framework Data Warehouse,UDP,138,All
+Data Center Server,Framework Database,TCP,137,All
+Data Center Server,Framework Database,TCP,139,All
+Data Center Server,Framework Database,TCP,445,All
+Data Center Server,Framework Database,UDP,137,All
+Data Center Server,Framework Database,UDP,138,All
+Data Center Server,Interaction Data Warehouse,TCP,137,All
+Data Center Server,Interaction Data Warehouse,TCP,139,All
+Data Center Server,Interaction Data Warehouse,TCP,445,All
+Data Center Server,Interaction Data Warehouse,UDP,137,All
+Data Center Server,Interaction Data Warehouse,UDP,138,All
+Data Center Server,QM Database,TCP,137,All
+Data Center Server,QM Database,TCP,139,All
+Data Center Server,QM Database,TCP,445,All
+Data Center Server,QM Database,UDP,137,All
+Data Center Server,QM Database,UDP,138,All
+Data Center Server,Speech Analytics Database,TCP,137,All
+Data Center Server,Speech Analytics Database,TCP,139,All
+Data Center Server,Speech Analytics Database,TCP,445,All
+Data Center Server,Speech Analytics Database,UDP,137,All
+Data Center Server,Speech Analytics Database,UDP,138,All
+Data Center Server,Speech Products Database,TCP,137,All
+Data Center Server,Speech Products Database,TCP,139,All
+Data Center Server,Speech Products Database,TCP,445,All
+Data Center Server,Speech Products Database,UDP,137,All
+Data Center Server,Speech Products Database,UDP,138,All
+Data Warehouse Server,Framework Data Warehouse,TCP,137,All
+Data Warehouse Server,Framework Data Warehouse,TCP,139,All
+Data Warehouse Server,Framework Data Warehouse,TCP,445,All
+Data Warehouse Server,Framework Data Warehouse,UDP,137,All
+Data Warehouse Server,Framework Data Warehouse,UDP,138,All
+Data Warehouse Server,Interaction Data Warehouse,TCP,137,All
+Data Warehouse Server,Interaction Data Warehouse,TCP,139,All
+Data Warehouse Server,Interaction Data Warehouse,TCP,445,All
+Data Warehouse Server,Interaction Data Warehouse,UDP,137,All
+Data Warehouse Server,Interaction Data Warehouse,UDP,138,All
+Database Management Server,Archive Database,TCP,137,All
+Database Management Server,Archive Database,TCP,139,All
+Database Management Server,Archive Database,TCP,445,All
+Database Management Server,Archive Database,UDP,137,All
+Database Management Server,Archive Database,UDP,138,All
+Database Management Server,Contact Database,TCP,137,All
+Database Management Server,Contact Database,TCP,139,All
+Database Management Server,Contact Database,TCP,445,All
+Database Management Server,Contact Database,UDP,137,All
+Database Management Server,Contact Database,UDP,138,All
+Database Management Server,Contact OLTP Database,TCP,137,All
+Database Management Server,Contact OLTP Database,TCP,139,All
+Database Management Server,Contact OLTP Database,TCP,445,All
+Database Management Server,Contact OLTP Database,UDP,137,All
+Database Management Server,Contact OLTP Database,UDP,138,All
+Database Management Server,DPA Database,TCP,137,All
+Database Management Server,DPA Database,TCP,139,All
+Database Management Server,DPA Database,TCP,445,All
+Database Management Server,DPA Database,UDP,137,All
+Database Management Server,DPA Database,UDP,138,All
+Database Management Server,Framework Data Warehouse,TCP,137,All
+Database Management Server,Framework Data Warehouse,TCP,139,All
+Database Management Server,Framework Data Warehouse,TCP,445,All
+Database Management Server,Framework Data Warehouse,UDP,137,All
+Database Management Server,Framework Data Warehouse,UDP,138,All
+Database Management Server,Framework Database,TCP,137,All
+Database Management Server,Framework Database,TCP,139,All
+Database Management Server,Framework Database,TCP,445,All
+Database Management Server,Framework Database,UDP,137,All
+Database Management Server,Framework Database,UDP,138,All
+Database Management Server,Interaction Data Warehouse,TCP,137,All
+Database Management Server,Interaction Data Warehouse,TCP,139,All
+Database Management Server,Interaction Data Warehouse,TCP,445,All
+Database Management Server,Interaction Data Warehouse,UDP,137,All
+Database Management Server,Interaction Data Warehouse,UDP,138,All
+Database Management Server,QM Database,TCP,137,All
+Database Management Server,QM Database,TCP,139,All
+Database Management Server,QM Database,TCP,445,All
+Database Management Server,QM Database,UDP,137,All
+Database Management Server,QM Database,UDP,138,All
+Database Server,Archive Database,TCP,137,All
+Database Server,Archive Database,TCP,139,All
+Database Server,Archive Database,TCP,445,All
+Database Server,Archive Database,UDP,137,All
+Database Server,Archive Database,UDP,138,All
+Database Server,Contact Database,TCP,137,All
+Database Server,Contact Database,TCP,139,All
+Database Server,Contact Database,TCP,445,All
+Database Server,Contact Database,UDP,137,All
+Database Server,Contact Database,UDP,138,All
+Database Server,Contact OLTP Database,TCP,137,All
+Database Server,Contact OLTP Database,TCP,139,All
+Database Server,Contact OLTP Database,TCP,445,All
+Database Server,Contact OLTP Database,UDP,137,All
+Database Server,Contact OLTP Database,UDP,138,All
+Database Server,DPA Database,TCP,137,All
+Database Server,DPA Database,TCP,139,All
+Database Server,DPA Database,TCP,445,All
+Database Server,DPA Database,UDP,137,All
+Database Server,DPA Database,UDP,138,All
+Database Server,Framework Data Warehouse,TCP,137,All
+Database Server,Framework Data Warehouse,TCP,139,All
+Database Server,Framework Data Warehouse,TCP,445,All
+Database Server,Framework Data Warehouse,UDP,137,All
+Database Server,Framework Data Warehouse,UDP,138,All
+Database Server,Framework Database,TCP,137,All
+Database Server,Framework Database,TCP,139,All
+Database Server,Framework Database,TCP,445,All
+Database Server,Framework Database,UDP,137,All
+Database Server,Framework Database,UDP,138,All
+Database Server,Interaction Data Warehouse,TCP,137,All
+Database Server,Interaction Data Warehouse,TCP,139,All
+Database Server,Interaction Data Warehouse,TCP,445,All
+Database Server,Interaction Data Warehouse,UDP,137,All
+Database Server,Interaction Data Warehouse,UDP,138,All
+Database Server,QM Database,TCP,137,All
+Database Server,QM Database,TCP,139,All
+Database Server,QM Database,TCP,445,All
+Database Server,QM Database,UDP,137,All
+Database Server,QM Database,UDP,138,All
+Database Server,Speech Analytics Database,TCP,137,All
+Database Server,Speech Analytics Database,TCP,139,All
+Database Server,Speech Analytics Database,TCP,445,All
+Database Server,Speech Analytics Database,UDP,137,All
+Database Server,Speech Analytics Database,UDP,138,All
+Database Server,Speech Products Database,TCP,137,All
+Database Server,Speech Products Database,TCP,139,All
+Database Server,Speech Products Database,TCP,445,All
+Database Server,Speech Products Database,UDP,137,All
+Database Server,Speech Products Database,UDP,138,All
+Framework Database & Reporting Server,Framework Data Warehouse,TCP,137,All
+Framework Database & Reporting Server,Framework Data Warehouse,TCP,139,All
+Framework Database & Reporting Server,Framework Data Warehouse,TCP,445,All
+Framework Database & Reporting Server,Framework Data Warehouse,UDP,137,All
+Framework Database & Reporting Server,Framework Data Warehouse,UDP,138,All
+Framework Database & Reporting Server,Framework Database,TCP,137,All
+Framework Database & Reporting Server,Framework Database,TCP,139,All
+Framework Database & Reporting Server,Framework Database,TCP,445,All
+Framework Database & Reporting Server,Framework Database,UDP,137,All
+Framework Database & Reporting Server,Framework Database,UDP,138,All
+Framework Database & Reporting Server,Interaction Data Warehouse,TCP,137,All
+Framework Database & Reporting Server,Interaction Data Warehouse,TCP,139,All
+Framework Database & Reporting Server,Interaction Data Warehouse,TCP,445,All
+Framework Database & Reporting Server,Interaction Data Warehouse,UDP,137,All
+Framework Database & Reporting Server,Interaction Data Warehouse,UDP,138,All
+Framework DB Server,Framework Database,TCP,137,All
+Framework DB Server,Framework Database,TCP,139,All
+Framework DB Server,Framework Database,TCP,445,All
+Framework DB Server,Framework Database,UDP,137,All
+Framework DB Server,Framework Database,UDP,138,All
+Recording & QM Database Server,Archive Database,TCP,137,All
+Recording & QM Database Server,Archive Database,TCP,139,All
+Recording & QM Database Server,Archive Database,TCP,445,All
+Recording & QM Database Server,Archive Database,UDP,137,All
+Recording & QM Database Server,Archive Database,UDP,138,All
+Recording & QM Database Server,Contact Database,TCP,137,All
+Recording & QM Database Server,Contact Database,TCP,139,All
+Recording & QM Database Server,Contact Database,TCP,445,All
+Recording & QM Database Server,Contact Database,UDP,137,All
+Recording & QM Database Server,Contact Database,UDP,138,All
+Recording & QM Database Server,Contact OLTP Database,TCP,137,All
+Recording & QM Database Server,Contact OLTP Database,TCP,139,All
+Recording & QM Database Server,Contact OLTP Database,TCP,445,All
+Recording & QM Database Server,Contact OLTP Database,UDP,137,All
+Recording & QM Database Server,Contact OLTP Database,UDP,138,All
+Recording & QM Database Server,DPA Database,TCP,137,All
+Recording & QM Database Server,DPA Database,TCP,139,All
+Recording & QM Database Server,DPA Database,TCP,445,All
+Recording & QM Database Server,DPA Database,UDP,137,All
+Recording & QM Database Server,DPA Database,UDP,138,All
+Recording & QM Database Server,QM Database,TCP,137,All
+Recording & QM Database Server,QM Database,TCP,139,All
+Recording & QM Database Server,QM Database,TCP,445,All
+Recording & QM Database Server,QM Database,UDP,137,All
+Recording & QM Database Server,QM Database,UDP,138,All
+Recording & QM Database Server,Speech Analytics Database,TCP,137,All
+Recording & QM Database Server,Speech Analytics Database,TCP,139,All
+Recording & QM Database Server,Speech Analytics Database,TCP,445,All
+Recording & QM Database Server,Speech Analytics Database,UDP,137,All
+Recording & QM Database Server,Speech Analytics Database,UDP,138,All
+Recording & QM Database Server,Speech Products Database,TCP,137,All
+Recording & QM Database Server,Speech Products Database,TCP,139,All
+Recording & QM Database Server,Speech Products Database,TCP,445,All
+Recording & QM Database Server,Speech Products Database,UDP,137,All
+Recording & QM Database Server,Speech Products Database,UDP,138,All
+Speech Database Server,Speech Analytics Database,TCP,137,All
+Speech Database Server,Speech Analytics Database,TCP,139,All
+Speech Database Server,Speech Analytics Database,TCP,445,All
+Speech Database Server,Speech Analytics Database,UDP,137,All
+Speech Database Server,Speech Analytics Database,UDP,138,All
+Speech Database Server,Speech Products Database,TCP,137,All
+Speech Database Server,Speech Products Database,TCP,139,All
+Speech Database Server,Speech Products Database,TCP,445,All
+Speech Database Server,Speech Products Database,UDP,137,All
+Speech Database Server,Speech Products Database,UDP,138,All
+Consolidated Server,Contact Database,TCP,137,All
+Consolidated Server,Contact Database,TCP,139,All
+Consolidated Server,Contact Database,TCP,445,All
+Consolidated Server,Contact Database,UDP,137,All
+Consolidated Server,Contact Database,UDP,138,All
+Contact & QM Database Server,Contact Database,TCP,137,All
+Contact & QM Database Server,Contact Database,TCP,139,All
+Contact & QM Database Server,Contact Database,TCP,445,All
+Contact & QM Database Server,Contact Database,UDP,137,All
+Contact & QM Database Server,Contact Database,UDP,138,All
+Data Center Server,Contact Database,TCP,137,All
+Data Center Server,Contact Database,TCP,139,All
+Data Center Server,Contact Database,TCP,445,All
+Data Center Server,Contact Database,UDP,137,All
+Data Center Server,Contact Database,UDP,138,All
+Database Management Server,Contact Database,TCP,137,All
+Database Management Server,Contact Database,TCP,139,All
+Database Management Server,Contact Database,TCP,445,All
+Database Management Server,Contact Database,UDP,137,All
+Database Management Server,Contact Database,UDP,138,All
+Database Server,Contact Database,TCP,137,All
+Database Server,Contact Database,TCP,139,All
+Database Server,Contact Database,TCP,445,All
+Database Server,Contact Database,UDP,137,All
+Database Server,Contact Database,UDP,138,All
+Recording & QM Database Server,Contact Database,TCP,137,All
+Recording & QM Database Server,Contact Database,TCP,139,All
+Recording & QM Database Server,Contact Database,TCP,445,All
+Recording & QM Database Server,Contact Database,UDP,137,All
+Recording & QM Database Server,Contact Database,UDP,138,All
+Text Analytics Consolidated Server,Text Analytics Datastore Role,TCP,80,All
+Text Analytics Consolidated Server,Text Analytics Datastore Role,TCP,443,All
+Text Analytics Datastore Server,Text Analytics Datastore Role,TCP,80,All
+Text Analytics Datastore Server,Text Analytics Datastore Role,TCP,443,All
+Text Analytics Datastore Server,Text Analytics Datastore Role,TCP,8983,All
+Text Analytics Datastore Server,Text Analytics Datastore Role,TCP,24007,All
+Text Analytics Datastore Server,Text Analytics Datastore Role,TCP,24008,All
+Text Analytics Datastore Server,Text Analytics Datastore Role,TCP,49152,All
+Text Analytics Datastore Server,Text Analytics Datastore Role,TCP,49153,All
+Text Analytics Consolidated Server,Text Analytics Datastore Role,TCP,8983,All
+Text Analytics Consolidated Server,Text Analytics Datastore Role,TCP,24007,All
+Text Analytics Consolidated Server,Text Analytics Datastore Role,TCP,24008,All
+Text Analytics Consolidated Server,Text Analytics Datastore Role,TCP,49152,All
+Text Analytics Consolidated Server,Text Analytics Datastore Role,TCP,49153,All

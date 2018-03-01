@@ -1,0 +1,526 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <?include GlolbalProperties.wxi ?>
+  <Product Id="$(var.ProductId)" 
+           Language="1033" 
+           Manufacturer="$(var.Manufacturer)" 
+           Name="$(var.ProductName)" 
+           UpgradeCode="$(var.UpgradeCode)"  
+           Version="$(var.ProductVersion)">
+    <?ifndef IsOriginalMSI ?>
+       <Package Comments="Deploy Tool Ready Ver 1.0.17.0" 
+                Compressed="yes" 
+             Description="$(var.ProductName)" 
+             InstallerVersion="300" 
+             Keywords="MSI;Verint;Ultra;070307" 
+             Languages="1033"  
+             InstallPrivileges="elevated"
+             Manufacturer="$(var.Manufacturer)" />
+    <?else?>
+       <Package Comments="$(var.ProductName) &#xD;&#xA;$(var.ProductVersion)" 
+                Compressed="yes" 
+             Description="$(var.ProductName)" 
+             InstallerVersion="300" 
+             Keywords="MSI;Verint;Ultra;070307" 
+             Languages="1033"  
+             InstallPrivileges="elevated"
+             Manufacturer="$(var.Manufacturer)" />
+    <?endif?>
+             
+    <!-- gets the data location, logs will go there -->
+    <Property Id="IMPACT360DATADIR">
+      <RegistrySearch Id="DATAROOT"
+                      Root="HKLM"
+                      Key="SOFTWARE\Impact360\Install"
+                      Name="Impact360DataDir"
+                      Win64="no"
+                      Type="raw"  />
+    </Property>
+
+    <Condition Message="You need to be an administrator to install this product.">
+      Privileged
+    </Condition>
+    
+    <!-- fail install if not found in registry -->
+    <Condition Message="Unable to locate the IMPACT 360 v11 data folder. Please contact your system administrator for assistance.">
+      <![CDATA[Installed OR IMPACT360DATADIR]]>
+    </Condition>
+
+    <!-- gets the software location, scripts will go there -->
+    <Property Id="IMPACT360SOFTWAREDIR">
+      <RegistrySearch Id="SOFTWAREROOT"
+                      Root="HKLM"
+                      Key="SOFTWARE\Impact360\Install"
+                      Name="Impact360SoftwareDir"
+                      Win64="no"
+                      Type="raw" />
+    </Property>
+
+    <!-- fail install if not found in registry -->
+    <Condition Message="Unable to locate the IMPACT 360 v11 software folder. Please contact your system administrator for assistance.">
+      <![CDATA[Installed OR IMPACT360SOFTWAREDIR]]>
+    </Condition>
+
+    <?ifndef IsOriginalMSI ?>
+    <Condition Message="Installation terminated&#xD;&#xA;The application [INSTALLATIONUNIT] is not installed on this machine"><![CDATA[ (IGNORE_VERSION_VERIFICATION = "true" OR INSTALLATIONUNITSEARCH <> 0)]]></Condition>
+    <Condition Message="Installation Terminated&#xD;&#xA; The installed [BRANDNAME] Minor Version is 0 and the patch is applicable from version [MINULTRAVERSION] to version [MAXULTRAVERSION]"><![CDATA[(IGNORE_VERSION_VERIFICATION = "true" OR MINULTRAVERSION="0") OR (NOT((INSTALLATIONUNITSEARCH <> 0) AND ((CORRECTULTRAVERSION = "false") AND (ULTRAMINORVERSION = 0))))]]></Condition>
+    <Condition Message="Installation Terminated&#xD;&#xA; The installed [BRANDNAME] Version is [INSTALLEDULTRAVERSION] and the patch is applicable for version [MINULTRAVERSION]"><![CDATA[(IGNORE_VERSION_VERIFICATION = "true" OR MINULTRAVERSION="0") OR (NOT((INSTALLATIONUNITSEARCH <> 0) AND ((CORRECTULTRAVERSION = "false") AND (MINULTRAVERSION = MAXULTRAVERSION))))]]></Condition>
+    <Condition Message="Installation Terminated&#xD;&#xA; The installed [BRANDNAME] Version is [INSTALLEDULTRAVERSION] and the patch is applicable from version [MINULTRAVERSION] to version [MAXULTRAVERSION]"><![CDATA[(IGNORE_VERSION_VERIFICATION = "true" OR MINULTRAVERSION="0") OR (NOT((INSTALLATIONUNITSEARCH <> 0) AND ((CORRECTULTRAVERSION = "false") AND (MINULTRAVERSION <> MAXULTRAVERSION))))]]></Condition>
+    <Condition Message="Installation Terminated&#xD;&#xA; The installed [BRANDNAME] Version is [INSTALLEDULTRAVERSION] and the patch is applicable for version [MINULTRAVERSION] [TempMinSP]"><![CDATA[(IGNORE_VERSION_VERIFICATION = "true" OR MINULTRAVERSION="0") OR (NOT((INSTALLATIONUNITSEARCH <> 0) AND (((CORRECTSPVERSION = "false")  AND (MINSP = MAXSP))  AND  (MINULTRAVERSION = MAXULTRAVERSION))))]]></Condition>
+    <Condition Message="Installation Terminated&#xD;&#xA; The installed [BRANDNAME] Version is [INSTALLEDULTRAVERSION] and the patch is applicable from version [MINULTRAVERSION] [TempMinSP] to version [MAXULTRAVERSION] [TempMinSP]"><![CDATA[(IGNORE_VERSION_VERIFICATION = "true" OR MINULTRAVERSION="0") OR (NOT((INSTALLATIONUNITSEARCH <> 0) AND (((CORRECTSPVERSION = "false")  AND (MINSP = MAXSP))  AND  (MINULTRAVERSION <> MAXULTRAVERSION))))]]></Condition>
+    <Condition Message="Installation Terminated&#xD;&#xA; The installed [BRANDNAME] Version is [INSTALLEDULTRAVERSION] and the patch is applicable from version [MINULTRAVERSION] [TempMinSP] to version [MINULTRAVERSION] [TempMaxSP]"><![CDATA[(IGNORE_VERSION_VERIFICATION = "true" OR MINULTRAVERSION="0") OR (NOT((INSTALLATIONUNITSEARCH <> 0) AND (((CORRECTSPVERSION = "false")  AND (MINSP <> MAXSP))  AND  (MINULTRAVERSION = MAXULTRAVERSION))))]]></Condition>
+    <Condition Message="Installation Terminated&#xD;&#xA; The installed [BRANDNAME] Version is [INSTALLEDULTRAVERSION] and the patch is applicable from version [MINULTRAVERSION] [TempMinSP] to version [MAXULTRAVERSION] [TempMaxSP]"><![CDATA[(IGNORE_VERSION_VERIFICATION = "true" OR MINULTRAVERSION="0") OR (NOT((INSTALLATIONUNITSEARCH <> 0) AND (((CORRECTSPVERSION = "false")  AND (MINSP <> MAXSP))  AND  (MINULTRAVERSION <> MAXULTRAVERSION))))]]></Condition>
+    <Condition Message="This computer has Exception Development Patch&#xD;&#xA;[OLDDISPLAYNAME] installed.&#xD;&#xA;Installing current patch can interfere with the Exception Development"><![CDATA[(IGNORE_VERSION_VERIFICATION = "true") OR (NOT((INSTALLATIONUNITSEARCH <> 0) AND ((OLDDISPLAYNAME << TEMPBRAND) AND (OLDDISPLAYNAME >> "CED"))))]]></Condition>
+    <Condition Message="The current installed patch [OLDDISPLAYNAME] is newer than the patch you attempt to install ([HOTFIXID]), please consult technical support for the right patch version."><![CDATA[(IGNORE_VERSION_VERIFICATION = "true") OR (NOT((INSTALLATIONUNITSEARCH <> 0) AND (OLDPATCHISNEW = "true")))]]></Condition>
+    <Condition Message="The hotfix is already installed.&#xD;&#xA;Please uninstall the hotfix and run installation again"><![CDATA[(IGNORE_VERSION_VERIFICATION = "true") OR (OLDPATCHISSAME <> "true")]]></Condition>
+    <Condition Message="Installation Terminated&#xD;&#xA; The hotfix ID [HOTFIXID] already exists"><![CDATA[HOTFIXID_ALREADY_EXIST <> "true"]]></Condition>
+    <UI Id="WixUI_Minimal">
+       <Dialog Id="WelcomeDlgNoLic" Width="370" Height="270" Title="!(loc.WelcomeDlg_Title)">
+            <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.VerifyReadyDlgInstall)" >
+              <Publish Property="WixUI_InstallMode" Value="Update">Installed AND PATCH</Publish>
+            </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+        <Control Id="Bitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="234" TabSkip="no" Text="!(loc.WelcomeDlgBitmap)" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Disabled="yes" Text="!(loc.WixUIBack)" />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="Description" Type="Text" X="135" Y="80" Width="220" Height="60" Transparent="yes" NoPrefix="yes" Text="!(loc.WelcomeDlgDescription)" >
+          <Condition Action="show">NOT Installed OR NOT PATCH</Condition>
+          <Condition Action="hide">Installed AND PATCH</Condition>
+        </Control>
+        <Control Id="Title" Type="Text" X="135" Y="20" Width="220" Height="60" Transparent="yes" NoPrefix="yes" Text="!(loc.WelcomeDlgTitle)" />
+      </Dialog>
+
+      <InstallUISequence>
+       <Show Dialog="WelcomeDlgNoLic" Before="ProgressDlg" Overridable="yes">NOT Installed OR PATCH</Show>
+      </InstallUISequence>
+            
+      <TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
+      <TextStyle Id="WixUI_Font_Bigger" FaceName="Tahoma" Size="12" />
+      <TextStyle Id="WixUI_Font_Title" FaceName="Tahoma" Size="9" Bold="yes" />
+
+      <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+      <Property Id="WixUI_Mode" Value="Minimal" />
+
+      <DialogRef Id="ErrorDlg" />
+      <DialogRef Id="FatalError" />
+      <DialogRef Id="FilesInUse" />
+      <DialogRef Id="MsiRMFilesInUse" />
+      <DialogRef Id="PrepareDlg" />
+      <DialogRef Id="ProgressDlg" />
+      <DialogRef Id="UserExit" />
+
+      <!-- This is the welcome dialog you specified-->
+      <DialogRef Id="WelcomeDlgNoLic"/>
+
+      <!-- Hook the new welcome dialog to the next one in the stack-->
+      <Publish Dialog="WelcomeDlgNoLic" Control="Next"  Event="NewDialog" Value="PrepareDlg">1</Publish>
+
+
+      <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
+      <Property Id="ARPNOMODIFY" Value="1" />
+    </UI>
+    <UIRef Id="WixUI_Common"/>
+
+    <?else?>
+    <UIRef Id="WixUI_Mondo" />
+    <?endif?>
+
+    <Media Id="1" Cabinet="Files.cab" EmbedCab="yes" CompressionLevel="high" />
+
+    <?ifndef IsOriginalMSI ?>
+
+    <DirectoryRef Id="IMPACT360SOFTWAREDIR">
+      <Component Id="PatchRegistry" Guid="{327B1160-DD78-4A1E-B825-5EA7FEDB3F9D}" Transitive="yes">
+        <RegistryValue Id="InstallationDateReg" Root="HKLM" Key="SOFTWARE\Impact360\Hotfixes\[ROOT_REGISTRY_KEY]" Name="InstallationDate" Value="[Date]" Type="string" KeyPath="yes" />
+        <RegistryValue Id="DisplayHOTFIXID" Root="HKLM" Key="SOFTWARE\Impact360\Hotfixes\[ROOT_REGISTRY_KEY]"  Name="Patch ID" Value="[HOTFIXID]" Type="string" />
+        <RegistryValue Id="HotfixVersionReg" Root="HKLM" Key="SOFTWARE\Impact360\Hotfixes\[ROOT_REGISTRY_KEY]"  Name="Version" Value="[HOTFIXVERSION]" Type="string" />
+        <RegistryValue Id="DisplayNameHistoryReg" Root="HKLM" Key="SOFTWARE\Impact360\PatchesHistory\[ROOT_REGISTRY_KEY]"  Name="Patch $(var.HOTFIXID)" Value="[BRANDNAME] $(var.InstallationUnitName) HotFix [HOTFIXID]" Type="string" />
+      </Component>
+      <Component Id="UninstallRegistry" Guid="{CD7723E0-DE22-405D-90A5-93D476199C22}">
+        <RegistryValue Id="DisplayNameReg" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[PRODUCTID]"  Name="DisplayName" Value="[BRANDNAME] $(var.InstallationUnitName) HotFix [HOTFIXID]" Type="string" KeyPath="yes" />
+        <RegistryValue Id="UninstallStringReg" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[PRODUCTID]" Name="UninstallString" Value="RunDll32 advpack.dll,LaunchINFSection [RollbackDir]rollback.inf, Uninstall" Type="string" />
+        <RegistryValue Id="UninstallVersiongReg" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[PRODUCTID]" Name="Version" Value="$(var.HotFixVersion)" Type="string" />
+        <RegistryValue Id="UninstallDisplayVersiongReg" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[PRODUCTID]" Name="DisplayVersion" Value="$(var.HotFixVersion)" Type="string" />
+        <RegistryValue Id="UninstallInstallDateReg" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[PRODUCTID]" Name="InstallDate" Value="[DATEYYYYMMDD]" Type="string" />
+        <RegistryValue Id="UninstallInstallEstimatedSizeReg" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[PRODUCTID]" Name="EstimatedSize" Value="[ESTIMATEDSIZE]" Type="integer" />
+        <RegistryValue Id="UninstallInstallPublisherReg" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[PRODUCTID]" Name="Publisher" Value="[OEM_PRODUCT_NAME]" Type="string" />
+      </Component>
+      <Component Id="UninstallINSTALLATIONUNITRegistry" Guid="{CD772310-DC22-405D-90A5-93D376199B82}">
+        <Condition>UPDATE_INSTALLATIONUNIT_VERSION="true"</Condition>
+        <RegistryValue Id="UninstallINSTALLATIONUNITDisplayVersiongReg" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[INSTALLATIONUNITGUID]" Name="DisplayVersion" Value="$(var.HotFixVersion)" Type="string" />
+        <RegistryValue Id="UninstallINSTALLATIONUNITInstallDateReg" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[INSTALLATIONUNITGUID]" Name="InstallDate" Value="[DATEYYYYMMDD]" Type="string" />
+        <RegistryValue Id="UninstallINSTALLATIONUNITSystemComponent" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[INSTALLATIONUNITGUID]"  Name="SystemComponent" Value="1" Type="integer" KeyPath="yes" />
+        <RegistryValue Id="UninstallINSTALLATIONUNITLatestHotfixId" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[INSTALLATIONUNITGUID]"  Name="LatestHotfixId" Value="[HOTFIXID]" Type="string" />
+        <RegistryValue Id="UninstallINSTALLATIONUNITHotfixProductCode" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[INSTALLATIONUNITGUID]"  Name="HotfixProductCode" Value="[PRODUCTID]" Type="string" />
+      </Component>
+      <Component Id="ChangePublisherUNSTALLATIONUNITRegistry" Guid="{043278F5-27C0-4862-A717-50B2A9097710}">
+        <Condition>DEPRICATED="true"</Condition>
+        <RegistryValue Id="UninstallINSTALLATIONUNITPublisherReg" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[INSTALLATIONUNITGUID]" Name="Publisher" Value="Impact_360" Type="string" />
+      </Component>
+      <Component Id="HideUninstallRegistry" Guid="{CD7723E0-DE22-405D-90A5-93D376199B22}">
+        <Condition>ARPSYSTEMCOMPONENT="false"</Condition>
+        <RegistryValue Id="SystemComponent" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[PRODUCTID]"  Name="SystemComponent" Value="1" Type="integer" KeyPath="yes" />
+      </Component>
+      <Component Id="RemoveOldUninstallRegistry" Guid="{44A2B538-D4BC-47ff-97AE-BD3FE46C85AE}" KeyPath="yes" >
+        <Condition><![CDATA[OLD_UNINSTALL_REGISTRY_WITH_ULTRA_BRANDNAME_EXIST<>0]]></Condition>
+        <RemoveRegistryKey Id="RemoveOldUninstKey" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[PRODUCTID]" Action="removeOnInstall" />
+      </Component>
+      <Component Id="BackupComponentInstallDate" Guid="{9E04993F-A343-45d6-9C20-07A963D9E2D6}" KeyPath="yes"  >
+        <Condition><![CDATA[PARENTORIGINALINSTALLATIONUNITDATE=0]]></Condition>
+        <RegistryValue Id="BackupComponentInstallDateKey" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[INSTALLATIONUNITGUID]" Name="ComponentInstallDate" Value="[PARENTINSTALLATIONUNITDATE]" Type="string"/>
+      </Component>
+    </DirectoryRef>
+
+    <?endif?>
+
+    <Feature Id="Complete" ConfigurableDirectory="IMPACT360SOFTWAREDIR" Level="1" Title="Complete">
+      <Feature Id="UserFeature" Level="1" Title="UserFeature">
+        <ComponentGroupRef Id="UserServices"/>
+        <ComponentGroupRef Id="UserFeatureFiles" />
+        <ComponentGroupRef Id="UserFeatureReg" />
+      </Feature>
+
+      <?ifndef IsOriginalMSI ?>
+      <ComponentRef Id="RemoveOldUninstallRegistry" />
+      <ComponentRef Id="PatchRegistry" />
+      <ComponentRef Id="UninstallRegistry" />
+      <ComponentRef Id="UninstallINSTALLATIONUNITRegistry"/>
+      <ComponentRef Id="ChangePublisherUNSTALLATIONUNITRegistry"/>      
+      <ComponentRef Id="HideUninstallRegistry" />
+      <ComponentRef Id="BackupComponentInstallDate" />
+      <?endif?>
+
+    </Feature>
+    
+    <?ifndef IsOriginalMSI ?>
+    <InstallExecuteSequence>
+      <!-- Initial Patch properties setup -->
+      <!-- original UIExecution-->
+      <!-- +++++++ before lauch Condition (seq 100) -->
+      <Custom Action="GetInstallationUNITFromInstallationUNITName" Before="AppSearch" ><![CDATA[FINDINSTALLATIONVIANAME = "true"]]></Custom>
+      <Custom Action="GetInactiveDCvalueFromXML" Before="AppSearch" />
+      <Custom Action="Create_TempIMSAFolder" Before="AppSearch" />
+      <Custom Action="Set_HotFixRootDis" After="AppSearch" />
+      <Custom Action="Set_Impersonation" After="AppSearch" />      
+      <Custom Action="Set_INSTALLDIR_To_IMPACT360SOFTWAREDIR" After="AppSearch" />
+      <Custom Action="set_ARPBRANDComments" After="Set_INSTALLDIR_To_IMPACT360SOFTWAREDIR" />
+      <Custom Action="set_GACUTILPATH" After="set_ARPBRANDComments" />
+      <Custom Action="set_OLDHFVERSION" After="set_GACUTILPATH" ><![CDATA[UPDATE_INSTALLATIONUNIT_VERSION <> 0]]></Custom>
+      <Custom Action="Set_Ultra_Brandname_INSTALLATIONUNIT_Patch_String" After="set_OLDHFVERSION" />
+      <Custom Action="Set_Ultra_Brand_Sub_HOTFIXID_String" After="Set_Ultra_Brandname_INSTALLATIONUNIT_Patch_String" />
+      <Custom Action="SetIgnoreVerifacation2false" After="Set_Ultra_Brand_Sub_HOTFIXID_String"></Custom>
+      <Custom Action="Create_DATEYYYYMMDD" After="SetIgnoreVerifacation2false" />
+      <Custom Action="Create_ESTIMATEDSIZE" After="SetIgnoreVerifacation2false" />
+      <Custom Action="CheckIfApplicableToUltraVersion" Before="SetIgnoreVerifacation2false" />
+      <Custom Action="Detect9xVersion" Before="CheckIfApplicableToUltraVersion" />
+
+      <Custom Action="CompareVersion" Before="LaunchConditions" />
+      <Custom Action="CheckIfPatchIDIsAlreadyExist" Before="LaunchConditions" />
+      
+      <!-- +++++ before ValidateProductID (seq 700) -->
+      <!-- if INSTALLEDULTRAVERSION = 0-->
+      <Custom Action="SetPatchReinstallMode" Before="Set_INSTALLDIR_FROM_INSTALL_LOCATION" />
+      <Custom Action="Set_INSTALLDIR_FROM_INSTALL_LOCATION" Before="Set_INSTALLDIR_on_Server_EI"><![CDATA[INSTALL_LOCATION <> 0]]></Custom>
+      <!-- if CUSTOMINSTALLDIR <> 0-->
+      <Custom Action="Set_INSTALLDIR_on_Server_EI" Before="Set_DEFAULTWWW_EI"><![CDATA[CUSTOMINSTALLDIR <> 0]]></Custom>
+      <!-- Search for default website local path -->
+      <Custom Action="Set_DEFAULTWWW_EI" Before="Getwwwroot_dir_EI" />      
+      <Custom Action="Getwwwroot_dir_EI" Before="ValidateProductID" />
+      <!-- if PREPAREROLLBACK script-->
+      <Custom Action="CallGenerateDataForImpersonatedUninstall" Before="PrepareRollBack" />
+      <Custom Action="PrepareRollBack" After="CostFinalize" />
+      <Custom Action="PrepareDynamicCustomAction" After="InstallFiles" />
+      <!-- *************************************************************************************************-->
+      <!--            custom action befor file copy (action < InstallInitialize).            -->
+      <!-- *************************************************************************************************-->
+      <!-- ++++++ Action after InstallFiles. -->
+      <!-- if PREPAREROLLBACK = 1-->
+      <Custom Action="RunStopServicesPre_Installation" After="InstallInitialize"><![CDATA[(PREPAREROLLBACK = "true")  AND  (AUTO_RESTART_SERVICES = "true")]]></Custom>
+      <Custom Action="CallGenerateImpersonateTableData" Before="ImpersonateAction_LogonAsService" ><![CDATA[RUNIMPERSONATION = "true"]]></Custom>
+      <Custom Action="SetImpersonateCustomActionDataValue_I" Before="ImpersonateAction_LogonAsService" ><![CDATA[RUNIMPERSONATION = "true"]]></Custom>
+      <Custom Action="SetImpersonateCustomActionDataValue_S" Before="ImpersonateAction_LogonAsService" ><![CDATA[RUNIMPERSONATION = "true"]]></Custom>
+      <Custom Action="ImpersonateAction_LogonAsService" Before="InstallFinalize" ><![CDATA[RUNIMPERSONATION = "true"]]></Custom>
+      <Custom Action="ImpersonateAction_LogonAsInteractive" After="ImpersonateAction_LogonAsService" ><![CDATA[RUNIMPERSONATION = "true"]]></Custom>
+      <Custom Action="CreateInstallationAuditFolder" Before="InstallFinalize" />
+      <Custom Action="CallCreateUCMTriggerFileIfRequired" Before="InstallFinalize" />      
+      <Custom Action="AddInstallationAuditLogEntry" After="CreateInstallationAuditFolder" />
+
+      <Custom Action="Set_GACUTILTempBatchFile" After="InstallFiles"><![CDATA[PREPAREROLLBACK = "true"]]></Custom>
+      <Custom Action="InstallGac" After="Set_GACUTILTempBatchFile"><![CDATA[PREPAREROLLBACK = "true"]]></Custom>
+      <!-- if (PREPAREROLLBACK = 1)  AND  (GACUTILRUN = 1)-->
+      <Custom Action="RunGACUTIL_BatchFile" After="InstallGac"><![CDATA[(PREPAREROLLBACK = "true")  AND  (GACUTILRUN = "true")]]></Custom>
+      <Custom Action="RunStopServicesPost_Installation" After="InstallGac"><![CDATA[(PREPAREROLLBACK = "true")  AND  (AUTO_RESTART_SERVICES = "true")]]></Custom>
+
+      <Custom Action="DeleteZipFileAction" After="InstallFinalize"><![CDATA[(UseZIP = "true")]]></Custom>
+      <Custom Action="DeleteLogFileAction" After="DeleteZipFileAction"><![CDATA[(UseZIP = "true")]]></Custom>
+      <Custom Action="ZipHFDirAction" After="DeleteZipFileAction"><![CDATA[(UseZIP = "true")]]></Custom>
+      <Custom Action="MakeZipFileReadOnly" After="ZipHFDirAction"><![CDATA[(UseZIP = "true")]]></Custom>
+      <Custom Action="MakeInfFileReadOnly" After="MakeZipFileReadOnly"><![CDATA[(UseZIP = "true")]]></Custom>
+      <Custom Action="MakeBatchFileReadOnly" After="MakeZipFileReadOnly"><![CDATA[(UseZIP = "true")]]></Custom>
+      <Custom Action="DelFolderContent"  After="MakeInfFileReadOnly" ><![CDATA[(UseZIP = "true")]]></Custom>
+      <Custom Action="UndoZipFileReadOnly" After="DelFolderContent"><![CDATA[(UseZIP = "true")]]></Custom>
+      <Custom Action="UndoInfFileReadOnly" After="UndoZipFileReadOnly"><![CDATA[(UseZIP = "true")]]></Custom>
+      <Custom Action="UndoBatchFileReadOnly" After="UndoZipFileReadOnly"><![CDATA[(UseZIP = "true")]]></Custom>
+
+      <!-- *******************************************************************-->
+      <!--            custom action After file copy Seq- 6501 - 6599    -->
+      <!-- *******************************************************************-->
+      <!-- Disabled MSI features -->
+      <PublishFeatures Suppress="yes" />
+      <PublishProduct Suppress="yes" />
+      <RegisterProduct Suppress="yes" />
+      <RegisterUser Suppress="yes" />
+      <PublishComponents Suppress="yes" />
+      <MsiPublishAssemblies Suppress="yes" />
+      <ProcessComponents Suppress="yes" />
+      <UnpublishComponents Suppress="yes" />
+      <MsiUnpublishAssemblies Suppress="yes" />
+      <UnpublishFeatures Suppress="yes" />
+    </InstallExecuteSequence>
+    <?else?>
+    <InstallExecuteSequence>
+      <Custom Action="Set_HotFixRootDis" After="AppSearch" />
+      <Custom Action="PrepareRollBack" After="CostFinalize"><![CDATA[INSTALLATIONUNITSEARCH <> 0]]></Custom>
+    </InstallExecuteSequence>
+    <?endif?>
+
+
+    <?ifndef IsOriginalMSI ?>
+    <InstallUISequence>
+      <Custom Action="GetInstallationUNITFromInstallationUNITName" Before="AppSearch"><![CDATA[FINDINSTALLATIONVIANAME = "true"]]></Custom>
+      <Custom Action="Set_HotFixRootDis" After="AppSearch" />      
+      <Custom Action="Set_INSTALLDIR_To_IMPACT360SOFTWAREDIR" After="AppSearch" />
+      <Custom Action="set_ARPBRANDComments" After="Set_INSTALLDIR_To_IMPACT360SOFTWAREDIR" />
+      <Custom Action="set_GACUTILPATH" After="set_ARPBRANDComments" />
+      <Custom Action="set_OLDHFVERSION" After="set_GACUTILPATH" ><![CDATA[UPDATE_INSTALLATIONUNIT_VERSION <> 0]]></Custom>
+      <Custom Action="Set_Ultra_Brandname_INSTALLATIONUNIT_Patch_String" After="set_OLDHFVERSION" />
+      <Custom Action="Set_Ultra_Brand_Sub_HOTFIXID_String" After="Set_Ultra_Brandname_INSTALLATIONUNIT_Patch_String" />
+      <Custom Action="SetIgnoreVerifacation2false" After="Set_Ultra_Brand_Sub_HOTFIXID_String"></Custom>
+      <Custom Action="Create_DATEYYYYMMDD" After="SetIgnoreVerifacation2false" />
+      <Custom Action="Create_ESTIMATEDSIZE" After="SetIgnoreVerifacation2false" />
+      <Custom Action="CheckIfApplicableToUltraVersion" Before="SetIgnoreVerifacation2false" />
+      <Custom Action="Detect9xVersion" Before="CheckIfApplicableToUltraVersion" />
+      <Custom Action="CheckIfPatchIDIsAlreadyExist" Before="LaunchConditions" />
+      
+      <Custom Action="CompareVersion" Before="LaunchConditions" />
+      <!-- +++++ before ValidateProductID (seq 700) -->
+      <!-- if INSTALLEDULTRAVERSION = 0-->
+      <Custom Action="SetPatchReinstallMode" Before="Set_INSTALLDIR_FROM_INSTALL_LOCATION" />
+      <Custom Action="Set_INSTALLDIR_FROM_INSTALL_LOCATION" Before="Set_INSTALLDIR_on_Server_EI"><![CDATA[INSTALL_LOCATION <> 0]]></Custom>
+      <!-- if CUSTOMINSTALLDIR <> 0-->
+      <Custom Action="Set_INSTALLDIR_on_Server_EI" Before="Set_DEFAULTWWW_EI"><![CDATA[CUSTOMINSTALLDIR <> 0]]></Custom>
+      <!-- Search for default website local path -->
+      <Custom Action="Set_DEFAULTWWW_EI" Before="Getwwwroot_dir_EI" />
+      <Custom Action="Getwwwroot_dir_EI" Before="ValidateProductID" />
+      <!-- if PREPAREROLLBACK script-->
+      <Custom Action="PrepareRollBack" After="CostFinalize" />
+      <Custom Action="PrepareDynamicCustomAction" After="PrepareRollBack" />
+      <!-- *************************************************************************************************-->
+      <!--            custom action befor file copy (action < InstallInitialize).            -->
+      <!-- *************************************************************************************************-->
+      <!-- ++++++ Action after InstallFiles. -->
+      <!-- *******************************************************************-->
+      <!--            custom action After file copy Seq- 6501 - 6599    -->
+      <!-- *******************************************************************-->
+    </InstallUISequence>
+    <?endif?>
+
+
+    <WixVariable Id="WixUILicenseRtf" Value="eula.rtf" />
+    <Property Id="MSIUSEREALADMINDETECTION" Value="1" />
+    <Property Id="ALLUSERS" Value="2" />
+    <Property Id="AUTO_RESTART_SERVICES" Value="true" />    
+    <Property Id="RUNIMPERSONATION" Value="false" />
+    <Property Id="HOTFIXID_ALREADY_EXIST" Value="false" />    
+    <Property Id="PRODUCTID" Value="$(var.ProductId)" />
+    <Property Id="HOTFIXVERSION" Value="$(var.HotFixVersion)" />
+    <Property Id="DiskPrompt" Value="$(var.ProductName) [1]" />
+    <Property Id="InstallMode" Value="Complete" />
+    <Property Id="ReinstallFileOlderVersion" Value="false" />
+    <Property Id="ReinstallRepair" Value="r" />
+    <Property Id="Accept" Value="No" />
+    <Property Id="SERVER_ON_INACTIVE_DC" Value="false" />
+    <Property Id="UninstallCommandsPre" Value="false" />
+    <Property Id="UninstallCommandsPost" Value="false" />
+    <Property Id="REBOOT" Value="Suppress" />
+    <Property Id="OLDPATCHISNEW" Value="false" />
+    <Property Id="OLDPATCHISSAME" Value="false" />
+    <Property Id="TempMinSP" Value="0" />
+    <Property Id="POSTACTIONLIST" Value="$(var.PostCustomAction)" />
+    <Property Id="PREACTIONLIST" Value="$(var.PreCustomAction)" />
+    <Property Id="APPS_TEST" Value="true" />
+    <Property Id="CORRECTULTRAVERSION" Value="false" />
+    <Property Id="MINULTRAVERSION" Value="$(var.MinVersionToInstall)" />
+    <Property Id="GACUTILTempBatchFile" Value="GacInstall.bat" />
+    <Property Id="DELETE_NEW_FILES_IN_ROLLBACK" Value="$(var.DeleteNewFilesOnRollBack)" />
+    <Property Id="ApplicationUsers" Value="AllUsers" />
+    <Property Id="ULTRAUSERPASSWORD" Value="0 " Hidden="yes" />
+    <Property Id="TEMPLATE_VERSION" Value="15.2.0.19" />
+    <Property Id="ARPNOREPAIR" Value="1" />
+    <Property Id="TempMaxSP" Value="0" />
+    <Property Id="MAXSP" Value="$(var.MaxServicePackToInstall)" />
+    <Property Id="MaintenanceMode" Value="Modify" />
+    <Property Id="InstallerAuditLogName" Value="InstallerAudit.log" />
+    <Property Id="PIDTemplate" Value="12345&lt;###-%%%%%%%&gt;@@@@@" />
+    <Property Id="PREPAREROLLBACK" Value="false" />
+    <Property Id="UseZIP" Value="$(var.UseZIP)" />
+    <Property Id="ProductVersionForShowing" Value="Ver 10.1.200" />
+    <Property Id="ULTRAUSERNAME" Value="0 " />
+    <Property Id="ADD_VERINTSDK" Value="$(var.ADD_VERINTSDK)" />
+    <Property Id="ReinstallFileVersion" Value="o" />
+    <Property Id="INSTALLATIONUNIT" Value="$(var.InstallationUnitName)" />
+    <Property Id="FINDINSTALLATIONVIANAME" Value="$(var.FindInstallationViaName)" />
+    <Property Id="INSTALLATIONUNITGUID" Value="$(var.INSTALLATIONUNITGUID)" />
+    <Property Id="VERINTSDK_PROPERTIES_COUNTER" Value="$(var.VERINTSDK_PROPERTIES_COUNTER)" />
+    <Property Id="VERINTSDK_PARAM_1" Value="$(var.VERINTSDK_PARAM_1)" />
+    <Property Id="VERINTSDK_PARAM_2" Value="$(var.VERINTSDK_PARAM_2)" />
+    <Property Id="VERINTSDK_PARAM_3" Value="$(var.VERINTSDK_PARAM_3)" />
+    <Property Id="VERINTSDK_PARAM_4" Value="$(var.VERINTSDK_PARAM_4)" />
+    <Property Id="VERINTSDK_PARAM_5" Value="$(var.VERINTSDK_PARAM_5)" />
+    <Property Id="VERINTSDK_PARAM_6" Value="$(var.VERINTSDK_PARAM_6)" />
+
+    <Property Id="VERINTSDK_ACTION_COUNTER" Value="$(var.VERINTSDK_ACTION_COUNTER)" />
+    <Property Id="VERINTSDK_ACTION_1" Value="$(var.VERINTSDK_ACTION_1)" />
+    <Property Id="VERINTSDK_ACTION_2" Value="$(var.VERINTSDK_ACTION_2)" />
+    <Property Id="VERINTSDK_ACTION_3" Value="$(var.VERINTSDK_ACTION_3)" />
+    <Property Id="VERINTSDK_ACTION_4" Value="$(var.VERINTSDK_ACTION_4)" />
+    <Property Id="VERINTSDK_ACTION_5" Value="$(var.VERINTSDK_ACTION_5)" />
+    <Property Id="VERINTSDK_ACTION_6" Value="$(var.VERINTSDK_ACTION_6)" />
+   
+    <!-- add support for deploy tool -->
+
+
+    <?if $(var.ServicetoStopList) != "" ?>
+       <?define SERVICE_STOP_CMD= "<Executable ExePath="ManagementServicesComponent\ManagementServicesComponent.exe" Type="Other" CmdLineArguments="stop &quot;$(var.ServicetoStopList)&quot; force #windir#\temp\servicePre_Service_Manager.log&quot;" LogPath="&quot;#windir#\temp\servicePre_Service_Manager.log&quot;" ExitCode="0" />"?>
+    <?else?>
+        <?define SERVICE_STOP_CMD="" ?>
+    <?endif ?>
+    <?if $(var.ServicetoStartList) != ""?>
+       <?define SERVICE_START_CMD = "<Executable ExePath="ManagementServicesComponent\ManagementServicesComponent.exe" Type="Other" CmdLineArguments="start &quot;$(var.ServicetoStartList)&quot;  #windir#\temp\servicePre_Service_Manager.log&quot;" LogPath="&quot;#windir#\temp\servicePre_Service_Manager.log&quot;" ExitCode="0" />" ?>
+    <?else?>
+       <?define SERVICE_START_CMD="" ?>
+    <?endif ?>
+
+
+    <Property Id="SR_XML">
+          <![CDATA[<Component>
+          <Name>$(var.ProductName) HotFix $(var.HOTFIXID)</Name>
+          <OtherName>$(var.ProductId)</OtherName>
+          <Version>$(var.HotFixVersion)</Version>
+          <HelpString />
+          <Prerequisites>
+            <Requsits Section="Applications" Type="ItemExist" Action="HideComponent" DisplayName="" Value="" Name="$(var.INSTALLATIONUNITGUID)" />
+            <Requsits Section="ValidateComponentsNotInstalledBySR" Type="ItemNotExist" Action="HideComponent" DisplayName="$(var.ProductName) HotFix $(var.HOTFIXID)" Value="" Name="$(var.ProductId)" />
+          </Prerequisites>
+          <InstallationParameters>
+            $(var.SERVICE_STOP_CMD)
+            $(var.SERVICE_START_CMD)
+            <Executable ExePath="#inst#\$(var.HOTFIXID).msi" Type="MSI" CmdLineArguments="ARPSYSTEMCOMPONENT=true DoNotStartStopServices=false" SuccessString="" />
+            <Removable>true</Removable>
+            <restart>false</restart>
+            <DirectUpgrade>true</DirectUpgrade>
+          </InstallationParameters>
+          <Plugin>
+            <Plugin Name="Builtin Admin" dllName="Verint.Impact360.SRValidator.HFRValidationPlugin.dll" className="HFRComponentsValidationPlugin" />
+          </Plugin>
+          <Signature></Signature>
+        </Component>]]>
+    </Property>
+   
+    <?ifdef DeprecationPatch ?>
+      <Property Id="DEPRICATED" Value="$(var.DeprecationPatch)" />
+    <?else?>
+      <Property Id="DEPRICATED" Value="false" />
+    <?endif?>
+
+    <?ifdef INSTALLATIONUNITGUID1  ?>
+      <Property Id="INSTALLATIONUNITGUID_SEC" Value="$(var.INSTALLATIONUNITGUID_SEC)" />
+    <?endif?>
+    <Property Id="BRANDNAME" Value="$(var.BrandName)" >
+      <!-- Display a  name in Add/Remove programs from var.BrandName and not from registry/-->
+      <!--RegistrySearch Id="BrandNameSearchReg" Root="HKLM" Key="SOFTWARE\Impact360\Install" Name="ProductBrandName" Type="raw" /-->
+    </Property>
+    <Property Id="GACUTILPATH" Value="set_GACUTILPATH_CustomAction_will_Modify" />
+    <Property Id="HOTFIXSOFTWAREDIRROOT" Value="Set_HotFixRootDis_will_Modify" />
+    <Property Id="HOTFIXDATADIRROOT" Value="Set_HotFixRootDis_will_Modify" />
+    <Property Id="START_WATCHDOG_SERVICE" Value="$(var.StartWatchDogService)" />
+    <Property Id="IGNORE_VERSION_VERIFICATION" Value="$(var.IgnoreVersionVerification)" />
+    <Property Id="MAXULTRAVERSION" Value="$(var.MaxVersionToInstall)" />
+    <Property Id="ULTRAUSERDOMAIN" Value="0" />
+    <Property Id="MINSP" Value="$(var.MinServicePackToInstall)" />
+    <Property Id="ARPCOMMENTS" Value="$(var.Comments)" />
+    <Property Id="REQUIRE_ULTRAUSER" Value="false" />
+    <Property Id="GACUTILRUN" Value="false" />
+    <Property Id="INSTALLDIR" Secure="yes" />
+    <Property Id="CUSTOMINSTALLDIR" Value="0" />
+    <Property Id="EXISTINGVERSION" Value="true" />
+    <Property Id="CORRECTSPVERSION" Value="false" />
+    <Property Id="INSTALLLEVEL" Value="3" />
+    <Property Id="HOTFIXID" Value="$(var.HOTFIXID)" />
+    <Property Id="ARPSYSTEMCOMPONENT" Value="$(var.ShowInAddRemove)" />
+    <Property Id="ROOT_REGISTRY_KEY" Value="$(var.BrandName) $(var.InstallationUnitName) HotFix" />
+    <Property Id="UPDATE_INSTALLATIONUNIT_VERSION" Value="$(var.UpdateInstallationUnitVersion)" />
+
+    <!-- patch RegistrySearch section  -->
+    <Property Id="OLD_UNINSTALL_REGISTRY_WITH_ULTRA_BRANDNAME_EXIST" Value="0">
+      <RegistrySearch Id="OldUltraUninstallString" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[PRODUCTID]" Name="UninstallString" Type="raw" />
+    </Property>
+    <Property Id="PRODUCTBRANDNAME">
+      <RegistrySearch Id="BrandNameSearchReg" Root="HKLM" Key="SOFTWARE\Impact360\Install" Name="ProductBrandName" Type="raw"  Win64="no"/>
+    </Property>
+    <Property Id="OLDUNINSTALLSTRING">
+      <RegistrySearch Id="UltraUninstallStringBranding" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[PRODUCTID]" Name="UninstallString" Type="raw" />
+    </Property>
+    <Property Id="OLDDISPLAYNAME" Value="0">
+      <RegistrySearch Id="UltraDisplayNameBranding" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[PRODUCTID]" Name="DisplayName" Type="raw" />
+    </Property>
+    <Property Id="OLDHFVERSION" Value="0">
+      <RegistrySearch Id="UltraDVersionBranding" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[PRODUCTID]" Name="Version" Type="raw" />
+    </Property>
+    <Property Id="OLDINSTALLATIONUNITVERSION" Value="0">
+      <RegistrySearch Id="UltraDINSTALLATIONUNITVersionBranding" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[INSTALLATIONUNITGUID]" Name="DisplayVersion" Type="raw" />
+    </Property>
+    <Property Id="PARENTORIGINALINSTALLATIONUNITDATE" Value="0">
+      <RegistrySearch Id="ParentOriginalInstallationUnitDate" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[INSTALLATIONUNITGUID]" Name="ComponentInstallDate" Type="raw" />
+    </Property>
+    <Property Id="PARENTINSTALLATIONUNITDATE" Value="0">
+      <RegistrySearch Id="ParentInstallationUnitDate" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[INSTALLATIONUNITGUID]" Name="InstallDate" Type="raw" />
+    </Property>
+    <Property Id="PREVHOTFIXID" Value="0">
+    <RegistrySearch Id="PrevHOTFIXIDFromReg" Root="HKLM" Key="SOFTWARE\Impact360\Hotfixes\[ROOT_REGISTRY_KEY]" Name="Patch ID" Type="raw"  />
+    </Property>
+
+    <Property Id="INSTALLATIONUNITSEARCH" Value="0">
+      <RegistrySearch Id="INSTALLATIONUNITInstalledReg" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[INSTALLATIONUNITGUID]" Name="Version" Type="raw"  Win64="no" />
+      <RegistrySearch Id="INSTALLATIONUNITInstalledRegSec" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[INSTALLATIONUNITGUID_SEC]" Name="Version" Type="raw" Win64="no" />
+      <RegistrySearch Id="INSTALLATIONUNITClientInstalledReg" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[INSTALLATIONUNITGUID_CLIENT]" Name="Version" Type="raw" Win64="no" />
+      <RegistrySearch Id="INSTALLATIONUNITInstalledReg64" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[INSTALLATIONUNITGUID]" Name="Version" Type="raw"  Win64="yes" />
+    </Property>
+
+    <Property Id="ULTRASP" Value="-1">
+      <RegistrySearch Id="UltraSPReg" Root="HKLM" Key="SOFTWARE\Impact360\Install" Name="SP" Type="raw"  Win64="no"/>
+    </Property>
+    <Property Id="ULTRAVERSION" Value="0">
+      <RegistrySearch Id="UltraVersionReg" Root="HKLM" Key="SOFTWARE\Impact360\Install" Name="Version" Type="raw"  Win64="no"/>
+    </Property>
+    <Property Id="ULTRAMINORVERSION" Value="0">
+      <RegistrySearch Id="UltraMinorVersionReg" Root="HKLM" Key="SOFTWARE\Impact360\Install" Name="Minor Version" Type="raw" Win64="no"/>
+    </Property>
+    <Property Id="INSTALLEDULTRAVERSION" Value="0">
+      <RegistrySearch Id="InstalledUltraVersionReg" Root="HKLM" Key="SOFTWARE\Impact360\Install" Name="Version" Type="raw" Win64="no"/>
+      <RegistrySearch Id="InstalledVersionReg" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{8061B3DE-23EA-4AD7-BE97-B0D44461397C}" Name="DisplayVersion" Type="raw" />
+      <RegistrySearch Id="InstalledVersionALReg" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{54086656-D8E1-467D-AB28-5E6B2D25253E}" Name="DisplayVersion" Type="raw" />
+    </Property>
+    <Property Id="INSTALLED93ULTRAVERSION" Value="0">
+      <RegistrySearch Id="Installed93UltraVersionReg" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{A1524289-19BF-4155-9151-15901AC5AA28}" Name="Comments" Type="raw" />
+    </Property>
+    <Property Id="CLIENTINSTALL">
+      <RegistrySearch Id="ClientInstallReg" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[INSTALLATIONUNITGUID_CLIENT]" Name="Version" Type="raw" />
+    </Property>
+    <Property Id="SERVERINSTALL">
+      <RegistrySearch Id="ServerInstallReg" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[INSTALLATIONUNITGUID]" Name="Version" Type="raw" />
+    </Property>
+  </Product>
+</Wix>

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Include>
+  <!-- *******************************************************************-->
+  <!--            Do No remove any of the following defines               -->
+  <!--             You should only modified the values                    -->
+  <!-- *******************************************************************-->
+  <?define ProductId="{8E49A1C4-4804-4DBF-9F97-EC51DE475804}" ?>
+  <!-- generate new one for each patch type-->
+  <?define UpgradeCode="{76FA8297-C3DA-4ED4-A39B-FE80D40C7907}" ?>
+  <!-- generate new one for each patch type-->
+
+  <?define BrandName="Impact 360" ?>
+  <?define ProductName="Write the Product Name here" ?>
+  <!-- product name for each INSTALLATIONUNIT as apear in the patch GUI header-->
+  <?define InstallationUnitName="Hotfix" ?>
+  <!-- INSTALLATIONUNIT name as apear in add remove program-->
+  <?define FindInstallationViaName="false"?>
+  <!-- To search installed application with name and not GUID-->
+  <?define InstallationUnitFolderName="Component" ?>
+  <!-- For convinience the folder under Impact350SoftwareDir -->
+  <?define ShowAsNewItemInVersionDisplay="false" ?>
+
+  <!-- The name of the Service that runs this tomcat-->
+  <!--?define SERVICE_NAME="RecorderTomcat" ?-->
+
+  <!-- write the relevant INSTALLATIONUNIT setup product code -->
+  <?define INSTALLATIONUNITGUID="{29D033F6-5559-4FC8-BF1F-9391344EDDA4}" ?>
+  <!-- write a secondary INSTALLATIONUNIT setup product code in case that you need to install it on more then one product code-->
+  <?define INSTALLATIONUNITGUID_SEC="{0}" ?>
+  <!-- change the patch id from short term delivery tool -->
+  <?define HOTFIXID="KBXXXXXX" ?>
+  <!-- 
+    The version of the Hot Fix could be in two flavors:
+    1. x.y.z
+    2. x.y.z.w
+  -->
+  <?define HotFixVersion="11.X.X.X" ?>
+  <?define UseZIP="false" ?>
+  <!-- set to true to compress backup files  -->
+  <?define DeleteNewFilesOnRollBack="true" ?>
+  <!-- SET to false if you do not want to delete new files on rollback -->
+  <?define IgnoreVersionVerification="false" ?>
+  <!-- set to true to ignore version related costrains -->
+  <?define ShowInAddRemove="true"?>
+  <!-- set to true so that this hotfix is not listed in Add/Remove -->
+  <?define UpdateInstallationUnitVersion="true" ?>
+  <!-- Does this hotfix update the version of the corresponding component -->
+  <!-- set it to true if You want to start Watch dog affter installation && uninstall-->
+  <?define StartWatchDogService="false" ?>
+
+  <!-- List of services to stop prior to installation semi-colon (;) delimited (Deploy tool mode only)-->
+  <?define ServicetoStopList="" ?>
+  <!-- List of services to start prior to installation semi-colon (;) delimited (Deploy tool mode only)-->
+  <?define ServicetoStartList="" ?>
+
+  
+  <!-- add pre and post action command for removal, pre action run before restoring the files and post after file restore -->
+  <!-- 
+    Added support to run dynamic custom actions that retrieve values in run time .
+    For now, its support two locations: SecurityContent(SEC), Registry(REG).
+        
+    Usage:
+      cmd /c cscript """%RollBackDir%DynamicCustomActionRun.vbs""" file_to_execute [[Type1:Value1]]...[[Type_N:Value_N]] 
+      where:
+            cmd /c cscript """%RollBackDir%DynamicCustomActionRun.vbs""" - is mandatory string
+            file_to_execute  - file to execute (full path)
+            Type             - REG or SEC
+            Value            - In case of Type=REG, Value should be a registry in format HKEY_LOCAL_MACHINE\...\Value, 
+                               In case of Type=SEC, Value should be a Key from Verint.SDK.SecuredContent 
+    Examples:
+            cmd /c cscript """%RollBackDir%DynamicCustomActionRun.vbs""" test.vbs [[SEC:UltraUserName]]
+            cmd /c cscript """%RollBackDir%DynamicCustomActionRun.vbs""" test.bat /User:[[SEC:UltraUserName]]
+            cmd /c cscript """%RollBackDir%DynamicCustomActionRun.vbs""" test.exe /Impact360DataDir:[[REG:HKEY_LOCAL_MACHINE\SOFTWARE\Impact360\Install\Impact360DataDir]]
+   
+    Description: This script will replace  [[Type:Value]] expessions with its values during running custom action.Other parameters remain the same!
+
+  -->
+  <?define PostCustomAction=" " ?>
+  <?define PreCustomAction=" " ?>
+
+  <!-- version verifacation settings -->
+  <?define MinVersionToInstall="11.0" ?>
+  <!-- minimum version relevant for the patch.-->
+  <?define MaxVersionToInstall="11.2" ?>
+  <!-- Max version relevant for the patch-->
+  <?define MaxServicePackToInstall="SP9" ?>
+  <!-- minimum service pack relevant for the patch-->
+  <?define MinServicePackToInstall="SP0" ?>
+  <!-- MAX service pack relevant for the patch-->
+
+  <!-- 
+    The below defines are relevant for usage of secured properties.
+    the below is NOT supported YET coz a bug was found, IICM team will communicate
+    the official method
+  -->
+  <?define ADD_VERINTSDK="false"?>
+  <?define VERINTSDK_PROPERTIES_COUNTER="0"?>
+  <?define VERINTSDK_PARAM_1="UltraUserName"?>
+  <?define VERINTSDK_PARAM_2="UltraUserPwd"?>
+  <?define VERINTSDK_PARAM_3="UltraConectionString"?>
+  <?define VERINTSDK_PARAM_4="Name4"?>
+  <?define VERINTSDK_PARAM_5="Name5"?>
+  <?define VERINTSDK_PARAM_6="Name6"?>
+
+  <?define VERINTSDK_ACTION_COUNTER="0"?>
+  <?define VERINTSDK_ACTION_1="%WINDIR%\system32\cmd.exe notepad"?>
+  <?define VERINTSDK_ACTION_2="%WINDIR%\system32\notepad.exe"?>
+  <?define VERINTSDK_ACTION_3="x.cmd UltraUserName UltraUserPwd"?>
+  <?define VERINTSDK_ACTION_4="Action4"?>
+  <?define VERINTSDK_ACTION_5="Action5"?>
+  <?define VERINTSDK_ACTION_6="Action6"?>
+
+  <?ifdef IsOriginalMSI ?>
+  <?define ProductName="TestProductNew" ?>
+  <!-- product name -->
+  <?define ProductVersion="11.0.0.001" ?>
+  <!-- product version -->
+  <?endif?>
+
+</Include>

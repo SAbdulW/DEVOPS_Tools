@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?include UserProperties.wxi ?>
+<Include>
+  <!-- *******************************************************************-->
+  <!--            Do No remove any of the following defines               -->
+  <!--             You should only modified the values                    -->
+  <!-- *******************************************************************-->
+
+  <?if $(var.ShowAsNewItemInVersionDisplay)="false" ?>
+  <!-- Do you want to show in version Display under EM -->
+  <?define var.Manufacturer="Impact 360" ?>
+  <?else?>
+  <?define var.Manufacturer="Impact360" ?>
+  <!-- When Manufacturer is "Impact360" this is shown in Version Display in EM -->
+  <?endif?>
+  <!-->Property Id="Action" Value="Warning MessageThis computer has Exception Development Patch&#xD;&#xA;[OLDDISPLAYNAME] installed.&#xD;&#xA;Installing current patch can interfere with the Exception Development1" /-->
+
+  <?ifndef IsOriginalMSI ?>
+    <?define ProductVersion="11.0" ?>
+    <?define Comments="Deploy Tool Ready Ver 1.0.17.0" ?>
+  <?else?>
+    <?define INSTALLATIONUNITGUID="{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXX}" ?>
+    <?define Comments="$(var.ProductName)" ?>
+  <?endif?>
+</Include>

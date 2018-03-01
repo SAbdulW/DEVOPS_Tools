@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Fragment>
+    <?include UserProperties.wxi ?>
+    <!-- **********************************************************-->
+    <!-- Enter here all custom directory                           -->
+    <!-- **********************************************************-->
+    <DirectoryRef Id="IMPACT360SOFTWAREDIR">
+      <Directory Id="DummyFolder"  Name="Dummy" />
+    </DirectoryRef>
+
+    <DirectoryRef Id="INSTALLATIONUNITDIR">
+      <Directory Id="UTILSDIR" Name="Utils" />
+      <Directory Id="BINDIR" Name="BIN" />
+    </DirectoryRef>
+
+    <!-- **********************************************************-->
+    <!-- Enter here all files that copy to <INSTALLATIONUNIT>\bin. folder -->
+    <!-- **********************************************************-->
+     <DirectoryRef Id="BINDIR" FileSource=".\">
+      <Component Id="FilesInBinDir" Guid="BB51097A-6DAF-49c1-8618-C8B75C42722D">
+        <File Id="FoobarAppl101.exe"  />
+      </Component>
+    </DirectoryRef>
+    <!-- ***********************************************************-->
+    <!-- Enter here all files that copy to <INSTALLATIONUNIT>\bin. folder  -->
+    <!-- ***********************************************************-->
+
+    <DirectoryRef Id="UTILSDIR" FileSource=".\">
+      <Component Id="FilesInUtilsDir" Guid="3CEF1B8E-62D5-4b34-B678-425FABE858F6">
+        <File Id="FoobarAppl102.exe"  Name="FoobarAppl101.exe"/>
+      </Component>
+    </DirectoryRef>
+    <!-- **************************************************-->
+    <!-- Enter here all files that copy to wwwroot. folder -->
+    <!-- **************************************************-->
+
+    <DirectoryRef Id="DEFAULTWWW" FileSource=".\">
+      <Component Id="FilesInWWWROOTDir" Guid="ED56E596-035E-489e-80E0-FCEC2F2BEBBF">
+        <File Id="FoobarAppl10.exe"  />
+      </Component>
+    </DirectoryRef>
+
+
+
+
+    <!-- **************************************************-->
+    <!-- add additional DirectoryRef if added -->
+    <!-- **************************************************-->
+    <ComponentGroup Id="UserFeatureFiles">
+      <ComponentRef Id="FilesInBinDir" />
+      <ComponentRef Id="FilesInUtilsDir" />
+      <ComponentRef Id="FilesInWWWROOTDir" />
+    </ComponentGroup>
+
+    <!-- **************************************************-->
+    <!-- add gac files to the table -->
+    <!-- **************************************************-->
+
+    <CustomTable Id="VerintGACAssemblies">
+      <Column Id="LogicalFileName" PrimaryKey="yes" Type="string" Width="255" Category="Identifier" Description="logical File Name" Modularize="Column" />
+      <Column Id="DotNetVersion" Type="string" Width="50" Category="Text" Description=".NET Version" Modularize="Column" />
+      <!--Row>
+        <Data Column="LogicalFileName">test.exe</Data>
+        <Data Column="DotNetVersion">1.1</Data>
+      </Row-->
+    </CustomTable>
+
+    <!-- ****************************************************************************************-->
+    <!-- Specifies a set of values that are used when you start a process                        -->
+    <!-- The process will be executed at the end of hotfix installation before "InstallFinalize" -->
+    <!-- ****************************************************************************************-->
+    <CustomTable Id="VerintImpersonatedProcesses">
+      <Column Id="RowID"  KeyColumn="1" PrimaryKey="yes" Type="int" Width="4" Category="Identifier" Description="set the row number" Modularize="Column"/>
+      <Column Id="Command" KeyColumn="2" PrimaryKey="no" Type="string" Width="255" Category="Text" Description="Sets the application or document to start." Modularize="Column" />
+      <Column Id="Arguments" KeyColumn="3" Type="string" Width="50" Category="Text" Description="Sets the set of command-line arguments to use when starting the application" Modularize="Column"  Nullable="yes"/>
+      <Column Id="Account" KeyColumn="4" Type="string" Width="50" Category="Text" Description="Specifies the account under which to run the process.Currently valid value is 'IMSA'" Modularize="Column" />
+      <Column Id="WorkingDirectory" KeyColumn="5" Type="string" Width="50" Category="Text" Description="Sets the initial directory for the process to be started" Modularize="Column" Nullable="yes"/>
+      <Column Id="CheckSuccessExitCode" KeyColumn="6" Type="string" Width="50" Category="Text" Description="true/false field. Indicates if the return code will be checked for success(exit code 0)" Modularize="Column"/>
+      <Column Id="Condition" KeyColumn="7" Type="string" Width="50" Category="Text" Description="Conditional expression" Modularize="Column" Nullable="yes"/>
+      <!--<Row>
+        <Data Column="RowID">1</Data>
+        <Data Column="Command">cmd</Data>
+        <Data Column="Arguments">/c echo HELLO > "[IMPACT360SOFTWAREDIR]my file.txt"</Data>
+        <Data Column="Account">IMSA</Data>
+        <Data Column="WorkingDirectory">[IMPACT360SOFTWAREDIR]</Data>
+        <Data Column="CheckSuccessExitCode">true</Data>
+        <Data Column="Condition">NOT Installed and SERVER_ON_INACTIVE_DC="true"</Data>
+      </Row>-->
+    </CustomTable>
+
+    <!-- *******************************************************************-->
+    <!--            Do No change anything beyond  this line                  -->
+    <!-- *******************************************************************-->
+
+  </Fragment>
+</Wix>

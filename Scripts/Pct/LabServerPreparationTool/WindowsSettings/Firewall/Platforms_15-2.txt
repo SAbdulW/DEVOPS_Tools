@@ -1,0 +1,41 @@
+Application Server
+Mobile Gateway Server
+Application Load Balancer
+Centralized Archive Server
+Contact & QM Database Server
+Contact OLTP & Archive Database Server
+Data Warehouse Server
+Database Management Server
+Database Server
+EFM Application Server
+EFM Database Server
+Encryption Key Management Server
+Export Manager
+Forecasting and Scheduling Server
+Framework Database & Reporting Server
+Framework DB Server
+Framework Integration Service Server
+Import Manager Server
+Import Manager With Transcription Server
+IP Analyzer Server
+Lync Proxy Server
+Post Processing Voice Biometrics Server
+Recorder Integration Service Server
+Recorder Server
+Recording & QM Database Server
+Remote SQL Server
+Reporting Server
+Speech Analytics Application Server
+Speech Analytics Transcription Server
+Speech Database Server
+Survey Server with Telephony Interface
+Survey Server with VXML Interface
+Telephone Playback Service Server
+Text Analytics Application Server
+Text Analytics Consolidated Server
+Voiceprint Enrollment Server
+Consolidated Server
+Data Center Server
+Desktop
+TeTCPnal Server
+Text Analytics Datastore Server
