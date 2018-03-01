@@ -55,11 +55,12 @@ def process (String conf){
         List candidateList = getListOfMSI (repoKey, pathMatch, watermark)
         candidateList.each { item ->
             fFullL << "--> " + item.path + "/" + item.name + "\r\n"
-            downloadMSI(repoKey, item.path, item.name)
-            File msiFile = new File("./${item.name}")
+            String localFileName = item.name.replaceAll(" ", "")
+            downloadMSI(repoKey, item.path, item.name, localFileName)
+            File msiFile = new File("./${localFileName}")
             def msi = null
             if(msiFile.exists()){
-                msi = extractMSIInfo(item.name)
+                msi = extractMSIInfo(localFileName)
                 if(msi != null){
                     logger.quiet ("${item.name} :: " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID)
                     msiFile.delete()
@@ -138,11 +139,12 @@ def processOneArtifact (String repo, String groupId, String artifactId, String m
     logger.quiet(groupName)
     String artifactPath = "${groupName}/${artifactId}/${masterBuildVersion}"
     String artifactName = "${artifactId}-${masterBuildVersion}.msi"
-    downloadMSI(repo, artifactPath, artifactName)
-    File msiFile = new File("./${artifactName}")
+    String localFileName = artifactName.replaceAll(" ", "")
+    downloadMSI(repo, artifactPath, artifactName, localFileName)
+    File msiFile = new File("./${localFileName}")
     def msi = null
     if(msiFile.exists()){
-        msi = extractMSIInfo(artifactName)
+        msi = extractMSIInfo(localFileName)
         if(msi != null){
             logger.quiet ("${artifactName} :: " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID)
             msiFile.delete()
@@ -216,10 +218,10 @@ def List getListOfMSI(String repo, String pathMatch, String watermark){
     return resultsList
 }
 
-def downloadMSI(String repo, String path, String name){
+def downloadMSI(String repo, String path, String name, String localFileName){
     String artifactUrl = "${contextURL}/${repo}/${path}/${name}"
     artifactUrl = artifactUrl.replaceAll(" ", "%20")
-    String sCmd = "curl -f -X GET -u \"" + "${uname}" + "\":\"" + "${pword}" + "\" \"${artifactUrl}\" -o \"'${name}'\""
+    String sCmd = "curl -f -X GET -u \"" + "${uname}" + "\":\"" + "${pword}" + "\" \"${artifactUrl}\" -o \"${localFileName}\""
     logger.quiet("Execute cmd: ${sCmd}")
 
     try {
@@ -228,7 +230,7 @@ def downloadMSI(String repo, String path, String name){
         }
     }
     catch (Exception e) {
-        logger.quiet (e.toString())
+        logger.quiet ("Could not download file: " + e.toString())
     }
 }
 
@@ -260,6 +262,7 @@ def getArtifactProperties(String repo, String path, String name){
     else{
         artifactUrl += "?properties"
     }
+    artifactUrl = artifactUrl.replaceAll(" ", "%20")
     String sCmd = "curl -f -X GET -u \"" + "${uname}" + "\":\"" + "${pword}" + "\" \"${artifactUrl}\" -o \"${outputFilename}\""
     logger.quiet("Execute cmd: ${sCmd}")
 
