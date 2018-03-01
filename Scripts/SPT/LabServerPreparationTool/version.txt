@@ -1,4 +1,0 @@
-Component Versions:
-
-User Rights, Windows Services and Settings - 15.2
-DB Permissions - 11.2.4.0111
