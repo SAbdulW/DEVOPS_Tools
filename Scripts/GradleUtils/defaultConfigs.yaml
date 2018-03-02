@@ -8,7 +8,8 @@ ResolveVirtualRepo: 'ftw-release-repos'
 ResolveRepo: 'ci-release'
 PromoteEnabled: true
 InstallAction: 'both' #uninstall, install, both
-DBInstallParams: 'ARPSYSTEMCOMPONENT=false,IMPACT360DATADIR=C:/Impact360/Data/,IMPACT360SOFTWAREDIR=C:/Impact360/Software/,SQLSERVERHOSTNAMECOMMON=consolidate,SQLSERVERPORTCOMMON=1433,IMSA_DOMAIN=consolidate,IMSA_NAME=ap2admin,IMSA_PASSWORD=verint1!,DMSA_DOMAIN=consolidate,DMSA_NAME=ap2admin,DMSA_PASSWORD=verint1!,INSTALLLANGUAGE=en_US,DATAFILESPATH=C:/Impact360/Databases,LOGFILESPATH=C:/Impact360/Databases,DBTYPE=WH,DBNAME=BPWAREHOUSEDB'
+DBWHInstallParams: 'ARPSYSTEMCOMPONENT=false,IMPACT360DATADIR=C:/Impact360/Data/,IMPACT360SOFTWAREDIR=C:/Impact360/Software/,SQLSERVERHOSTNAMECOMMON=consolidate,SQLSERVERPORTCOMMON=1433,IMSA_DOMAIN=consolidate,IMSA_NAME=ap2admin,IMSA_PASSWORD=verint1!,DMSA_DOMAIN=consolidate,DMSA_NAME=ap2admin,DMSA_PASSWORD=verint1!,INSTALLLANGUAGE=en_US,DATAFILESPATH=C:/Impact360/Databases,LOGFILESPATH=C:/Impact360/Databases,DBTYPE=WH,DBNAME=BPWAREHOUSEDB'
+DBInstallParams: 'ARPSYSTEMCOMPONENT=false,IMPACT360DATADIR=C:/Impact360/Data/,IMPACT360SOFTWAREDIR=C:/Impact360/Software/,SQLSERVERHOSTNAMECOMMON=consolidate,SQLSERVERPORTCOMMON=1433,IMSA_DOMAIN=consolidate,IMSA_NAME=ap2admin,IMSA_PASSWORD=verint1!,DMSA_DOMAIN=consolidate,DMSA_NAME=ap2admin,DMSA_PASSWORD=verint1!,INSTALLLANGUAGE=en_US,DATAFILESPATH=C:/Impact360/Databases,LOGFILESPATH=C:/Impact360/Databases,DBTYPE=MAIN,DBNAME=BPMAINDB'
 InstallVersion: '[RELEASE]'
 SearchProperties:
     Tags: "Green"
@@ -27,7 +28,7 @@ Components: # The Product Name just to give idea of what the GUI is, usely woudl
         DisplayName: ''
     Framework Warehouse Database:
         InstallationUnitGUID:  ''
-        InstallParams: "${DBInstallParams}"
+        InstallParams: "${DBWHInstallParams}"
         InstallAction: "${InstallAction}"
         PromoteEnabled: "${PromoteEnabled}"
         ResolveRepo: "${ResolveRepo}"
