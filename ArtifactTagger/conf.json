@@ -44,6 +44,11 @@
       "repoName" : "gate1-test-int",
       "pathMatch" : "com/verint/",
       "pathExclude" : ""
+    },
+    {
+      "repoName" : "T3-Passed-QA",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
     }
   ]
 }
