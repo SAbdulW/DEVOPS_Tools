@@ -49,6 +49,11 @@
       "repoName" : "T3-Passed-QA",
       "pathMatch" : "com/verint/",
       "pathExclude" : ""
+    },
+    {
+      "repoName" : "cd-passed-pl-archive",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
     }
   ]
 }
