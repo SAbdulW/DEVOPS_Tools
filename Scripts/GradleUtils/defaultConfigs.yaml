@@ -1,0 +1,60 @@
+---
+# For global lib configuration
+MasterBuildVersion: "15.2.2.0"
+MajorRelease: ''
+MinorRelease: ''
+# Steps default configuration
+ResolveVirtualRepo: 'ftw-release-repos'
+ResolveRepo: 'ci-release'
+PromoteEnabled: true
+InstallAction: 'both' #uninstall, install, both
+DBWHInstallParams: 'ARPSYSTEMCOMPONENT=false,IMPACT360DATADIR=C:/Impact360/Data/,IMPACT360SOFTWAREDIR=C:/Impact360/Software/,SQLSERVERHOSTNAMECOMMON=consolidate,SQLSERVERPORTCOMMON=1433,IMSA_DOMAIN=consolidate,IMSA_NAME=ap2admin,IMSA_PASSWORD=verint1!,DMSA_DOMAIN=consolidate,DMSA_NAME=ap2admin,DMSA_PASSWORD=verint1!,INSTALLLANGUAGE=en_US,DATAFILESPATH=C:/Impact360/Databases,LOGFILESPATH=C:/Impact360/Databases,DBTYPE=WH,DBNAME=BPWAREHOUSEDB'
+DBInstallParams: 'ARPSYSTEMCOMPONENT=false,IMPACT360DATADIR=C:/Impact360/Data/,IMPACT360SOFTWAREDIR=C:/Impact360/Software/,SQLSERVERHOSTNAMECOMMON=consolidate,SQLSERVERPORTCOMMON=1433,IMSA_DOMAIN=consolidate,IMSA_NAME=ap2admin,IMSA_PASSWORD=verint1!,DMSA_DOMAIN=consolidate,DMSA_NAME=ap2admin,DMSA_PASSWORD=verint1!,INSTALLLANGUAGE=en_US,DATAFILESPATH=C:/Impact360/Databases,LOGFILESPATH=C:/Impact360/Databases,DBTYPE=MAIN,DBNAME=BPMAINDB'
+InstallVersion: '[RELEASE]'
+SearchProperties:
+    Tags: "Green"
+    ArtifactOrigin: "dev"
+
+Components: # The Product Name just to give idea of what the GUI is, usely woudl be the same
+    WFM Common:
+        InstallationUnitGUID:  ''
+        InstallParams: 'ARPSYSTEMCOMPONENT=false'
+        InstallAction: "${InstallAction}"
+        PromoteEnabled: "${PromoteEnabled}"
+        ResolveRepo: "${ResolveRepo}"
+        Version: "${InstallVersion}"
+        SearchProperties: "${SearchProperties}"
+        ComponentGAV:  ''
+        DisplayName: ''
+    Framework Warehouse Database:
+        InstallationUnitGUID:  ''
+        InstallParams: "${DBWHInstallParams}"
+        InstallAction: "${InstallAction}"
+        PromoteEnabled: "${PromoteEnabled}"
+        ResolveRepo: "${ResolveRepo}"
+        Version: "${InstallVersion}"
+        SearchProperties: "${SearchProperties}"
+        ComponentGAV:  ''
+        DisplayName: ''
+    I360 Framework DB:
+        InstallationUnitGUID:  ''
+        InstallParams: "${DBInstallParams}"
+        InstallAction: "${InstallAction}"
+        PromoteEnabled: "${PromoteEnabled}"
+        ResolveRepo: "${ResolveRepo}"
+        Version: "${InstallVersion}"
+        SearchProperties: "${SearchProperties}"
+        ComponentGAV:  ''
+        DisplayName: ''
+    default:
+        InstallationUnitGUID:  ''
+        InstallParams: ''
+        InstallAction: "${InstallAction}"
+        PromoteEnabled: "${PromoteEnabled}"
+        ResolveRepo: "${ResolveRepo}"
+        Version: "${InstallVersion}"
+        SearchProperties: "${SearchProperties}"
+        ComponentGAV:  ''
+        DisplayName: ''
+
+...

@@ -135,7 +135,7 @@ def yamlValidation(String [] yamlFiles){
         def yaml = new Yaml()
         def doc = new File(yamlFile).text
         try {
-            def map = yaml.load(doc)
+            def map = (Map) yaml.load(doc)
             logger.quiet ("GradleUtils: YAML (${yamlFile}) PASSED validation")
         }catch (Exception e){
             logger.quiet ("GradleUtils: Invalid YAML (${yamlFile})")

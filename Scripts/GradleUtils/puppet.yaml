@@ -1,0 +1,20 @@
+---
+# For reference only as this would be put to the jenkins file
+ResolveRepo: 'cd-passed-pl'
+# TODO: Remove the below so action to be taken is both
+InstallAction: 'install'
+SearchTags:
+    Tags: "Grey"
+Components: # The Product Name just to give idea of what the GUI is, usely woudl be the same
+    Framework Foundation:
+    WFM Common:
+        Version: "15.2.2.1929"
+    Framework Integration Server:
+        SearchTags:
+            Tags: "Grey"
+            kit.number: "15.2.0.280"
+    Framework Warehouse Database:
+    Performance Management: #This one not to know in the default will be set default setting
+
+# -------------------
+...
