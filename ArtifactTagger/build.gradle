@@ -254,7 +254,8 @@ def extractMSIInfo(String name){
 }
 
 def getArtifactProperties(String repo, String path, String name){
-    String outputFilename = "output.json"
+    def now = new Date()
+    String outputFilename = "${now.format("yyyyMMdd_HHmmss_SSS")}.json"
     String artifactUrl = "${contextURL}/api/storage/${repo}"
     if(path != null && path != "" && name != null & name != ""){
         artifactUrl += "/${path}/${name}?properties"
