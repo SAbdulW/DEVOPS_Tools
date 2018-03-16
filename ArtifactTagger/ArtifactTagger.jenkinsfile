@@ -29,7 +29,7 @@ pipeline {
     post {
         success {
             echo "SUCCESS"
-            mail subject: "ArtifactTagger - SUCCESS", body: "ArtifactTagger - SUCCESS", from: "${MAILFROM}", to: "${MAILTO}"
+            //mail subject: "ArtifactTagger - SUCCESS", body: "ArtifactTagger - SUCCESS", from: "${MAILFROM}", to: "${MAILTO}"
         }
         failure {
             echo "FAILURE"
