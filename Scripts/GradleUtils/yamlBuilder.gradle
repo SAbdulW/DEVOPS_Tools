@@ -310,12 +310,13 @@ def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap,
     compInfo.version=componentMap."Version"
 
     String strComponentKey=componentKey
-    //String strRepo = componentMap."ResolveRepo"
-    String strRepo = configData."ResolveVirtualRepo"  // This so it can resolve the path in case the metadata is not ready and there happen to have one sastify
+    String strRepo = componentMap."ResolveRepo"  // Do this so user in case explicitly specify where to get it, should have component and metadata
+    //String strRepo = configData."ResolveVirtualRepo"  // This so it can resolve the path in case the metadata is not ready and there happen to have one sastify
     String strMajorRelease=configData."MajorRelease"
     String strMinorRelease=configData."MinorRelease"
 
     logger.quiet ("GradleUtils:componentMap:${componentMap}")
+
 
     def tagsMap = componentMap."SearchProperties"
     logger.quiet ("GradleUtils:SearchProperties:${tagsMap}")
