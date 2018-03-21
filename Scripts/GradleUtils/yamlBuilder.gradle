@@ -373,12 +373,39 @@ def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap,
                     "${strTagsSearch}" + "\n" +
                     "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" + "\n" +
                     "    }"  + "\n" +
-                    ").include(\"@INSTALLATIONUNITGUID\",\"@GroupID\",\"@ArtifactID\",\"@ProductCode\").limit(5)" + "\n"
+                    ").include(\"@INSTALLATIONUNITGUID\",\"@GroupID\",\"@ArtifactID\",\"@ProductCode\",\"@MasterBuildVersion\" ).limit(100)" + "\n"
 
     List resultsList  = search(aqlQuery)
 
     if (resultsList.size()>0){
-        def resultItem=resultsList[0]
+        compInfo = pickItemFromSearchResult (resultsList)
+    }else{
+        throw new GradleException ("Couldn't find out the information about component need to install: ${componentKey}. Build failed")
+    }
+
+    return compInfo
+
+}
+
+def Object pickItemFromSearchResult(List resultsList){
+
+
+    def mapToSort = [:]
+    def keyToSort = "version"
+    def keyList = []
+
+    def compInfoRtn = [groupID:"",artifactID:"",version:"",installationUnitGUID:"",productCode:""] as HashMap
+
+
+    for(int i = 0; i < resultsList.size(); i++){
+
+
+        def resultItem= resultsList[i]
+
+        logger.quiet("yamlBuilder resultItem: ${resultItem}")
+
+        def compInfo = [groupID:"",artifactID:"",version:"",installationUnitGUID:"",productCode:""] as HashMap
+
         String strItemPath = resultItem."path"
         // Exampel: com/verint/foundation/kbs/KB140042/15.2.2.51
         int lastIndex = "${strItemPath}".lastIndexOf("/")
@@ -387,15 +414,36 @@ def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap,
         String strG=strGA.substring(0,lastIndex).replaceAll("/",".")
         String strA=strGA.substring(lastIndex+1)
 
+        lastIndex = "${strItemPath}".lastIndexOf("/")
+        String strVersion=strItemPath.substring(lastIndex+1)
+
         compInfo.groupID=strG
         compInfo.artifactID=strA
         compInfo.installationUnitGUID = getListItemValue(resultItem.properties,"INSTALLATIONUNITGUID")
         compInfo.productCode = getListItemValue(resultItem.properties,"ProductCode")
-    }else{
-        throw new GradleException ("Couldn't find out the information about component need to install: ${componentKey}. Build failed")
+        compInfo.version = strVersion
+
+        String strSortKeyValue = "${compInfo."${keyToSort}"}"
+        mapToSort.put (strSortKeyValue,compInfo)
+        keyList.add (strSortKeyValue)
     }
 
-    return compInfo
+    //logger.quiet("yamlBuilder map before short: ${keyList}")
+    // now sort it, DESC
+    keyList=keyList.sort()
+    //logger.quiet("yamlBuilder map after sorted: ${keyList}")
+    keyList=keyList.reverse()
+
+    //logger.quiet("yamlBuilder map after reverted: ${keyList}")
+
+    def String keyToPick = keyList[0]
+    // and now take the top
+
+    compInfoRtn = mapToSort.get(keyToPick)
+
+    logger.quiet("yamlBuilder component return: ${compInfoRtn}")
+
+    return compInfoRtn
 
 }
 def String getListItemValue(Object iProperties, String key){
