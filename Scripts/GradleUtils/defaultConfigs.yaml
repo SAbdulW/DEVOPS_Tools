@@ -15,7 +15,7 @@ SearchProperties:
     Tags: "Green"
     ArtifactOrigin: "dev"
 
-Components: # The Product Name just to give idea of what the GUI is, usely woudl be the same
+Components: #
     WFM Common:
         InstallationUnitGUID:  ''
         InstallParams: 'ARPSYSTEMCOMPONENT=false'

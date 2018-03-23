@@ -240,7 +240,7 @@ Map fillComponentData(String componentKey,Object componentMap, Object configData
 
 // Get the ComponentName (aka DisplayName) for uninstall from target machine with VM
     def strInstallAction = componentMap."InstallAction"
-    def strComponentName= componentKey
+    def strComponentName= compInfo.productName// Not the key but ProductName: componentKey
 
     def strInstallationUnitGUID = compInfo.installationUnitGUID
     rtnMap.put("InstallationUnitGUID",strInstallationUnitGUID)
@@ -258,7 +258,16 @@ Map fillComponentData(String componentKey,Object componentMap, Object configData
                     configData."vmPwd"
             )
             if (strComponentNameRemote != "") {
-                strComponentName = strComponentNameRemote
+                // Add another check to make sure if the ComponentName remote contains the ArtfiactID
+                if (!strComponentNameRemote.contains("${compInfo.artifactID}")){
+                    logger.quiet ("************************** NOTE - BEHAVIOR CHANGE **************************")
+                    logger.quiet ("GradleUtils: yamlBuilder: The target VM has the SAME component installed: ${strComponentNameRemote}. So we won't do the uninstall part")
+                    logger.quiet ("GradleUtils: yamlBuilder:  Using the Product Name as Component Name: ${strComponentName}.")
+                    logger.quiet ("***************************************************************************")
+                    // Get the default is Product Name
+                }else {
+                    strComponentName = strComponentNameRemote
+                }
             }
         }
     }
@@ -306,16 +315,17 @@ def getDisplayNameFromRegistry(String strComponentGUID, String strVmIP, String s
 }
 
 def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap, Object configData){
-    def compInfo = [groupID:"",artifactID:"",version:"",installationUnitGUID:"",productCode:""] as HashMap
+    def compInfo = [groupID:"",artifactID:"",version:"",installationUnitGUID:"",productCode:"",productName:""] as HashMap
     compInfo.version=componentMap."Version"
 
     String strComponentKey=componentKey
-    //String strRepo = componentMap."ResolveRepo"
-    String strRepo = configData."ResolveVirtualRepo"  // This so it can resolve the path in case the metadata is not ready and there happen to have one sastify
+    String strRepo = componentMap."ResolveRepo"  // Do this so user in case explicitly specify where to get it, should have component and metadata
+    //String strRepo = configData."ResolveVirtualRepo"  // This so it can resolve the path in case the metadata is not ready and there happen to have one sastify
     String strMajorRelease=configData."MajorRelease"
     String strMinorRelease=configData."MinorRelease"
 
     logger.quiet ("GradleUtils:componentMap:${componentMap}")
+
 
     def tagsMap = componentMap."SearchProperties"
     logger.quiet ("GradleUtils:SearchProperties:${tagsMap}")
@@ -372,12 +382,39 @@ def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap,
                     "${strTagsSearch}" + "\n" +
                     "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" + "\n" +
                     "    }"  + "\n" +
-                    ").include(\"@INSTALLATIONUNITGUID\",\"@GroupID\",\"@ArtifactID\",\"@ProductCode\").limit(5)" + "\n"
+                    ").include(\"@INSTALLATIONUNITGUID\",\"@GroupID\",\"@ArtifactID\",\"@ProductCode\",\"@MasterBuildVersion\",\"@ProductName\" ).limit(30)" + "\n"
 
     List resultsList  = search(aqlQuery)
 
     if (resultsList.size()>0){
-        def resultItem=resultsList[0]
+        compInfo = pickItemFromSearchResult (resultsList)
+    }else{
+        throw new GradleException ("Couldn't find out the information about component need to install: ${componentKey}. Build failed")
+    }
+
+    return compInfo
+
+}
+
+def Object pickItemFromSearchResult(List resultsList){
+
+
+    def mapToSort = [:]
+    def keyToSort = "version"
+    def keyList = []
+
+    def compInfoRtn = [groupID:"",artifactID:"",version:"",installationUnitGUID:"",productCode:"",productName:""] as HashMap
+
+
+    for(int i = 0; i < resultsList.size(); i++){
+
+
+        def resultItem= resultsList[i]
+
+        logger.quiet("yamlBuilder resultItem: ${resultItem}")
+
+        def compInfo = [groupID:"",artifactID:"",version:"",installationUnitGUID:"",productCode:"",productName:""] as HashMap
+
         String strItemPath = resultItem."path"
         // Exampel: com/verint/foundation/kbs/KB140042/15.2.2.51
         int lastIndex = "${strItemPath}".lastIndexOf("/")
@@ -386,15 +423,37 @@ def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap,
         String strG=strGA.substring(0,lastIndex).replaceAll("/",".")
         String strA=strGA.substring(lastIndex+1)
 
+        lastIndex = "${strItemPath}".lastIndexOf("/")
+        String strVersion=strItemPath.substring(lastIndex+1)
+
         compInfo.groupID=strG
         compInfo.artifactID=strA
         compInfo.installationUnitGUID = getListItemValue(resultItem.properties,"INSTALLATIONUNITGUID")
         compInfo.productCode = getListItemValue(resultItem.properties,"ProductCode")
-    }else{
-        throw new GradleException ("Couldn't find out the information about component need to install: ${componentKey}. Build failed")
+        compInfo.productName = getListItemValue(resultItem.properties,"ProductName")
+        compInfo.version = strVersion
+
+        String strSortKeyValue = "${compInfo."${keyToSort}"}"
+        mapToSort.put (strSortKeyValue,compInfo)
+        keyList.add (strSortKeyValue)
     }
 
-    return compInfo
+    //logger.quiet("yamlBuilder map before short: ${keyList}")
+    // now sort it, DESC
+    keyList=keyList.sort()
+    //logger.quiet("yamlBuilder map after sorted: ${keyList}")
+    keyList=keyList.reverse()
+
+    //logger.quiet("yamlBuilder map after reverted: ${keyList}")
+
+    def String keyToPick = keyList[0]
+    // and now take the top
+
+    compInfoRtn = mapToSort.get(keyToPick)
+
+    logger.quiet("yamlBuilder component return: ${compInfoRtn}")
+
+    return compInfoRtn
 
 }
 def String getListItemValue(Object iProperties, String key){

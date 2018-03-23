@@ -61,7 +61,7 @@ dependencies {
 // prepare environment, getting the tools
 task init() << {
 
-    logger.quiet ("GradleUtils: Version updated by Feb 20 2018- 3.00")
+    logger.quiet ("GradleUtils: Version updated by March 22 2018 - 3.02 - Provide the sorted with version and uninstall fixed")
 
     ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("PSTools-")}, dest: "${projectDir}\\Pstools\\")
     ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("paexec")}, dest: "${projectDir}\\PAExec\\")
