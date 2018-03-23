@@ -240,7 +240,7 @@ Map fillComponentData(String componentKey,Object componentMap, Object configData
 
 // Get the ComponentName (aka DisplayName) for uninstall from target machine with VM
     def strInstallAction = componentMap."InstallAction"
-    def strComponentName= componentKey
+    def strComponentName= compInfo.productName// Not the key but ProductName: componentKey
 
     def strInstallationUnitGUID = compInfo.installationUnitGUID
     rtnMap.put("InstallationUnitGUID",strInstallationUnitGUID)
@@ -258,7 +258,16 @@ Map fillComponentData(String componentKey,Object componentMap, Object configData
                     configData."vmPwd"
             )
             if (strComponentNameRemote != "") {
-                strComponentName = strComponentNameRemote
+                // Add another check to make sure if the ComponentName remote contains the ArtfiactID
+                if (!strComponentNameRemote.contains("${compInfo.artifactID}")){
+                    logger.quiet ("************************** NOTE - BEHAVIOR CHANGE **************************")
+                    logger.quiet ("GradleUtils: yamlBuilder: The target VM has the SAME component installed: ${strComponentNameRemote}. So we won't do the uninstall part")
+                    logger.quiet ("GradleUtils: yamlBuilder:  Using the Product Name as Component Name: ${strComponentName}.")
+                    logger.quiet ("***************************************************************************")
+                    // Get the default is Product Name
+                }else {
+                    strComponentName = strComponentNameRemote
+                }
             }
         }
     }
@@ -306,7 +315,7 @@ def getDisplayNameFromRegistry(String strComponentGUID, String strVmIP, String s
 }
 
 def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap, Object configData){
-    def compInfo = [groupID:"",artifactID:"",version:"",installationUnitGUID:"",productCode:""] as HashMap
+    def compInfo = [groupID:"",artifactID:"",version:"",installationUnitGUID:"",productCode:"",productName:""] as HashMap
     compInfo.version=componentMap."Version"
 
     String strComponentKey=componentKey
@@ -373,7 +382,7 @@ def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap,
                     "${strTagsSearch}" + "\n" +
                     "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" + "\n" +
                     "    }"  + "\n" +
-                    ").include(\"@INSTALLATIONUNITGUID\",\"@GroupID\",\"@ArtifactID\",\"@ProductCode\",\"@MasterBuildVersion\" ).limit(100)" + "\n"
+                    ").include(\"@INSTALLATIONUNITGUID\",\"@GroupID\",\"@ArtifactID\",\"@ProductCode\",\"@MasterBuildVersion\",\"@ProductName\" ).limit(30)" + "\n"
 
     List resultsList  = search(aqlQuery)
 
@@ -394,7 +403,7 @@ def Object pickItemFromSearchResult(List resultsList){
     def keyToSort = "version"
     def keyList = []
 
-    def compInfoRtn = [groupID:"",artifactID:"",version:"",installationUnitGUID:"",productCode:""] as HashMap
+    def compInfoRtn = [groupID:"",artifactID:"",version:"",installationUnitGUID:"",productCode:"",productName:""] as HashMap
 
 
     for(int i = 0; i < resultsList.size(); i++){
@@ -404,7 +413,7 @@ def Object pickItemFromSearchResult(List resultsList){
 
         logger.quiet("yamlBuilder resultItem: ${resultItem}")
 
-        def compInfo = [groupID:"",artifactID:"",version:"",installationUnitGUID:"",productCode:""] as HashMap
+        def compInfo = [groupID:"",artifactID:"",version:"",installationUnitGUID:"",productCode:"",productName:""] as HashMap
 
         String strItemPath = resultItem."path"
         // Exampel: com/verint/foundation/kbs/KB140042/15.2.2.51
@@ -421,6 +430,7 @@ def Object pickItemFromSearchResult(List resultsList){
         compInfo.artifactID=strA
         compInfo.installationUnitGUID = getListItemValue(resultItem.properties,"INSTALLATIONUNITGUID")
         compInfo.productCode = getListItemValue(resultItem.properties,"ProductCode")
+        compInfo.productName = getListItemValue(resultItem.properties,"ProductName")
         compInfo.version = strVersion
 
         String strSortKeyValue = "${compInfo."${keyToSort}"}"
