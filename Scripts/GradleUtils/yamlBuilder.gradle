@@ -369,7 +369,7 @@ def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap,
         }
 
     }
-    String notMatch="maven-metadata.xml"
+    String notMatch="${artifactToExclude}"
 
     String aqlQuery =
             "items.find" + "\n" +
@@ -382,7 +382,7 @@ def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap,
                     "${strTagsSearch}" + "\n" +
                     "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" + "\n" +
                     "    }"  + "\n" +
-                    ").include(\"@INSTALLATIONUNITGUID\",\"@GroupID\",\"@ArtifactID\",\"@ProductCode\",\"@MasterBuildVersion\",\"@ProductName\" ).limit(30)" + "\n"
+                    ").include(\"@INSTALLATIONUNITGUID\",\"@GroupID\",\"@ArtifactID\",\"@ProductCode\",\"@MasterBuildVersion\",\"@ProductName\" )" + "\n"
 
     List resultsList  = search(aqlQuery)
 
@@ -411,7 +411,7 @@ def Object pickItemFromSearchResult(List resultsList){
 
         def resultItem= resultsList[i]
 
-        logger.quiet("yamlBuilder resultItem: ${resultItem}")
+        //logger.quiet("yamlBuilder resultItem: ${resultItem}")
 
         def compInfo = [groupID:"",artifactID:"",version:"",installationUnitGUID:"",productCode:"",productName:""] as HashMap
 
@@ -444,7 +444,7 @@ def Object pickItemFromSearchResult(List resultsList){
     //logger.quiet("yamlBuilder map after sorted: ${keyList}")
     keyList=keyList.reverse()
 
-    //logger.quiet("yamlBuilder map after reverted: ${keyList}")
+    logger.quiet("yamlBuilder: List of final key that matched:\n ${keyList}")
 
     def String keyToPick = keyList[0]
     // and now take the top
