@@ -972,7 +972,7 @@ task copyFilesPrepare << {
         String fileName = fileToCopy.getName();
         ant.copy (file: "${yamlSrcPath}", tofile: "${projectDir}\\ci\\${fileName}", verbose: true)
     }
-
+     println ("running :\"net use \\\\${vmIP}\\C\$ /user:${vmUser} ${vmPw}\"")
 //    File gradleLog = new File("gradlelogDeploy.log")
 //    gradleLog.text = "*****GRADLE DEPLOY LOG *************"
     // Now copy everything to remoret
