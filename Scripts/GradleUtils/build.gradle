@@ -67,7 +67,7 @@ task init() << {
     ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("paexec")}, dest: "${projectDir}\\PAExec\\")
     if  (!vmUser.matches(domainPattern)) {
         println "vmUser is not in a domain format. iVmIP was added as a prefix. "
-        vmUser = "${vmIP}\\\\${vmUser}"
+        vmUser = "${vmIP}\\${vmUser}"
         println "vmUser = ${vmUser}"
 
     }
