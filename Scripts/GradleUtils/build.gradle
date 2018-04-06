@@ -60,6 +60,7 @@ def domainPattern =/.*['\\'@].*/
 if  (!vmUser.matches(domainPattern)) {
     println "vmUser is not in a domain format. iVmIP was added as a prefix. "
     vmUser = "${vmIp}\\\\${vmUser}"
+    println "vmUser = ${vmUser}"
 }
 // prepare environment, getting the tools
 task init() << {
