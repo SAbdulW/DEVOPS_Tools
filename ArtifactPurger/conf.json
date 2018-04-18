@@ -3,7 +3,7 @@
     {
       "repoName" : "devops",
       "daysToKeep" : 1,
-      "minimumToKeep" : 0,
+      "minimumToKeep" : 1,
       "pathMatch" : "*",
       "pathExclude" : ""
     },
