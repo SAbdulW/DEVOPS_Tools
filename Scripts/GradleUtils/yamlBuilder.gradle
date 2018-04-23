@@ -235,7 +235,13 @@ Map fillComponentData(String componentKey,Object componentMap, Object configData
     def compInfo =getComponentInfoFromArtifactory(componentKey,componentMap, configData)
     logger.quiet ("GradleUtils: data return form artifactory for: ${componentKey}:")
     prettyPrintMapData(compInfo)
-    def strGAV =  "${compInfo.groupID}:${compInfo.artifactID}:${compInfo.version}"
+
+    def strVersion = componentMap."Version"
+
+    //def strGAV =  "${compInfo.groupID}:${compInfo.artifactID}:${compInfo.version}"  // Not use the version from the search result but use the version from Input
+    def strGAV =  "${compInfo.groupID}:${compInfo.artifactID}:${strVersion}"
+
+
     rtnMap.put("ComponentGAV",strGAV)
 
 // Get the ComponentName (aka DisplayName) for uninstall from target machine with VM

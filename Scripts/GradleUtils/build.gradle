@@ -61,7 +61,7 @@ def domainPattern =/.*['\\'@].*/
 // prepare environment, getting the tools
 task init() << {
 
-    logger.quiet ("GradleUtils: Version updated by March 22 2018 - 3.02 - Provide the sorted with version and uninstall fixed")
+    logger.quiet ("GradleUtils: Version updated by April 23 2018 - 3.03 - Update to sustains the version put for new YAML")
 
     ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("PSTools-")}, dest: "${projectDir}\\Pstools\\")
     ant.unzip(src: project.configurations.envConfig.find {it.name.startsWith("paexec")}, dest: "${projectDir}\\PAExec\\")
