@@ -972,14 +972,6 @@ task copyFilesPrepare << {
         String fileName = fileToCopy.getName();
         ant.copy (file: "${yamlSrcPath}", tofile: "${projectDir}\\ci\\${fileName}", verbose: true)
     }
-     println ("running :\"net use \\\\${vmIP}\\C\$ /user:${vmUser} ${vmPw}\"")
-//    File gradleLog = new File("gradlelogDeploy.log")
-//    gradleLog.text = "*****GRADLE DEPLOY LOG *************"
-    // Now copy everything to remoret
-    ant.exec(executable: "cmd", failonerror:"false") {
-        arg line: '/c'
-        arg line: "net use \\\\${vmIP}\\C\$ /user:${vmUser} ${vmPw}"
-    }
 
     // First to make sure
     WaitAndCreateDirRemote ("\\\\${vmIP}\\C\$\\GradleUtils")
@@ -1516,9 +1508,17 @@ def WaitAndCreateDirRemote(String strDir){
     for (int i=0; i<10 && !bCreateSuccessful; i++){
         def boolean bValue = true
         try {
+
+            println ("running :\"net use \\\\${vmIP}\\C\$ /user:${vmUser} ${vmPw}\"")
+            // Now copy everything to remoret
+            ant.exec(executable: "cmd", failonerror:"false") {
+                arg line: '/c'
+                arg line: "net use \\\\${vmIP}\\C\$ /user:${vmUser} ${vmPw}"
+            }
+
             ant.mkdir (dir: strDir)
         }catch(Exception e){
-            logger.quiet ("GradleUtils: Failed in creating ${strDir} try in 1'...")
+            logger.quiet ("GradleUtils: Failed in creating ${strDir} try in 1'...${e}")
             ant.sleep (minutes: 1)
             bValue = false
             rtnException = e
