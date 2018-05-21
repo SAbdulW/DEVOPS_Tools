@@ -587,6 +587,13 @@
       "minimumToKeep" : 1,
       "pathMatch" : "*",
       "pathExclude" : ""
+    },
+    {
+      "repoName" : "test-repo-snapshot",
+      "daysToKeep" : 1,
+      "minimumToKeep" : 1,
+      "pathMatch" : "*",
+      "pathExclude" : ""
     }
   ]
 }
