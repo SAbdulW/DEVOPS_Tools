@@ -6,6 +6,7 @@ MinorRelease: ''
 # Steps default configuration
 ResolveVirtualRepo: 'ftw-release-repos'
 ResolveRepo: 'ci-release'
+ResolveMetaRepo: ''
 PromoteEnabled: true
 InstallAction: 'both' #uninstall, install, both
 DBWHInstallParams: 'ARPSYSTEMCOMPONENT=false,IMPACT360DATADIR=C:/Impact360/Data/,IMPACT360SOFTWAREDIR=C:/Impact360/Software/,SQLSERVERHOSTNAMECOMMON=consolidate,SQLSERVERPORTCOMMON=1433,IMSA_DOMAIN=consolidate,IMSA_NAME=ap2admin,IMSA_PASSWORD=verint1!,DMSA_DOMAIN=consolidate,DMSA_NAME=ap2admin,DMSA_PASSWORD=verint1!,INSTALLLANGUAGE=en_US,DATAFILESPATH=C:/Impact360/Databases,LOGFILESPATH=C:/Impact360/Databases,DBTYPE=WH,DBNAME=BPWAREHOUSEDB'
@@ -22,6 +23,7 @@ Components: #
         InstallAction: "${InstallAction}"
         PromoteEnabled: "${PromoteEnabled}"
         ResolveRepo: "${ResolveRepo}"
+        ResolveMetaRepo: "${ResolveMetaRepo}"
         Version: "${InstallVersion}"
         SearchProperties: "${SearchProperties}"
         ComponentGAV:  ''
@@ -32,6 +34,7 @@ Components: #
         InstallAction: "${InstallAction}"
         PromoteEnabled: "${PromoteEnabled}"
         ResolveRepo: "${ResolveRepo}"
+        ResolveMetaRepo: "${ResolveMetaRepo}"
         Version: "${InstallVersion}"
         SearchProperties: "${SearchProperties}"
         ComponentGAV:  ''
@@ -42,6 +45,7 @@ Components: #
         InstallAction: "${InstallAction}"
         PromoteEnabled: "${PromoteEnabled}"
         ResolveRepo: "${ResolveRepo}"
+        ResolveMetaRepo: "${ResolveMetaRepo}"
         Version: "${InstallVersion}"
         SearchProperties: "${SearchProperties}"
         ComponentGAV:  ''
@@ -52,6 +56,7 @@ Components: #
         InstallAction: "${InstallAction}"
         PromoteEnabled: "${PromoteEnabled}"
         ResolveRepo: "${ResolveRepo}"
+        ResolveMetaRepo: "${ResolveMetaRepo}"
         Version: "${InstallVersion}"
         SearchProperties: "${SearchProperties}"
         ComponentGAV:  ''
