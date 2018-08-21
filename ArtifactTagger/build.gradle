@@ -149,6 +149,23 @@ def processOneArtifact (String repo, String groupId, String artifactId, String m
             logger.quiet ("${artifactName} :: " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID)
             msiFile.delete()
 
+            String artifactOrigin = ""
+            if(artifactId.indexOf("KB") == 0){
+                if(artifactId.indexOf("KB99") == 0){
+                    artifactOrigin = "snapshot"
+                }
+                else{
+                    artifactOrigin = "dev"
+                }
+
+                if(tags.indexOf("Gray") < 0){
+                    tags = tags + ",Gray"
+                }
+            }
+            else{
+                artifactOrigin = "dev"
+            }
+
             def props = [:]
             props.put("Tagger", "Pipeline")
             props.put("ProductName", msi.ProductName)
@@ -163,20 +180,6 @@ def processOneArtifact (String repo, String groupId, String artifactId, String m
             props.put("ArtifactID", artifactId)
             props.put("MasterBuildVersion", masterBuildVersion)
             props.put("Version", masterBuildVersion)
-
-            String artifactOrigin = ""
-            if(artifactId.indexOf("KB") == 0){
-                if(artifactId.indexOf("KB99") == 0){
-                    artifactOrigin = "snapshot"
-                }
-                else{
-                    artifactOrigin = "dev"
-                }
-
-            }
-            else{
-                artifactOrigin = "dev"
-            }
             props.put("ArtifactOrigin", artifactOrigin)
 
             putArtifactProperties(repo, artifactPath, artifactName, props)
