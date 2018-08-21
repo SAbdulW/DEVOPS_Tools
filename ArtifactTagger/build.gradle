@@ -164,6 +164,9 @@ def processOneArtifact (String repo, String groupId, String artifactId, String m
             }
             else{
                 artifactOrigin = "dev"
+                if(tags.indexOf("Green") < 0){
+                    tags = tags + ",Green"
+                }
             }
 
             def props = [:]
