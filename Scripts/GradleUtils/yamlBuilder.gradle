@@ -332,6 +332,12 @@ def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap,
     String strMajorRelease=configData."MajorRelease"
     String strMinorRelease=configData."MinorRelease"
 
+    // Check if the component has the setting for Major and Minor Release?
+    String strMajorReleaseFromComp=componentMap."MajorRelease"
+    String strMinorReleaseFromComp=componentMap."MinorRelease"
+    if (strMajorReleaseFromComp!="") strMajorRelease=strMajorReleaseFromComp
+    if (strMinorReleaseFromComp!="") strMinorRelease=strMinorReleaseFromComp
+
     logger.quiet ("GradleUtils:componentMap:${componentMap}")
 
 

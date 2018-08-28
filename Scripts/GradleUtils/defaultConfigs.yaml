@@ -27,6 +27,8 @@ Components: #
         Version: "${InstallVersion}"
         SearchProperties: "${SearchProperties}"
         ComponentGAV:  ''
+        MajorRelease: "${MajorRelease}"
+        MinorRelease: "${MinorRelease}"
         DisplayName: ''
     Framework Warehouse Database:
         InstallationUnitGUID:  ''
@@ -38,6 +40,8 @@ Components: #
         Version: "${InstallVersion}"
         SearchProperties: "${SearchProperties}"
         ComponentGAV:  ''
+        MajorRelease: "${MajorRelease}"
+        MinorRelease: "${MinorRelease}"
         DisplayName: ''
     I360 Framework DB:
         InstallationUnitGUID:  ''
@@ -49,6 +53,8 @@ Components: #
         Version: "${InstallVersion}"
         SearchProperties: "${SearchProperties}"
         ComponentGAV:  ''
+        MajorRelease: "${MajorRelease}"
+        MinorRelease: "${MinorRelease}"
         DisplayName: ''
     default:
         InstallationUnitGUID:  ''
@@ -60,6 +66,8 @@ Components: #
         Version: "${InstallVersion}"
         SearchProperties: "${SearchProperties}"
         ComponentGAV:  ''
+        MajorRelease: "${MajorRelease}"
+        MinorRelease: "${MinorRelease}"
         DisplayName: ''
 
 ...
