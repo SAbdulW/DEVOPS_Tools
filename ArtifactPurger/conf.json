@@ -8,6 +8,13 @@
       "pathExclude" : ""
     },
     {
+      "repoName" : "devops",
+      "daysToKeep" : 2,
+      "minimumToKeep" : 0,
+      "pathMatch" : "com/verint/puppet/logs",
+      "pathExclude" : ""
+    },
+    {
       "repoName" : "ci-snapshot",
       "daysToKeep" : 2,
       "minimumToKeep" : 1,
@@ -596,6 +603,13 @@
       "repoName" : "test-repo-snapshot",
       "daysToKeep" : 1,
       "minimumToKeep" : 1,
+      "pathMatch" : "*",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "decaf-release-repo",
+      "daysToKeep" : 2,
+      "minimumToKeep" : 2,
       "pathMatch" : "*",
       "pathExclude" : ""
     }
