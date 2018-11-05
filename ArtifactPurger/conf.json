@@ -569,8 +569,8 @@
     },
     {
       "repoName" : "localization-ci-release",
-      "daysToKeep" : 5,
-      "minimumToKeep" : 2,
+      "daysToKeep" : 180,
+      "minimumToKeep" : 5,
       "pathMatch" : "com/verint",
       "pathExclude" : "",
       "versionRanges" : [
