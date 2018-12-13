@@ -176,12 +176,16 @@ task runPuppetAgent(dependsOn: 'init') << {
             //remoteService( vmIP, vmUser, vmPw, watchdogService , "start")
             MultiRemoteService( vmIP, vmUser, vmPw, "${stopStartservices}" , "start")
 
+            /* [Chau] temporarily comment this out to debug an issue
             //wait for the application ready
             noticeLog ("GradleUtils: Stage 4.3 - Check and wait until the login page come up [SLAVE]")
             if ("${chkApp}".toBoolean())
                 waitAppReady "$vmIP"
+            */
         } catch (Exception e) {
-            logger.quiet ("GradleUtils: some " + e.toString())
+            logger.quiet("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+            logger.quiet ("GradleUtils:runPuppetAgent - ERROR:" + e.toString())
+            logger.quiet("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
             errRtnErrorCode = getRtnCode(e.toString())
             if ((errRtnErrorCode!="2") &&(errRtnErrorCode!="")){
             }else{
