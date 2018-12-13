@@ -183,9 +183,9 @@ task runPuppetAgent(dependsOn: 'init') << {
                 waitAppReady "$vmIP"
             */
         } catch (Exception e) {
-            logger.quiet("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+            logger.quiet("\nGradleUtils:runPuppetAgent ****************************************************************************")
             logger.quiet ("GradleUtils:runPuppetAgent - ERROR:" + e.toString())
-            logger.quiet("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+            logger.quiet("\nGradleUtils:runPuppetAgent ****************************************************************************")
             errRtnErrorCode = getRtnCode(e.toString())
             if ((errRtnErrorCode!="2") &&(errRtnErrorCode!="")){
             }else{
