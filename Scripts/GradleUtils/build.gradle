@@ -1168,10 +1168,12 @@ task runLocalDeploy() << {
             //remoteService( vmIP, vmUser, vmPw, watchdogService , "start")
             MultiRemoteService( vmIP, vmUser, vmPw, "${stopStartservices}" , "start")
 
+            /* [Chau] temporarily commented out
             //wait for the application ready
             noticeLog ("GradleUtils: Stage 4.3 - Check and wait until the login page come up ",fLogStatus)
             if ("${chkApp}".toBoolean())
                 waitAppReady "$vmIP"
+            */
         } catch (Exception e) {
             logger.quiet ("GradleUtils: some " + e.toString())
             errRtnErrorCode = getRtnCode(e.toString())
