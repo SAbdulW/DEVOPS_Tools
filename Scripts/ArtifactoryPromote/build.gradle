@@ -109,7 +109,7 @@ def moveItem(String srcUri, String destUri){
     destUri=destUri.replaceAll( " ", "%20" )
     String sCmd = ""
     //sCmd = "curl -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$srcUri?to=$destUri\""
-    sCmd = "curl -f -X POST -u \"" + "admin" + "\":\"" + "AP525RbJXLsADZdc" + "\" \"$srcUri?to=$destUri\""
+    sCmd = "curl -f -X POST -u \"" + "${uname}" + "\":\"" + "${pword}" + "\" \"$srcUri?to=$destUri\""
 
     String rtnCode=""
     try {
