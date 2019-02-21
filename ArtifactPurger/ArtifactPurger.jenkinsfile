@@ -1,0 +1,41 @@
+pipeline {
+    agent {
+        node {
+            label "Build-Slaves-B"
+        }
+    }
+    environment {
+        MAILFROM = 'chau.nguyen@verint.com'
+        MAILTO = 'chau.nguyen@verint.com'
+    }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        disableConcurrentBuilds()
+        timeout(time: 24, unit: 'HOURS')
+    }
+    triggers {
+        cron('H 0 * * *')
+    }
+
+    stages {
+        stage('Process'){
+            steps{
+                dir("./ArtifactPurger"){
+                    bat "del /q *.log"
+                    bat "gradlew.bat -PcontextURL=http://atlartifactory:8081/artifactory -PviewOnly=false emptyTrashCanTask"
+                    bat "gradlew.bat -PcontextURL=http://atlartifactory:8081/artifactory -PviewOnly=false purgeTask purgeNpmTask purgeDockerTask"
+                }
+            }
+        }
+    }
+    post {
+        success {
+            echo "SUCCESS"
+            //mail subject: "ArtifactPurger - SUCCESS", body: "ArtifactPurger - SUCCESS", from: "${MAILFROM}", to: "${MAILTO}"
+        }
+        failure {
+            echo "FAILURE"
+            mail subject: "ArtifactPurger - FAILURE", body: "ArtifactPurger - FAILURE", from: "${MAILFROM}", to: "${MAILTO}"
+        }
+    }
+}
