@@ -1460,10 +1460,16 @@ def updateEnvParamInYaml(String strPath, String strImpact360DataDir, String strI
 
     String strDataDir=strImpact360DataDir
     String strSoftwareDir=strImpact360SoftDir
+
+    String pp_artifactory_username  = "${artifactory_user}"
+    String pp_artifactory_password  = "${artifactory_password}"
+
     if (strDataDir=="" || !strDataDir) strDataDir="${impact360DataDir}"
     if (strSoftwareDir=="" || !strSoftwareDir) strSoftwareDir = "${impact360SoftwareDir}"
 
     String strToBeReplaceWith = "---\ndata_dir   : '${strDataDir}'\n" +
+            "artifactory_username   : '${pp_artifactory_username}'\n" +
+            "artifactory_password   : '${pp_artifactory_password}'\n" +
             "software_dir   : '${strSoftwareDir}'\n\n"
     sourceContent=sourceContent.replaceAll("---",strToBeReplaceWith)
 
