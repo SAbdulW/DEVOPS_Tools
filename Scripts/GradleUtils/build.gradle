@@ -227,6 +227,7 @@ task restartWFO(dependsOn: 'init') << {
 
 // Handle the error return
 def handlePuppetErrCode (String errCode){
+    noticeLog ("Returned Code from Puppet: ${errCode}")
     if ((errCode=="2") ||(errCode=="")){
         //do nothing
     } else if (errCode=="4") {
@@ -1084,7 +1085,7 @@ task runLocalDeployController(dependsOn: 'init') << {
     }
 
     //Now publish the error
-    //handlePuppetErrCode errRtnErrorCode
+    //handlePuppetErrCode errRtnErrorCode    
     noticeLog ("GradleUtils: DONE!!!")
 }
 
