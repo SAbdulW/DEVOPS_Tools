@@ -40,7 +40,11 @@ def fArtifactEmptyPOM = file("${artifactId}.pom")
 fArtifactEmptyPOM.text = emptyPomText()
 
 artifacts {
-	archives file: fArtifact, name: "${artifactId}", type: "${artifactType}"
+	if ("${classifier}"!="")
+		archives file: fArtifact, name: "${artifactId}", type: "${artifactType}", classifier: "${classifier}"
+	else {
+		archives file: fArtifact, name: "${artifactId}", type: "${artifactType}"
+	}
 	archives file: fArtifactEmptyPOM, name: "${artifactId}", type: 'pom'
 }
 
