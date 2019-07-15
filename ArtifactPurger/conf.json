@@ -446,7 +446,7 @@
       "daysToKeep" : 5,
       "minimumToKeep" : 2,
       "pathMatch" : "com/verint",
-      "pathExclude" : ""
+      "pathExclude" : "com/verint/bio/fusion/release"
     },
     {
       "repoName" : "RM_AA_PSR",
