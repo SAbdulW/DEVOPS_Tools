@@ -1,6 +1,7 @@
 #**************** Common Lib ****************
 #************ Author: Quang Truong ************
-#*********** Last Update: 10/14/2016 ***********
+#************ Modified: Hoai Tang ************
+#*********** Last Update: 08/14/2019 ***********
 
 #**************** Main Classes ****************
 Class CommonLibs {
@@ -42,7 +43,7 @@ Class CommonLibs {
 	[PSCredential] createRemoteCredential ([String] $remoteIP, [String] $user, [String] $password){
 	if ($error) {$error.clear()}
 	$encryptedPwd = ConvertTo-SecureString -String $password -AsPlainText -Force
-	$psCredential = New-Object System.Management.Automation.PSCredential -ArgumentList $remoteIP\$user, $encryptedPwd
+	$psCredential = New-Object System.Management.Automation.PSCredential -ArgumentList $user, $encryptedPwd
 	if ($error) { return $null }
 	return $psCredential
 	}

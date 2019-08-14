@@ -7,6 +7,8 @@ $resultDisplayName = ''
 $psLibs = New-Object CommonLibs
 $psCredential = $psLibs.createRemoteCredential($vmIP, $vmUser, $vmPwd)
 
+Write-Host "[zGetDisplayNameFromRegistry] - vmUser:"$vmUser
+Write-Host "[zGetDisplayNameFromRegistry] - Getting credential:"$psCredential
 Write-Host "[zGetDisplayNameFromRegistry] - Searching DisplayName for:"$componentGUID
 
 $sbContent = {
