@@ -365,26 +365,31 @@ def List getXNumberLatestNpmArtifactsPerVersion(int topElement, String repoKey){
             def artifactList = [:]
             listItems.each{ itemName ->
                 // first, parse the version
-                int lastIndex1 = itemName.lastIndexOf(".")
-                if(lastIndex1 > 0){
-                    int lastIndex2 = (itemName.substring(0, lastIndex1)).lastIndexOf(".")
-                    if(lastIndex2 > 0){
-                        int lastIndex3 = itemName.lastIndexOf("-")
-                        if(lastIndex3 > 0){
-                            int lastIndex4 = (itemName.substring(0, lastIndex3)).lastIndexOf("-")
-                            if(lastIndex4 > 0){
-                                String version = itemName.substring(lastIndex4 + 1, lastIndex2)
-                                String buildNumber = itemName.substring(lastIndex2 + 1, lastIndex1)
+                try{
+                    int lastIndex1 = itemName.lastIndexOf(".")
+                    if(lastIndex1 > 0){
+                        int lastIndex2 = (itemName.substring(0, lastIndex1)).lastIndexOf(".")
+                        if(lastIndex2 > 0){
+                            int lastIndex3 = itemName.lastIndexOf("-")
+                            if(lastIndex3 > 0){
+                                int lastIndex4 = (itemName.substring(0, lastIndex3)).lastIndexOf("-")
+                                if(lastIndex4 > 0){
+                                    String version = itemName.substring(lastIndex4 + 1, lastIndex2)
+                                    String buildNumber = itemName.substring(lastIndex2 + 1, lastIndex1)
 
-                                // compare and put in this map if
-                                // make sure the build number is interger otherwise just ignore them - don't keep e.g. SNAPSHOT
-                                if( versionPrefix == version && buildNumber.isInteger()){
-                                    artifactList.put(Integer.parseInt(buildNumber), itemName)
+                                    // compare and put in this map if
+                                    // make sure the build number is interger otherwise just ignore them - don't keep e.g. SNAPSHOT
+                                    if( versionPrefix == version && buildNumber.isInteger()){
+                                        artifactList.put(Integer.parseInt(buildNumber), itemName)
+                                    }
                                 }
                             }
                         }
                     }
                 }
+                catch(Exception ex){
+                    logger.quiet("Got error eith item ${itemName}: ${ex}")
+                }                
             }
 
             // now sort it, DESC
