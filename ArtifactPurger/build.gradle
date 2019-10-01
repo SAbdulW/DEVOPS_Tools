@@ -336,26 +336,30 @@ def List getXNumberLatestNpmArtifactsPerVersion(int topElement, String repoKey){
         List distinctVersionList = []
         listItems.each{ itemName ->
             // first, parse the version
-            int lastIndex1 = itemName.lastIndexOf(".")
-            if(lastIndex1 > 0){
-                int lastIndex2 = (itemName.substring(0, lastIndex1)).lastIndexOf(".")
-                if(lastIndex2 > 0){
-                    int lastIndex3 = itemName.lastIndexOf("-")
-                    if(lastIndex3 > 0){
-                        int lastIndex4 = (itemName.substring(0, lastIndex3)).lastIndexOf("-")
-                        if(lastIndex4 > 0){
-                            String version = itemName.substring(lastIndex4 + 1, lastIndex2)
-                            String buildNumber = itemName.substring(lastIndex2 + 1, lastIndex1)
+            try{
+                int lastIndex1 = itemName.lastIndexOf(".")
+                if(lastIndex1 > 0){
+                    int lastIndex2 = (itemName.substring(0, lastIndex1)).lastIndexOf(".")
+                    if(lastIndex2 > 0){
+                        int lastIndex3 = itemName.lastIndexOf("-")
+                        if(lastIndex3 > 0){
+                            int lastIndex4 = (itemName.substring(0, lastIndex3)).lastIndexOf("-")
+                            if(lastIndex4 > 0){
+                                String version = itemName.substring(lastIndex4 + 1, lastIndex2)
+                                String buildNumber = itemName.substring(lastIndex2 + 1, lastIndex1)
 
-                            // put this version into the distinct list if it not in there already
-                            if(!distinctVersionList.any {it == version}) {
-                                distinctVersionList.add(version)
+                                // put this version into the distinct list if it not in there already
+                                if(!distinctVersionList.any {it == version}) {
+                                    distinctVersionList.add(version)
+                                }
                             }
                         }
                     }
                 }
             }
-
+            catch(Exception e){
+                logger.quiet("Got error eith item ${itemName}: ${ex}")
+            }
         }
 
         // now we got the list of distinct version list of this root artifact

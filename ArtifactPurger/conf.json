@@ -91,6 +91,13 @@
       ]
     },
     {
+      "repoName" : "cd-passed-pl",
+      "daysToKeep" : 21,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
       "repoName" : "cd-passed-pl-archive",
       "daysToKeep" : 0,
       "minimumToKeep" : 1,
@@ -638,7 +645,7 @@
     },
     {
       "repoName" : "gate0-master",
-      "daysToKeep" : 5,
+      "daysToKeep" : 4,
       "minimumToKeep" : 2,
       "pathMatch" : "com/verint",
       "pathExclude" : "com/verint/iserver",
@@ -676,7 +683,7 @@
     },
     {
       "repoName" : "gate1-master",
-      "daysToKeep" : 5,
+      "daysToKeep" : 4,
       "minimumToKeep" : 2,
       "pathMatch" : "com/verint",
       "pathExclude" : "com/verint/iserver",
