@@ -45,7 +45,10 @@ artifacts {
 	else {
 		archives file: fArtifact, name: "${artifactId}", type: "${artifactType}"
 	}
-	archives file: fArtifactEmptyPOM, name: "${artifactId}", type: 'pom'
+
+	if ("${publishEmptyPOM}".toBoolean()) {
+		archives file: fArtifactEmptyPOM, name: "${artifactId}", type: 'pom'
+	}
 }
 
 artifactory {
