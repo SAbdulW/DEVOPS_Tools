@@ -1152,6 +1152,16 @@ task runLocalDeploy() << {
 
     logger.quiet ("GradleUtils: certname:${certname}")
 
+    String strSSLPath="C:\\ProgramData\\PuppetLabs\\puppet\\etc\\ssl"
+    noticeLog ("GradleUtils: Stage Pre-2.1: Make sure the ssl folder is gone ",fLogStatus)
+    logger.quiet ("GradleUtils: Make sure the ssl folder is gone:${strSSLPath}")
+    File sslDir = new File("${strSSLPath}")
+
+    if (sslDir.exists()) {
+        logger.quiet ("GradleUtils: Exist...Deleting...:${strSSLPath}")
+        sslDir.deleteDir()
+    }
+
     noticeLog ("GradleUtils: Stage 2.1: Run puppet to prepare the environements ",fLogStatus)
     logger.quiet ("GradleUtils: run the initial set up on base environment with certname:${certname}")
 
