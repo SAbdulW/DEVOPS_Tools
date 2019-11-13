@@ -1273,8 +1273,28 @@ def runLogCollectionLocal (String strCertName, String strEnv){
 def generateGradleRemote(String strCertName){
     //gradlew.bat -i --refresh-dependencies runPA -PcurrentVersion=15.1.0.10049 -PMasterBuildVersion=15.1.0.10049 -PvmIP=10.156.16.202 -PyamlFiles=puppet.yaml -PdeployEarFile=true -PchkApp=true -PwfoService=WFO_ProductionDomain_ProductionServer "-PstopStartservices=WatchDog,MinerTomcat,RecorderTomcat,Recorder Alarm Service" -PfillVersionRange=false
 
-    String sCmd = "if not exist ${srcRootDir} mkdir ${srcRootDir} \n" +
+    String sCmd = "@echo off \n"+ 
+            "if not exist ${srcRootDir} mkdir ${srcRootDir} \n" +
             "cd /D C:\\GradleUtils\n" +
+            " \n"+ 
+            "FOR /L %%G IN (1,1,10) DO ( \n"+ 
+            "    echo %%G \n"+ 
+            "    ping -n 60 127.0.0.1 >nul \n"+ 
+            "    ping atlartifactory.lab.local | Find "Reply" >nul \n"+ 
+            "    if not errorlevel 1 ( \n"+ 
+            "        echo Successfully pinged to Artifactory. \n"+ 
+            "        goto :good \n"+ 
+            "    ) else ( \n"+ 
+            "        echo Cannot ping Artifactory. \n"+ 
+            "    ) \n"+ 
+            ") \n"+ 
+            ":bad \n"+ 
+            "echo BAD! \n"+ 
+            "EXIT /B 100 \n"+ 
+            " \n"+ 
+            ":good \n"+ 
+            "echo GOOD! \n"+ 
+            " \n"+ 
             "cmd /c gradlew.bat -i runLocalDeploy aP -PcurrentVersion=${currentVersion} -PMasterBuildVersion=${MasterBuildVersion} -PvmIP=${vmIP} -PyamlFiles=${yamlFiles} -PdeployEarFile=${deployEarFile} -PchkApp=${chkApp} -PwfoService=${wfoService} \"-PstopStartservices=${stopStartservices}\" -PfillVersionRange=false -PremoteCmd=localfile -Picertname=${strCertName} 1> C:\\GradleUtils\\gradlelogDeploy.log 2>&1"
 
     File cmdFile = new File ("${projectDir}\\runGradleLocalDeploy.bat")
