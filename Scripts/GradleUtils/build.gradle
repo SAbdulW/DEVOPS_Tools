@@ -1280,7 +1280,7 @@ def generateGradleRemote(String strCertName){
             "FOR /L %%G IN (1,1,10) DO ( \n"+ 
             "    echo %%G \n"+ 
             "    ping -n 60 127.0.0.1 >nul \n"+ 
-            "    ping atlartifactory.lab.local | Find 'Reply' >nul \n"+ 
+            "    ping atlartifactory.lab.local | Find \"Reply\" >nul \n"+ 
             "    if not errorlevel 1 ( \n"+ 
             "        echo Successfully pinged to Artifactory. \n"+ 
             "        goto :good \n"+ 
