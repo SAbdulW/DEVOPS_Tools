@@ -15,13 +15,6 @@
     "pathExclude" : ""
   },
   {
-    "repoName" : "atlartifactory-npm-local-cache",
-    "daysToKeep" : 7,
-    "minimumToKeep" : 5,
-    "pathMatch" : "*",
-    "pathExclude" : ""
-  },
-  {
     "repoName" : "ea-webapp-zip",
     "daysToKeep" : 7,
     "minimumToKeep" : 5,
