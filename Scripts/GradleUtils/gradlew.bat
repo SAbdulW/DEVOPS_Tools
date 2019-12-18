@@ -16,6 +16,11 @@ if "%DIRNAME%" == "" set DIRNAME=.
 set APP_BASE_NAME=%~n0
 set APP_HOME=%DIRNAME%
 
+echo ### Set JAVA_HOME ###
+if defined I360_JAVA_HOME set JAVA_HOME=%I360_JAVA_HOME%
+echo JAVA_HOME=%JAVA_HOME% 
+echo ### Set JAVA_HOME ###
+
 @rem Find java.exe
 if defined JAVA_HOME goto findJavaFromJavaHome
 
@@ -72,6 +77,9 @@ set CMD_LINE_ARGS=%$
 set CLASSPATH=%APP_HOME%\gradle\wrapper\gradle-wrapper.jar
 
 @rem Execute Gradle
+
+"%JAVA_EXE%" -version
+
 "%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -classpath "%CLASSPATH%" org.gradle.wrapper.GradleWrapperMain %CMD_LINE_ARGS%
 
 :end
