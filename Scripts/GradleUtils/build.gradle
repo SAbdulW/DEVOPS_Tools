@@ -1360,6 +1360,9 @@ def readRegistries( ){
     def registryDiffFile = new File ("$srcLogDir\\ServerVersionInstalledMismatch.log")
     registryDiffFile.write "List of mismatch of registry and ServerVersionInformation.xml\n"
 
+    def registryLogFile = new File ("$srcLogDir\\Registry.log")
+    registryLogFile.write "### ALL REGISTRY ENTRIES ###\n"
+
     def fullRegistryFile = new File ("$srcLogDir\\registryExport.json")
     String fullRegistryContent = ""
     String jsonItemHeader=""
@@ -1375,20 +1378,7 @@ def readRegistries( ){
         valuePublisher = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "Publisher");
         logger.quiet("GradleUtils Test: key: ${key} AND valueDisplayName: ${valueDisplayName}");
 
-        def component = getXMLComponent(parsedXmlObj,key)
-
-        if (component !=null){
-            if ((component.@name != valueDisplayName) || (component.@version != valueDisplayVersion)){
-                registryDiffFile << "Component id=${key} ServerVeversion (${component.@name}, ${component.@version}) != Registry (${valueDisplayName},${valueDisplayVersion})\n"
-                logger.quiet("Component id=${key} ServerVeversion (${component.@name}, ${component.@version}) != Registry (${valueDisplayName},${valueDisplayVersion})")
-            }
-        }else {
-            if (valuePublisher!=null && valuePublisher.contains("Impact")){
-                registryDiffFile << "**************Not exist id=${key} Registry (${valueDisplayName},${valueDisplayVersion}) Publisher: ${valuePublisher}\n"
-                logger.quiet("**************Not exist id=${key} Registry (${valueDisplayName},${valueDisplayVersion}) Publisher: ${valuePublisher}")
-            }
-        }
-
+        registryLogFile << "${key} :: ${valueDisplayName} :: ${valueDisplayVersion} :: ${valuePublisher}\n"
         if (fullRegistryContent=="") {
             fullRegistryContent ="  \"${key}\": {\n" +
                     "    \"ComponentName\": \"${valueDisplayName}\",\n" +
@@ -1403,6 +1393,20 @@ def readRegistries( ){
                     "    \"Key\": \"${key}\",\n" +
                     "    \"Publisher\": \"${valuePublisher}\"\n" +
                     "  }"
+        }
+
+        // log mismatch components
+        def component = getXMLComponent(parsedXmlObj,key)
+        if (component !=null){
+            if ((component.@name != valueDisplayName) || (component.@version != valueDisplayVersion)){
+                registryDiffFile << "Component id=${key} ServerVeversion (${component.@name}, ${component.@version}) != Registry (${valueDisplayName},${valueDisplayVersion})\n"
+                logger.quiet("Component id=${key} ServerVeversion (${component.@name}, ${component.@version}) != Registry (${valueDisplayName},${valueDisplayVersion})")
+            }
+        }else {
+            if (valuePublisher!=null && valuePublisher.contains("Impact")){
+                registryDiffFile << "**************Not exist id=${key} Registry (${valueDisplayName},${valueDisplayVersion}) Publisher: ${valuePublisher}\n"
+                logger.quiet("**************Not exist id=${key} Registry (${valueDisplayName},${valueDisplayVersion}) Publisher: ${valuePublisher}")
+            }
         }
     }
 
@@ -1418,20 +1422,8 @@ def readRegistries( ){
         valueDisplayVersion = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayVersion");
         valuePublisher = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "Publisher");
         logger.quiet("GradleUtils Test: key: ${key} AND valueDisplayName: ${valueDisplayName}");
-        def component = getXMLComponent(parsedXmlObj,key)
 
-        if (component !=null){
-            if ((component.@name != valueDisplayName) || (component.@version != valueDisplayVersion)){
-                registryDiffFile << "Component id=${key} ServerVeversion (${component.@name}, ${component.@version}) != Registry (${valueDisplayName},${valueDisplayVersion})\n"
-                logger.quiet("Component id=${key} ServerVeversion (${component.@name}, ${component.@version}) != Registry (${valueDisplayName},${valueDisplayVersion})")
-            }
-        }else {
-            if (valuePublisher!=null && valuePublisher.contains("Impact")){
-                registryDiffFile << "**************Not exist id=${key} Registry (${valueDisplayName},${valueDisplayVersion}) Publisher: ${valuePublisher}\n"
-                logger.quiet("**************Not exist id=${key} Registry (${valueDisplayName},${valueDisplayVersion}) Publisher: ${valuePublisher}")
-            }
-        }
-
+        registryLogFile << "${key} :: ${valueDisplayName} :: ${valueDisplayVersion} :: ${valuePublisher}\n"
         if (fullRegistryContent=="") {
             fullRegistryContent ="  \"${key}\": {\n" +
                     "    \"ComponentName\": \"${valueDisplayName}\",\n" +
@@ -1448,6 +1440,19 @@ def readRegistries( ){
                     "  }"
         }
 
+        // log mismatch components
+        def component = getXMLComponent(parsedXmlObj,key)
+        if (component !=null){
+            if ((component.@name != valueDisplayName) || (component.@version != valueDisplayVersion)){
+                registryDiffFile << "Component id=${key} ServerVeversion (${component.@name}, ${component.@version}) != Registry (${valueDisplayName},${valueDisplayVersion})\n"
+                logger.quiet("Component id=${key} ServerVeversion (${component.@name}, ${component.@version}) != Registry (${valueDisplayName},${valueDisplayVersion})")
+            }
+        }else {
+            if (valuePublisher!=null && valuePublisher.contains("Impact")){
+                registryDiffFile << "**************Not exist id=${key} Registry (${valueDisplayName},${valueDisplayVersion}) Publisher: ${valuePublisher}\n"
+                logger.quiet("**************Not exist id=${key} Registry (${valueDisplayName},${valueDisplayVersion}) Publisher: ${valuePublisher}")
+            }
+        }
 
     }
 
