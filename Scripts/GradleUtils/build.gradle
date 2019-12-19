@@ -1411,11 +1411,6 @@ def readRegistries( ){
     }
 
 
-    //[Chau] Debug
-    keys64.add("{4357B77A-3432-483f-B95C-B6A218EA9583}")
-    keys64.add("{19124C4F-FFB2-4031-B52D-1A0FB703D56D}")
-
-
     for (String key : keys64) {
 
         logger.quiet("GradleUtils Test: looking for key: ${key} for 64bit");
