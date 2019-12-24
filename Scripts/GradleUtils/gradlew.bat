@@ -17,7 +17,7 @@ set APP_BASE_NAME=%~n0
 set APP_HOME=%DIRNAME%
 
 echo ### Set JAVA_HOME ###
-if defined I360_JAVA_HOME set JAVA_HOME=%I360_JAVA_HOME%
+if defined I360_64_JAVA_HOME set JAVA_HOME=%I360_64_JAVA_HOME%
 echo JAVA_HOME=%JAVA_HOME% 
 echo ### Set JAVA_HOME ###
 

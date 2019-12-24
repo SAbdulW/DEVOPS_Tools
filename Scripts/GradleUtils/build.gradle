@@ -1348,20 +1348,15 @@ def readRegistries( ){
 
     def parsedXmlObj =loadXML ("${strSoftwareDir}\\${srcLogInstallXML}")
     WindowsRegistry reg = WindowsRegistry.getInstance();
-    //String tree = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
-    //String value = reg.readString(HKey.HKLM, tree, "ProductName");
+
     String branch = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
     String branch64 = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
-    List<String> allKeys = new ArrayList<String>();		// list for all keys (32 and 64)
+
     List<String> keys = reg.readStringSubKeys(HKey.HKLM, branch);
     List<String> keys64 = reg.readStringSubKeys(HKey.HKLM, branch64); // adding key for 64
-    allKeys.addAll(keys);		// adding 32 keys
-    allKeys.addAll(keys64);		// adding 64
+
     def registryDiffFile = new File ("$srcLogDir\\ServerVersionInstalledMismatch.log")
     registryDiffFile.write "List of mismatch of registry and ServerVersionInformation.xml\n"
-
-    def registryLogFile = new File ("$srcLogDir\\Registry.log")
-    registryLogFile.write "### ALL REGISTRY ENTRIES ###\n"
 
     def fullRegistryFile = new File ("$srcLogDir\\registryExport.json")
     String fullRegistryContent = ""
@@ -1372,13 +1367,10 @@ def readRegistries( ){
     String valuePublisher = "";
 
     for (String key : keys) {
-        logger.quiet("GradleUtils Test: looking for key: ${key} in Wow6432Node");
         valueDisplayName = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayName");
         valueDisplayVersion = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayVersion");
         valuePublisher = reg.readString(HKey.HKLM,  "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "Publisher");
-        logger.quiet("GradleUtils Test: key: ${key} AND valueDisplayName: ${valueDisplayName}");
 
-        registryLogFile << "${key} :: ${valueDisplayName} :: ${valueDisplayVersion} :: ${valuePublisher}\n"
         if (fullRegistryContent=="") {
             fullRegistryContent ="  \"${key}\": {\n" +
                     "    \"ComponentName\": \"${valueDisplayName}\",\n" +
@@ -1412,18 +1404,10 @@ def readRegistries( ){
 
 
     for (String key : keys64) {
-
-        logger.quiet("GradleUtils Test: looking for key: ${key} for 64bit");
-        //static Pattern escaper = Pattern.compile("([^a-zA-z0-9])");
-        //key =  key.replaceAll( /([^a-zA-Z0-9])/, '\\\\$1' )
-        //key = key.replaceAll('$' , '\$');
-        logger.quiet("GradleUtils Test: key after replacement : ${key}");
         valueDisplayName = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayName");
         valueDisplayVersion = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "DisplayVersion");
         valuePublisher = reg.readString(HKey.HKLM,  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${key}", "Publisher");
-        logger.quiet("GradleUtils Test: key: ${key} AND valueDisplayName: ${valueDisplayName}");
 
-        registryLogFile << "${key} :: ${valueDisplayName} :: ${valueDisplayVersion} :: ${valuePublisher}\n"
         if (fullRegistryContent=="") {
             fullRegistryContent ="  \"${key}\": {\n" +
                     "    \"ComponentName\": \"${valueDisplayName}\",\n" +
@@ -1457,7 +1441,6 @@ def readRegistries( ){
     }
 
     fullRegistryFile.write "{\n${fullRegistryContent}\n}"
-
 }
 
 def loadXML(String xmlSrcPath){
