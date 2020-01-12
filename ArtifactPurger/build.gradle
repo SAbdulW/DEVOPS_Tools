@@ -357,7 +357,7 @@ def List getXNumberLatestNpmArtifactsPerVersion(int topElement, String repoKey){
                     }
                 }
             }
-            catch(Exception e){
+            catch(Exception ex){
                 logger.quiet("Got error eith item ${itemName}: ${ex}")
             }
         }
