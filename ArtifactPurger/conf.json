@@ -867,6 +867,13 @@
       "minimumToKeep" : 2,
       "pathMatch" : "*",
       "pathExclude" : ""
+    },
+    {
+      "repoName" : "libs-snapshot-local",
+      "daysToKeep" : 4,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
     }
   ]
 }
