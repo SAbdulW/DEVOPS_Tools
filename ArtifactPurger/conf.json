@@ -2,13 +2,6 @@
   "conf" : [
     {
       "repoName" : "devops",
-      "daysToKeep" : 1,
-      "minimumToKeep" : 1,
-      "pathMatch" : "*",
-      "pathExclude" : ""
-    },
-    {
-      "repoName" : "devops",
       "daysToKeep" : 2,
       "minimumToKeep" : 0,
       "pathMatch" : "com/verint/puppet/logs",
