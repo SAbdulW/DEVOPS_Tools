@@ -971,6 +971,20 @@
       "minimumToKeep" : 2,
       "pathMatch" : "com/verint/pm",
       "pathExclude" : ""
+    },
+    {
+      "repoName" : "rec-dev-nuget",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint/iem/lib",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "rec-dev-staging",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
     }
   ]
 }
