@@ -976,7 +976,7 @@
       "repoName" : "rec-dev-nuget",
       "daysToKeep" : 5,
       "minimumToKeep" : 5,
-      "pathMatch" : "com/verint/iem/lib",
+      "pathMatch" : ["com/verint/iem/lib","Common"],
       "pathExclude" : ""
     },
     {
