@@ -974,9 +974,9 @@
     },
     {
       "repoName" : "rec-dev-nuget",
-      "daysToKeep" : 5,
-      "minimumToKeep" : 5,
-      "pathMatch" : "Common",
+      "minimumToKeep" : 10,
+      "daysToKeep" : 10,
+      "pathMatch" : "IEMdlls",
       "pathExclude" : ""
     },
     {
