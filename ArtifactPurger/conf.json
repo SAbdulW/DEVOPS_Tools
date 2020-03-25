@@ -974,9 +974,9 @@
     },
     {
       "repoName" : "rec-dev-nuget",
-      "minimumToKeep" : 10,
-      "daysToKeep" : 10,
-      "pathMatch" : "IEMdlls/*",
+      "minimumToKeep" : 5,
+      "daysToKeep" : 5,
+      "pathMatch" : "com/verint/iem/lib",
       "pathExclude" : ""
     },
     {
