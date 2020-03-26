@@ -7,6 +7,20 @@
       "pathMatch" : "com/verint/puppet/logs",
       "pathExclude" : ""
     },
+     {
+      "repoName" : "rec-dev-nuget",
+      "daysToKeep" : 0,
+      "minimumToKeep" : 0,
+      "pathMatch" : "IEMdlls/*",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "rec-dev-nuget",
+      "daysToKeep" : 0,
+      "minimumToKeep" : 0,
+      "pathMatch" : "Common/",
+      "pathExclude" : ""
+    },
     {
       "repoName" : "ci-snapshot",
       "daysToKeep" : 2,
