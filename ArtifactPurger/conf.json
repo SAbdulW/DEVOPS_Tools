@@ -4,7 +4,7 @@
       "repoName" : "rec-dev-nuget",
       "daysToKeep" : 0,
       "minimumToKeep" : 0,
-      "pathMatch" : "IEMdlls/",
+      "pathMatch" : "IEMdlls/*",
       "pathExclude" : "",
       "VersionRanges" : [
         {"start" : "15.2.7.544", "end" : "15.2.7.546"}
@@ -14,7 +14,7 @@
       "repoName" : "rec-dev-nuget",
       "daysToKeep" : 0,
       "minimumToKeep" : 0,
-      "pathMatch" : "Common/",
+      "pathMatch" : "Common/*",
       "pathExclude" : "",
       "VersionRanges" : [
         {"start" : "15.2.8.87", "end" : "15.2.8.89"}
