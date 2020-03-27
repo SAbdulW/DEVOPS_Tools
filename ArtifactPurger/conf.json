@@ -4,14 +4,14 @@
       "repoName" : "rec-dev-nuget",
       "daysToKeep" : 1,
       "minimumToKeep" : 1,
-      "pathMatch" : "IEMdlls/*",
+      "pathMatch" : "IEMdlls/IEMdlls.15.2.7.544.nupkg",
       "pathExclude" : ""
     },
     {
       "repoName" : "rec-dev-nuget",
       "daysToKeep" : 1,
       "minimumToKeep" : 1,
-      "pathMatch" : "Common/*",
+      "pathMatch" : "Common/Boost_Compiletime.15.2.8.87.nupkg",
       "pathExclude" : ""
     }
   ]
