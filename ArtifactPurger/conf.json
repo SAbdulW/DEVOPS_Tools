@@ -12,7 +12,7 @@
       "daysToKeep" : 0,
       "minimumToKeep" : 0,
       "pathMatch" : "IEMdlls/IEMdlls*",
-      "pathExclude" : ""
+      "pathExclude" : "",
       "VersionRanges" : [
 	{"start" : "15.2.7.544", "end" : "15.2.7.546"}
       ]
@@ -22,8 +22,8 @@
       "daysToKeep" : 0,
       "minimumToKeep" : 0,
       "pathMatch" : "Common/",
-      "pathExclude" : ""
-"VersionRanges" : [
+      "pathExclude" : "",
+      "VersionRanges" : [
         {"start" : "15.2.8.87", "end" : "15.2.8.89"}
       ]
     },
