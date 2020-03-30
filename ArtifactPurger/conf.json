@@ -2,15 +2,15 @@
   "conf" : [
      {
       "repoName" : "rec-dev-nuget",
-      "daysToKeep" : 5,
-      "minimumToKeep" : 5,
+      "daysToKeep" : 0,
+      "minimumToKeep" : 0,
       "pathMatch" : "IEMdlls/*",
       "pathExclude" : "com/verint/iem/lib/"
      },
     {
       "repoName" : "rec-dev-nuget",
-      "daysToKeep" : 5,
-      "minimumToKeep" : 5,
+      "daysToKeep" : 0,
+      "minimumToKeep" : 0,
       "pathMatch" : "Common/*",
       "pathExclude" : "com/verint/iem/lib/"
     }
