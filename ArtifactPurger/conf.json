@@ -2,16 +2,16 @@
   "conf" : [
      {
       "repoName" : "rec-dev-nuget",
-      "daysToKeep" : 6,
-      "minimumToKeep" : 6,
-      "pathMatch" : "/IEMdlls/*",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "IEMdlls/*",
       "pathExclude" : ""
      },
     {
       "repoName" : "rec-dev-nuget",
-      "daysToKeep" : 6,
-      "minimumToKeep" : 6,
-      "pathMatch" : "/Common/*",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "Common/*",
       "pathExclude" : ""
     }
   ]
