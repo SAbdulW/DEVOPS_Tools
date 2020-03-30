@@ -5,14 +5,14 @@
       "daysToKeep" : 5,
       "minimumToKeep" : 5,
       "pathMatch" : "IEMdlls/*",
-      "pathExclude" : ""
+      "pathExclude" : "com/verint/iem/lib/"
      },
     {
       "repoName" : "rec-dev-nuget",
       "daysToKeep" : 5,
       "minimumToKeep" : 5,
       "pathMatch" : "Common/*",
-      "pathExclude" : ""
+      "pathExclude" : "com/verint/iem/lib/"
     }
   ]
 }
