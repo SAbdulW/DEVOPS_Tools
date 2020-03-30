@@ -4,14 +4,14 @@
       "repoName" : "rec-dev-nuget",
       "daysToKeep" : 5,
       "minimumToKeep" : 5,
-      "pathMatch" : "IEMdlls",
+      "pathMatch" : "IEMdlls/",
       "pathExclude" : ""
      },
     {
       "repoName" : "rec-dev-nuget",
       "daysToKeep" : 5,
       "minimumToKeep" : 5,
-      "pathMatch" : "Common",
+      "pathMatch" : "Common/",
       "pathExclude" : ""
     }
   ]
