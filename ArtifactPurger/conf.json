@@ -62,7 +62,7 @@
     {
       "repoName" : "ci-release",
       "daysToKeep" : 3,
-      "minimumToKeep" : 2,
+      "minimumToKeep" : 3,
       "pathMatch" : "com/verint",
       "pathExclude" : "",
       "versionRanges" : [
