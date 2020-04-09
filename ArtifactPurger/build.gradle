@@ -741,7 +741,8 @@ def String executeEmptyTrashCanSpeed(){
     filePath = tempArtifactsList.getAbsolutePath()
     filePath = filePath.replaceAll("\\\\","/")
 
-    String sCmd = "curl -v -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$contextURL/api/trash/empty\"  -o \"$filePath\""
+    //String sCmd = "curl -v -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$contextURL/api/trash/empty\"  -o \"$filePath\""
+    String sCmd = "curl -v -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$contextURL/api/trash/empty\""
     logger.quiet("Execute AQL: ${sCmd}")
 
     try {
