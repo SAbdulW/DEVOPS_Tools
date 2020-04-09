@@ -1,0 +1,23 @@
+pipeline {
+    agent {
+        node {
+            label "Build-Slaves-B"
+        }
+    }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        disableConcurrentBuilds()
+        timeout(time: 24, unit: 'HOURS')
+        timestamps()
+    }
+    stages {
+        stage('Process'){
+            steps{
+                dir("./ArtifactPurger"){
+                    bat "del /q *.log"
+                    bat "gradlew.bat -PcontextURL=http://atlartifactory:8081/artifactory -PviewOnly=false emptyTrashCanTask"
+                }
+            }
+        }
+    }
+}
