@@ -743,7 +743,7 @@ def String executeEmptyTrashCanSpeed(){
 
     //String sCmd = "curl -v -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$contextURL/api/trash/empty\"  -o \"$filePath\""
     //String sCmd = "curl -v -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$contextURL/api/trash/empty\""
-    String sCmd = "curl -f -X GET http://www.google.com/"
+    String sCmd = "echo Hello Slow World"
     logger.quiet("Execute AQL: ${sCmd}")
 
     //try {
