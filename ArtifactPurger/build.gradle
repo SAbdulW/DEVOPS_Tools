@@ -742,19 +742,18 @@ def String executeEmptyTrashCanSpeed(){
     filePath = filePath.replaceAll("\\\\","/")
 
     //String sCmd = "curl -v -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$contextURL/api/trash/empty\"  -o \"$filePath\""
-    String sCmd = "curl -v -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$contextURL/api/trash/empty\""
+    //String sCmd = "curl -v -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$contextURL/api/trash/empty\""
+    String sCmd = "curl -f -X GET http://www.google.com/"
     logger.quiet("Execute AQL: ${sCmd}")
 
-    try {
-        exec {
-            commandLine 'sh', '-c', sCmd
-        }
-    }
-    catch (Exception e) {
-        logger.quiet ("ArtifactoryPurging: some " + e.toString())
-
-    }
-    logger.quiet("Execute AQL: ${sCmd}")
+    //try {
+    //    exec {
+    //        commandLine 'sh', '-c', sCmd
+    //    }
+    //}
+    //catch (Exception e) {
+    //    logger.quiet ("ArtifactoryPurging: some " + e.toString())
+    //}
 
     try {
         exec {
