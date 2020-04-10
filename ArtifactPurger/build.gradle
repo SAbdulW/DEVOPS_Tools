@@ -761,6 +761,10 @@ def String executeEmptyTrashCanSpeed(){
             commandLine 'sh', '-c', sCmd
         }
     }
+    catch (Exception e) {
+        logger.quiet ("ArtifactoryPurging: some " + e.toString())
+
+    }
 
     //def inputJSON = new JsonSlurper().parseText(tempArtifactsList.text)
     String rtnText = tempArtifactsList.text
