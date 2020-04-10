@@ -741,19 +741,8 @@ def String executeEmptyTrashCanSpeed(){
     filePath = tempArtifactsList.getAbsolutePath()
     filePath = filePath.replaceAll("\\\\","/")
 
-    //String sCmd = "curl -v -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$contextURL/api/trash/empty\"  -o \"$filePath\""
-    //String sCmd = "curl -v -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$contextURL/api/trash/empty\""
-    String sCmd = "echo Hello Slow World"
+    String sCmd = "curl -v -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$contextURL/api/trash/empty\"  -o \"$filePath\""
     logger.quiet("Execute AQL: ${sCmd}")
-
-    //try {
-    //    exec {
-    //        commandLine 'sh', '-c', sCmd
-    //    }
-    //}
-    //catch (Exception e) {
-    //    logger.quiet ("ArtifactoryPurging: some " + e.toString())
-    //}
 
     try {
         exec {
@@ -762,7 +751,6 @@ def String executeEmptyTrashCanSpeed(){
     }
     catch (Exception e) {
         logger.quiet ("ArtifactoryPurging: some " + e.toString())
-
     }
 
     //def inputJSON = new JsonSlurper().parseText(tempArtifactsList.text)
