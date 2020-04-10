@@ -754,6 +754,13 @@ def String executeEmptyTrashCanSpeed(){
         logger.quiet ("ArtifactoryPurging: some " + e.toString())
 
     }
+    logger.quiet("Execute AQL: ${sCmd}")
+
+    try {
+        exec {
+            commandLine 'sh', '-c', sCmd
+        }
+    }
 
     //def inputJSON = new JsonSlurper().parseText(tempArtifactsList.text)
     String rtnText = tempArtifactsList.text
