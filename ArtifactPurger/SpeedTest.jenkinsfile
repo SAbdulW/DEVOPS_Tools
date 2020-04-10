@@ -15,7 +15,7 @@ pipeline {
             steps{
                 dir("./ArtifactPurger"){
                     bat "del /q *.log"
-                    bat "gradlew.bat -PcontextURL=http://atlartifactory:8081/artifactory -PviewOnly=false emptyTrashCanTaskSpeed --dry-run"
+                    bat "gradlew.bat -PcontextURL=http://atlartifactory:8081/artifactory -PviewOnly=false emptyTrashCanTaskSpeed"
                 }
             }
         }
