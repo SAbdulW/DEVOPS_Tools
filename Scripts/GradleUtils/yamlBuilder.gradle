@@ -459,6 +459,7 @@ def Object pickItemFromSearchResult(List resultsList){
 
     //logger.quiet("yamlBuilder map before short: ${keyList}")
     // now sort it, DESC
+    logger.quiet("yamlBuilder: List of final key that matched without sorting:\n ${keyList}")
     keyList=keyList.sort()
     //logger.quiet("yamlBuilder map after sorted: ${keyList}")
     keyList=keyList.reverse()
