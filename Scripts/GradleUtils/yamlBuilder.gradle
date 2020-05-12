@@ -460,13 +460,13 @@ def Object pickItemFromSearchResult(List resultsList){
     //logger.quiet("yamlBuilder map before short: ${keyList}")
     // now sort it, DESC
     logger.quiet("yamlBuilder: List of final key that matched without sorting:\n ${keyList}")
-    keyList=keyList.sort()
+    //keyList=keyList.sort()
     //logger.quiet("yamlBuilder map after sorted: ${keyList}")
-    keyList=keyList.reverse()
+    //keyList=keyList.reverse()
 
-    logger.quiet("yamlBuilder: List of final key that matched:\n ${keyList}")
+    //logger.quiet("yamlBuilder: List of final key that matched:\n ${keyList}")
 
-    def String keyToPick = keyList[0]
+    def String keyToPick = keyList[-1]
     // and now take the top
 
     compInfoRtn = mapToSort.get(keyToPick)
