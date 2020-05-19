@@ -999,6 +999,27 @@
       "minimumToKeep" : 5,
       "pathMatch" : "com/verint",
       "pathExclude" : ""
+    },
+    {
+      "repoName" : "uat-release",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint/wfm",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "ext-release-local",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "jix",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint/SecurityKit",
+      "pathExclude" : ""
     }
   ]
 }
