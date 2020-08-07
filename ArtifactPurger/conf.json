@@ -10,14 +10,14 @@
 	{
       "repoName" : "rec-dev-nuget",
       "daysToKeep" : 5,
-      "minimumToKeep" : 5,
+      "minimumToKeep" : 2,
       "pathMatch" : "IEMdlls/*",
       "pathExclude" : "com/verint/iem/lib/"
      },
     {
       "repoName" : "rec-dev-nuget",
       "daysToKeep" : 5,
-      "minimumToKeep" : 5,
+      "minimumToKeep" : 2,
       "pathMatch" : "Common/*",
       "pathExclude" : "com/verint/iem/lib/"
     },
@@ -155,7 +155,7 @@
     {
       "repoName" : "cd-passed-pl",
       "daysToKeep" : 21,
-      "minimumToKeep" : 5,
+      "minimumToKeep" : 2,
       "pathMatch" : "com/verint",
       "pathExclude" : ""
     },
@@ -867,7 +867,7 @@
     {
       "repoName" : "localization-ci-release",
       "daysToKeep" : 30,
-      "minimumToKeep" : 5,
+      "minimumToKeep" : 2,
       "pathMatch" : "com/verint",
       "pathExclude" : "",
       "versionRanges" : [
@@ -1043,7 +1043,7 @@
     },
     {
       "repoName" : "rec-dev-nuget",
-      "minimumToKeep" : 5,
+      "minimumToKeep" : 2,
       "daysToKeep" : 5,
       "pathMatch" : "com/verint/iem/lib",
       "pathExclude" : ""
@@ -1051,7 +1051,7 @@
     {
       "repoName" : "rec-dev-staging",
       "daysToKeep" : 5,
-      "minimumToKeep" : 5,
+      "minimumToKeep" : 2,
       "pathMatch" : "com/verint",
       "pathExclude" : ""
     },
@@ -1074,6 +1074,27 @@
       "daysToKeep" : 5,
       "minimumToKeep" : 2,
       "pathMatch" : "com/verint/SecurityKit",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "ci-snapshot-sandbox",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "gate1-test-int",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "ci-onlinehelp",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
       "pathExclude" : ""
     }
   ]
