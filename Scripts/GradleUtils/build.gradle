@@ -557,7 +557,7 @@ def loadPuppetLog (String certName, String env  ){
             }
         }
         directory.eachFileRecurse(findFilenameClosure)
-        println file.text
+        logger.quiet("Transform YAML:\n --> \n${file.text}")
 
     }else{
         rtnValue = false
