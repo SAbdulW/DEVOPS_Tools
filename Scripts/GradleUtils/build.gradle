@@ -529,6 +529,36 @@ def loadPuppetLog (String certName, String env  ){
         //    ant.get(src: logZipURL, dest:"${projectDir}" )
         //    ant.unzip(src:"${projectDir}\\${certName}-15.1.0.1.zip" , dest: "${projectDir}\\PPLogs\\")
         //
+        logger.quiet("\nGradleUtils: ****************************************************************************")
+        logger.quiet("GradleUtils: *                             INSTALLATION LOGS                            *")
+        logger.quiet("GradleUtils: ****************************************************************************")
+        def fileSubStr = "install.log"
+        def filePattern = ~/${fileSubStr}/
+        def directory = file(new File("${projectDir}\\PPLogs"))
+        File file = new File("install.yaml")
+        file <<"wfoComponents:\n"
+        def findFilenameClosure =
+        {
+        if (filePattern.matcher(it.name).find())
+            {
+                //println "\t${it.name}\n"
+                def space = " "
+                file << "${space} - ComponentName: ${it.name}".split("_install")[0].replaceAll("_", " ")
+                file << "\n"
+                def lines = new File("${projectDir}\\PPLogs\\${it.name}").readLines()
+                def install = lines.findAll { it.contains(': Product: ') }
+                def data = lines.findAll { it.contains('Windows Installer installed the product') }
+                def line = install[-1].split(']: ')[1]
+                def result = line.split('-- ')
+                def returnCode = data[0].split(' ')[-1]
+                file << "${space*3} Status: ${result[1]}\n"
+                file << "${space*3} Return code: ${returnCode}\n"
+                file << "\n"
+            }
+        }
+        directory.eachFileRecurse(findFilenameClosure)
+        println file.text
+
     }else{
         rtnValue = false
     }
