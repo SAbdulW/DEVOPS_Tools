@@ -553,11 +553,10 @@ def loadPuppetLog (String certName, String env  ){
                 def returnCode = data[0].split(' ')[-1]
                 file << "${space*3} Status: ${result[1]}\n"
                 file << "${space*3} Return code: ${returnCode}\n"
-                file << "\n"
             }
         }
         directory.eachFileRecurse(findFilenameClosure)
-        logger.quiet("Transform YAML:\n --> \n${file.text}")
+        logger.quiet("\n${file.text}")
 
     }else{
         rtnValue = false
