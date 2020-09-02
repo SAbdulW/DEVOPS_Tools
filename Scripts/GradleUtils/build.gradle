@@ -568,7 +568,7 @@ def loadPuppetLog (String certName, String env  ){
         }
         directory.eachFileRecurse(findFilenameClosure)
         installStatusFile.write "{\n${installStatusContent}\n}"
-        logger.quiet(installedVersionsFile.text)
+        logger.quiet(installStatusFile.text)
         logger.quiet("GradleUtils: ****************************************************************************\n")
         logger.quiet("GradleUtils: ..\\PPLogs\\installStatus.json \n")
         logger.quiet("GradleUtils: ****************************************************************************\n")
