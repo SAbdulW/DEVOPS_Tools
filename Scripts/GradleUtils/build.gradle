@@ -535,28 +535,43 @@ def loadPuppetLog (String certName, String env  ){
         def fileSubStr = "install.log"
         def filePattern = ~/${fileSubStr}/
         def directory = file(new File("${projectDir}\\PPLogs"))
-        File file = new File("install.yaml")
-        file <<"wfoComponents:\n"
+        def installStatusFile = new File ("${projectDir}\\PPLogs\\installStatus.json")
+        String installStatusContent = ""
+        String componentName =""
         def findFilenameClosure =
         {
         if (filePattern.matcher(it.name).find())
             {
-                //println "\t${it.name}\n"
-                def space = " "
-                file << "${space} - ComponentName: ${it.name}".split("_install")[0].replaceAll("_", " ")
-                file << "\n"
-                def lines = new File("${projectDir}\\PPLogs\\${it.name}").readLines()
+                componentName = "${it.name}".split("_install")[0].replaceAll("_", " ")
+                def lines = new File("PPLogs//${it.name}").readLines()
                 def install = lines.findAll { it.contains(': Product: ') }
                 def data = lines.findAll { it.contains('Windows Installer installed the product') }
                 def line = install[-1].split(']: ')[1]
                 def result = line.split('-- ')
-                def returnCode = data[0].split(' ')[-1]
-                file << "${space*3} Status: ${result[1]}\n"
-                file << "${space*3} Return code: ${returnCode}\n"
+                def returnC = data[0].split(' ')[-1]
+                def returnCode = "${returnC}".findAll( /\d+/ )*.toInteger()[0]
+
+                if (installStatusContent=="") {
+                    installStatusContent ="  \"${componentName}\": {\n" +
+                            "    \"ComponentName\": \"${componentName}\",\n" +
+                            "    \"InstallStatus\": \"${result[1]}\",\n" +
+                            "    \"ReturnCode\": \"${returnCode}\",\n" +
+                            "  }"
+                }else{
+                    installStatusContent =installStatusContent +",\n  \"${componentName}\": {\n" +
+                            "    \"ComponentName\": \"${componentName}\",\n" +
+                            "    \"InstallStatus\": \"${result[1]}\",\n" +
+                            "    \"ReturnCode\": \"${returnCode}\",\n" +
+                            "  }"
+                }
             }
         }
         directory.eachFileRecurse(findFilenameClosure)
-        logger.quiet("\n${file.text}")
+        installStatusFile.write "{\n${installStatusContent}\n}"
+        logger.quiet(installedVersionsFile.text)
+        logger.quiet("GradleUtils: ****************************************************************************\n")
+        logger.quiet("GradleUtils: ..\\PPLogs\\installStatus.json \n")
+        logger.quiet("GradleUtils: ****************************************************************************\n")
 
     }else{
         rtnValue = false
