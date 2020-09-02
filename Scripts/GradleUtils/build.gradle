@@ -545,6 +545,8 @@ def loadPuppetLog (String certName, String env  ){
                 componentName = "${it.name}".split("_install")[0].replaceAll("_", " ")
                 def lines = new File("PPLogs//${it.name}").readLines()
                 def install = lines.findAll { it.contains(': Product: ') }
+                def msi = lines.findAll { it.contains('******* Product:') }
+                def msiVersion = msi[0].split('-')[1].split('.msi')[0]
                 def data = lines.findAll { it.contains('Windows Installer installed the product') }
                 def line = install[-1].split(']: ')[1]
                 def result = line.split('-- ')
@@ -554,12 +556,14 @@ def loadPuppetLog (String certName, String env  ){
                 if (installStatusContent=="") {
                     installStatusContent ="  \"${componentName}\": {\n" +
                             "    \"ComponentName\": \"${componentName}\",\n" +
+                            "    \"MsiVersion\": \"${msiVersion}\",\n" +
                             "    \"InstallStatus\": \"${result[1]}\",\n" +
                             "    \"ReturnCode\": \"${returnCode}\",\n" +
                             "  }"
                 }else{
                     installStatusContent =installStatusContent +",\n  \"${componentName}\": {\n" +
                             "    \"ComponentName\": \"${componentName}\",\n" +
+                            "    \"MsiVersion\": \"${msiVersion}\",\n" +
                             "    \"InstallStatus\": \"${result[1]}\",\n" +
                             "    \"ReturnCode\": \"${returnCode}\",\n" +
                             "  }"
