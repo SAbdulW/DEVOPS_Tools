@@ -529,53 +529,61 @@ def loadPuppetLog (String certName, String env  ){
         //    ant.get(src: logZipURL, dest:"${projectDir}" )
         //    ant.unzip(src:"${projectDir}\\${certName}-15.1.0.1.zip" , dest: "${projectDir}\\PPLogs\\")
         //
-        logger.quiet("\nGradleUtils: ****************************************************************************")
-        logger.quiet("GradleUtils: *                             INSTALLATION LOGS                            *")
-        logger.quiet("GradleUtils: ****************************************************************************")
-        def fileSubStr = "install.log"
-        def filePattern = ~/${fileSubStr}/
-        def directory = file(new File("${projectDir}\\PPLogs"))
-        def installStatusFile = new File ("${projectDir}\\PPLogs\\installStatus.json")
-        String installStatusContent = ""
-        String componentName =""
-        def findFilenameClosure =
-        {
-        if (filePattern.matcher(it.name).find())
+        try{
+            logger.quiet("\nGradleUtils: ****************************************************************************")
+            logger.quiet("GradleUtils: *                             INSTALLATION LOGS                            *")
+            logger.quiet("GradleUtils: ****************************************************************************")
+            def fileSubStr = "install.log"
+            def filePattern = ~/${fileSubStr}/
+            def directory = file(new File("${projectDir}\\PPLogs"))
+            def installStatusFile = new File ("${projectDir}\\PPLogs\\installStatus.json")
+            String installStatusContent = ""
+            String componentName =""
+            def findFilenameClosure =
             {
-                componentName = "${it.name}".split("_install")[0].replaceAll("_", " ")
-                def lines = new File("PPLogs//${it.name}").readLines()
-                def install = lines.findAll { it.contains(': Product: ') }
-                def msi = lines.findAll { it.contains('******* Product:') }
-                def msiVersion = msi[0].split('-')[1].split('.msi')[0]
-                def data = lines.findAll { it.contains('Windows Installer installed the product') }
-                def line = install[-1].split(']: ')[1]
-                def result = line.split('-- ')
-                def returnC = data[0].split(' ')[-1]
-                def returnCode = "${returnC}".findAll( /\d+/ )*.toInteger()[0]
+            if (filePattern.matcher(it.name).find())
+                {
+                    componentName = "${it.name}".split("_install")[0].replaceAll("_", " ")
+                    def lines = new File("PPLogs//${it.name}").readLines()
+                    def install = lines.findAll { it.contains(': Product: ') }
+                    def msi = lines.findAll { it.contains('******* Product:') }
+                    def msiVersion = msi[0].split('-')[1].split('.msi')[0]
+                    def data = lines.findAll { it.contains('Windows Installer installed the product') }
+                    def line = install[-1].split(']: ')[1]
+                    def result = line.split('-- ')
+                    def returnC = data[0].split(' ')[-1]
+                    def returnCode = "${returnC}".findAll( /\d+/ )*.toInteger()[0]
 
-                if (installStatusContent=="") {
-                    installStatusContent ="  \"${componentName}\": {\n" +
-                            "    \"ComponentName\": \"${componentName}\",\n" +
-                            "    \"MsiVersion\": \"${msiVersion}\",\n" +
-                            "    \"InstallStatus\": \"${result[1]}\",\n" +
-                            "    \"ReturnCode\": \"${returnCode}\",\n" +
-                            "  }"
-                }else{
-                    installStatusContent =installStatusContent +",\n  \"${componentName}\": {\n" +
-                            "    \"ComponentName\": \"${componentName}\",\n" +
-                            "    \"MsiVersion\": \"${msiVersion}\",\n" +
-                            "    \"InstallStatus\": \"${result[1]}\",\n" +
-                            "    \"ReturnCode\": \"${returnCode}\",\n" +
-                            "  }"
+                    if (installStatusContent=="") {
+                        installStatusContent ="  \"${componentName}\": {\n" +
+                                "    \"ComponentName\": \"${componentName}\",\n" +
+                                "    \"MsiVersion\": \"${msiVersion}\",\n" +
+                                "    \"InstallStatus\": \"${result[1]}\",\n" +
+                                "    \"ReturnCode\": \"${returnCode}\",\n" +
+                                "  }"
+                    }else{
+                        installStatusContent =installStatusContent +",\n  \"${componentName}\": {\n" +
+                                "    \"ComponentName\": \"${componentName}\",\n" +
+                                "    \"MsiVersion\": \"${msiVersion}\",\n" +
+                                "    \"InstallStatus\": \"${result[1]}\",\n" +
+                                "    \"ReturnCode\": \"${returnCode}\",\n" +
+                                "  }"
+                    }
                 }
             }
+            directory.eachFileRecurse(findFilenameClosure)
+            installStatusFile.write "{\n${installStatusContent}\n}"
+            //logger.quiet(installStatusFile.text)
+            logger.quiet(installedVersionsFile.text)
+            logger.quiet("GradleUtils: ****************************************************************************")
+            logger.quiet("GradleUtils: ..\\PPLogs\\installStatus.json")
+            logger.quiet("GradleUtils: ****************************************************************************")
+        } catch(Exception e) {
+
+            logger.quiet("**\nUnable to collect the status from installation logs. Continuing...\n**")
+            logger.quiet("Exception: ${e}")
+            logger.quiet("GradleUtils: ****************************************************************************")
         }
-        directory.eachFileRecurse(findFilenameClosure)
-        installStatusFile.write "{\n${installStatusContent}\n}"
-        logger.quiet(installStatusFile.text)
-        logger.quiet("GradleUtils: ****************************************************************************")
-        logger.quiet("GradleUtils: ..\\PPLogs\\installStatus.json")
-        logger.quiet("GradleUtils: ****************************************************************************")
 
     }else{
         rtnValue = false
