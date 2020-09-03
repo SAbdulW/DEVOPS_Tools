@@ -573,15 +573,14 @@ def loadPuppetLog (String certName, String env  ){
             }
             directory.eachFileRecurse(findFilenameClosure)
             installStatusFile.write "{\n${installStatusContent}\n}"
-            //logger.quiet(installStatusFile.text)
-            logger.quiet(installedVersionsFile.text)
+            logger.quiet(installStatusFile.text)
             logger.quiet("GradleUtils: ****************************************************************************")
             logger.quiet("GradleUtils: ..\\PPLogs\\installStatus.json")
             logger.quiet("GradleUtils: ****************************************************************************")
         } catch(Exception e) {
 
-            logger.quiet("**\nUnable to collect the status from installation logs. Continuing...\n**")
-            logger.quiet("Exception: ${e}")
+            logger.quiet("**\nUnable to collect the status from installation logs due to some expections...\n**")
+            logger.quiet("Exception(s):\n${e}\n")
             logger.quiet("GradleUtils: ****************************************************************************")
         }
 
