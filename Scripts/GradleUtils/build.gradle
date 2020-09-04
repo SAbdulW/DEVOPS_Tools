@@ -530,15 +530,13 @@ def loadPuppetLog (String certName, String env  ){
         //    ant.unzip(src:"${projectDir}\\${certName}-15.1.0.1.zip" , dest: "${projectDir}\\PPLogs\\")
         //
         try{
-            logger.quiet("\nGradleUtils: ****************************************************************************")
-            logger.quiet("GradleUtils: *                             INSTALLATION LOGS                            *")
-            logger.quiet("GradleUtils: ****************************************************************************")
             def fileSubStr = "install.log"
             def filePattern = ~/${fileSubStr}/
             def directory = file(new File("${projectDir}\\PPLogs"))
             def installStatusFile = new File ("${projectDir}\\PPLogs\\installStatus.json")
             String installStatusContent = ""
             String componentName =""
+            boolean installAction = false
             def findFilenameClosure =
             {
             if (filePattern.matcher(it.name).find())
@@ -569,14 +567,21 @@ def loadPuppetLog (String certName, String env  ){
                                 "    \"ReturnCode\": \"${returnCode}\",\n" +
                                 "  }"
                     }
+                    installAction = true
                 }
             }
             directory.eachFileRecurse(findFilenameClosure)
-            installStatusFile.write "{\n${installStatusContent}\n}"
-            logger.quiet(installStatusFile.text)
-            logger.quiet("GradleUtils: ****************************************************************************")
-            logger.quiet("GradleUtils: ..\\PPLogs\\installStatus.json")
-            logger.quiet("GradleUtils: ****************************************************************************")
+            if (installAction){
+                logger.quiet("\nGradleUtils: ****************************************************************************")
+                logger.quiet("GradleUtils: *                             INSTALLATION LOGS                            *")
+                logger.quiet("GradleUtils: ****************************************************************************")
+                installStatusFile.write "{\n${installStatusContent}\n}"
+                logger.quiet(installStatusFile.text)
+                logger.quiet("GradleUtils: ****************************************************************************")
+                logger.quiet("GradleUtils: ..\\PPLogs\\installStatus.json")
+                logger.quiet("GradleUtils: ****************************************************************************")
+            }
+
         } catch(Exception e) {
 
             logger.quiet("**\nUnable to collect the status from installation logs due to some expections...\n**")
