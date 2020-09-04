@@ -543,7 +543,7 @@ def loadPuppetLog (String certName, String env  ){
                 {
                     componentName = "${it.name}".split("_install")[0].replaceAll("_", " ")
                     def lines = new File("PPLogs//${it.name}").readLines()
-                    def install = lines.findAll { it.contains(': Product: ') }
+                    def install = lines.findAll { it.contains('-- Installation') }
                     def msi = lines.findAll { it.contains('******* Product:') }
                     def msiVersion = msi[0].split('-')[1].split('.msi')[0]
                     def data = lines.findAll { it.contains('Windows Installer installed the product') }
@@ -583,7 +583,6 @@ def loadPuppetLog (String certName, String env  ){
             }
 
         } catch(Exception e) {
-
             logger.quiet("**\nUnable to collect the status from installation logs due to some expections...\n**")
             logger.quiet("Exception(s):\n${e}\n")
             logger.quiet("GradleUtils: ****************************************************************************")
