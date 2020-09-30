@@ -530,7 +530,7 @@ def loadPuppetLog (String certName, String env  ){
         //    ant.unzip(src:"${projectDir}\\${certName}-15.1.0.1.zip" , dest: "${projectDir}\\PPLogs\\")
         //
         try{
-            def fileSubStr = "install.log"
+            def fileSubStr = "_install.log"
             def filePattern = ~/${fileSubStr}/
             def directory = file(new File("${projectDir}\\PPLogs"))
             def installStatusFile = new File ("${projectDir}\\PPLogs\\installStatus.json")
