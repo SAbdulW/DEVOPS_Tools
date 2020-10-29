@@ -745,8 +745,8 @@ def getVersionInstalledFromRegistryJson (Object jsonObject, String componentName
 
             if (regComponentName.toUpperCase().contains(strArtifactId.toUpperCase()) || rtnVersion == strInstalledVersion){
                 found = true
-                logger.quiet("DisplayName in Registry : ${regComponentName}")
-                logger.quiet("Found InstalledVersion: ${rtnVersion}\n--")
+                logger.quiet("       DisplayName in Registry : ${regComponentName}")
+                logger.quiet("       Found InstalledVersion: ${rtnVersion}\n--")
                 return rtnVersion
             }
         }
