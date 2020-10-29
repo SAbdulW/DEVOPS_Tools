@@ -637,17 +637,19 @@ def extractInstalledVersion (String [] yamlFiles, File jsRegistry){
             wfoComponentsMap.each { wfoComponent ->
                 wfoComponent.each { it ->
                     logger.quiet("${it}")
-                    String [] prop =    "${it}".split("=")
+                    String [] prop = "${it}".split("=")
                     if (prop[0]=="ComponentName") {
                         componentName = prop[1]
-                        installedVersion = getVersionInstalledFromRegistryJson (jsRegistryObj,prop[1],prop[2])
-
-                        if (installedVersion=="") {
-                            installedVersion = getVersionInstalledFromSVIXML (sviXMLObj,prop[1] )
-                        }
                     }
                     if (prop[0]=="ComponentGAV") {
                         componentGAV = prop[1]
+                        logger.quiet("${componentGAV}")
+                        logger.quiet("${componentName}")
+                        installedVersion = getVersionInstalledFromRegistryJson (jsRegistryObj,componentName,componentGAV)
+
+                        if (installedVersion=="") {
+                            installedVersion = getVersionInstalledFromSVIXML (sviXMLObj,componentName)
+                        }
                     }
                     if (prop[0]=="ComponentPC") {
                         componentPC = prop[1]
