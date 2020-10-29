@@ -718,8 +718,9 @@ def getVersionInstalledFromRegistryJson (Object jsonObject, String componentName
         //logger.quiet("" + registryItem.getValue())
         def registryItemValue = registryItem.getValue()
         String regComponentName = registryItemValue."ComponentName"
-        
-        if(checkComponentName(componentName, regComponentName) && !found) {
+        String strComponentName = componentName.replaceAll("Impact360","I360")
+
+        if(checkComponentName(strComponentName, regComponentName) && !found) {
             def strArtifactId = componentGAV.split(":")[-2]
             def strInstalledVersion = componentGAV.split(":")[-1]
             rtnVersion = registryItemValue."InstalledVersion"
