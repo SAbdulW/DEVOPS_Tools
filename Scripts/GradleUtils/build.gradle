@@ -723,7 +723,10 @@ def getVersionInstalledFromRegistryJson (Object jsonObject, String componentName
             def strArtifactId = componentGAV.split(":")[-2]
             def strInstalledVersion = componentGAV.split(":")[-1]
             rtnVersion = registryItemValue."InstalledVersion"
-
+            logger.quiet(">> regComponentName : ${regComponentName}")
+            logger.quiet(">> strArtifactId: ${strArtifactId}")
+            logger.quiet(">> strInstalledVersion: ${strInstalledVersion}")
+            logger.quiet(">> rtnVersion: ${rtnVersion}")
             if (regComponentName.toUpperCase().contains(strArtifactId.toUpperCase()) && rtnVersion == strInstalledVersion){
                 found = true
                 logger.quiet("    >> DisplayName in Registry : ${regComponentName}")
@@ -742,10 +745,10 @@ def getVersionInstalledFromRegistryJson (Object jsonObject, String componentName
             def strArtifactId = componentGAV.split(":")[-2]
             def strInstalledVersion = componentGAV.split(":")[-1]
             rtnVersion = registryItemValue."InstalledVersion"
-            logger.quiet("regComponentName : ${regComponentName}")
-            logger.quiet("strArtifactId: ${strArtifactId}")
-            logger.quiet("strInstalledVersion: ${strInstalledVersion}")
-            logger.quiet("rtnVersion: ${rtnVersion}")
+            logger.quiet(">>> regComponentName : ${regComponentName}")
+            logger.quiet(">>> strArtifactId: ${strArtifactId}")
+            logger.quiet(">>> strInstalledVersion: ${strInstalledVersion}")
+            logger.quiet(">>> rtnVersion: ${rtnVersion}")
             if (regComponentName.toUpperCase().contains(strArtifactId.toUpperCase()) || rtnVersion == strInstalledVersion){
                 found = true
                 logger.quiet("   >>> DisplayName in Registry : ${regComponentName}")
