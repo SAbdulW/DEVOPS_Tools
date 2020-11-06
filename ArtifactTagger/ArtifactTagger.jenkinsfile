@@ -14,7 +14,7 @@ pipeline {
         timeout(time: 24, unit: 'HOURS')
     }
     triggers {
-        cron('H/15 * * * *')
+        cron('H * * * *')
     }
 
     stages {
