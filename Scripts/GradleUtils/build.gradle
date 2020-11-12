@@ -710,9 +710,8 @@ def getVersionInstalledFromRegistryJson (Object jsonObject, String componentName
             return rtnVersion
         }
     }
-    logger.quiet(" -> Could not find EXACT name of: ${componentName} in Registry")
-
-    logger.quiet(" -> Again Search Registry file which contains : ${componentName}")
+    //logger.quiet(" -> Could not find EXACT name of: ${componentName} in Registry")
+    //logger.quiet(" -> Again Search Registry file which contains : ${componentName}")
     // second try
     jsonObject.each { registryItem ->
         //logger.quiet("" + registryItem.getValue())
@@ -731,6 +730,8 @@ def getVersionInstalledFromRegistryJson (Object jsonObject, String componentName
             //logger.quiet(">> rtnVersion: ${rtnVersion}")
             if (regComponentName.toUpperCase().contains(strArtifactId.toUpperCase()) && rtnVersion == strInstalledVersion){
                 found = true
+                logger.quiet(" -> Could not find EXACT name of: ${componentName} in Registry")
+                logger.quiet(" -> Again Search Registry file which contains : ${componentName}")
                 logger.quiet("    >> DisplayName in Registry : ${regComponentName}")
                 logger.quiet("    >> Found InstalledVersion: ${rtnVersion}")
                 return rtnVersion
@@ -753,6 +754,8 @@ def getVersionInstalledFromRegistryJson (Object jsonObject, String componentName
             //logger.quiet(">>> rtnVersion: ${rtnVersion}")
             if (regComponentName.toUpperCase().contains(strArtifactId.toUpperCase()) || rtnVersion == strInstalledVersion){
                 found = true
+                logger.quiet(" -> Could not find EXACT name of: ${componentName} in Registry")
+                logger.quiet(" -> Again Search Registry file which contains : ${componentName}")
                 logger.quiet("   >>> DisplayName in Registry : ${regComponentName}")
                 logger.quiet("   >>> Found InstalledVersion: ${rtnVersion}")
                 return rtnVersion
