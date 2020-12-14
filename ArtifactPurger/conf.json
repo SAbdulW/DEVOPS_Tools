@@ -23,15 +23,24 @@
     },
     {
       "repoName" : "db-ci-release",
-      "daysToKeep" : 1,
+      "daysToKeep" : 30,
       "minimumToKeep" : 15,
-      "pathMatch" : "com/verint/db/frameworkcustomerfeedbacketldb/*",
-      "pathMatch" : "com/verint/db/frameworkdb/*",
-      "pathMatch" : "com/verint/db/frameworkwarehousedb/*",
-      "pathMatch" : "com/verint/db/srframeworkdatabase/*",
-      "pathMatch" : "com/verint/db/srframeworkdatawarehouse/*",
-      "pathExclude" : ""
+      "pathMatch" : "com/verint",
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.1.0.0", "end" : "15.1.0.9999"},
+        {"start" : "15.1.0.10000", "end" : "15.1.0.99999"},
+        {"start" : "15.2.5.0", "end" : "15.2.5.9999"},
+        {"start" : "15.2.5.10000", "end" : "15.2.5.99999"},
+        {"start" : "15.2.7.0", "end" : "15.2.7.9999"},
+        {"start" : "15.2.8.0", "end" : "15.2.8.9999"},
+        {"start" : "15.2.8.10000", "end" : "15.2.8.99999"},
+        {"start" : "15.2.9.0", "end" : "15.2.9.9999"},
+        {"start" : "15.2.9.10000", "end" : "15.2.9.99999"},
+        {"start" : "15.2.7.10000", "end" : "15.2.7.99999"},
+      ]
     },
+    
     {
       "repoName" : "ci-snapshot",
       "daysToKeep" : 2,
