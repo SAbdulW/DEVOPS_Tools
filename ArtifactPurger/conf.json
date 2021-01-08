@@ -3,6 +3,7 @@
     
 {
   "repoName" : "db-ci-release",
+  "daysToKeep" : ,
   "minimumToKeep" : 15,
   "pathMatch" : "com/verint",
   "pathExclude" : "",
