@@ -6,7 +6,7 @@
   "daysToKeep" : 0,
   "minimumToKeep" : 15,
   "pathMatch" : "com/verint",
-  "pathExclude" : "com/verint/db/dbinstall/",
+  "pathExclude" : "",
   "versionRanges" : [
     {"start" : "11.2.0.0", "end" : "11.2.0.29999"},
     {"start" : "11.2.0.30000", "end" : "11.2.0.39999"},
