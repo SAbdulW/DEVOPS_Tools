@@ -1071,6 +1071,13 @@
       "pathExclude" : ""
     },
     {
+      "repoName" : "ci-snapshot-sandbox",
+      "minimumToKeep" : 5,
+      "daysToKeep" : 5,
+      "pathMatch" : "Monet_DC",
+      "pathExclude" : ""
+    },
+    {
       "repoName" : "rec-dev-staging",
       "daysToKeep" : 5,
       "minimumToKeep" : 5,
