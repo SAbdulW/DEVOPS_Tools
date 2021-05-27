@@ -103,8 +103,7 @@
       "daysToKeep" : 3,
       "minimumToKeep" : 3,
       "pathMatch" : "com/verint",
-      "pathExclude" : "com/verint/tenantizationtool",
-      "pathExclude" : "com/verint/speech",
+      "pathExclude" : "com/verint",
       "versionRanges" : [
         {"start" : "11.2.0.0", "end" : "11.2.0.29999"},
         {"start" : "11.2.0.30000", "end" : "11.2.0.39999"},
