@@ -663,23 +663,23 @@ def extractInstalledVersion (String [] yamlFiles, File jsRegistry){
             if (componentGAV!="")
                 componentGAV = componentGAV.substring(0, componentGAV.lastIndexOf(":"))+ ":" + "${installedVersion}"
 
-
-            if (installedVersionsContent=="") {
-                installedVersionsContent ="  \"${componentName}\": {\n" +
-                        "    \"ComponentName\": \"${componentName}\",\n" +
-                        "    \"InstalledVersion\": \"${installedVersion}\",\n" +
-                        "    \"ComponentGAV\": \"${componentGAV}\",\n" +
-                        "    \"ComponentPC\": \"${componentPC}\"\n" +
-                        "  }"
-            }else{
-                installedVersionsContent =installedVersionsContent +",\n  \"${componentName}\": {\n" +
-                        "    \"ComponentName\": \"${componentName}\",\n" +
-                        "    \"InstalledVersion\": \"${installedVersion}\",\n" +
-                        "    \"ComponentGAV\": \"${componentGAV}\",\n" +
-                        "    \"ComponentPC\": \"${componentPC}\"\n" +
-                        "  }"
+            if (!installedVersionsContent.contains(componentGAV)){
+                if (installedVersionsContent=="") {
+                    installedVersionsContent ="  \"${componentName}\": {\n" +
+                            "    \"ComponentName\": \"${componentName}\",\n" +
+                            "    \"InstalledVersion\": \"${installedVersion}\",\n" +
+                            "    \"ComponentGAV\": \"${componentGAV}\",\n" +
+                            "    \"ComponentPC\": \"${componentPC}\"\n" +
+                            "  }"
+                }else{
+                    installedVersionsContent = installedVersionsContent +",\n  \"${componentName}\": {\n" +
+                            "    \"ComponentName\": \"${componentName}\",\n" +
+                            "    \"InstalledVersion\": \"${installedVersion}\",\n" +
+                            "    \"ComponentGAV\": \"${componentGAV}\",\n" +
+                            "    \"ComponentPC\": \"${componentPC}\"\n" +
+                            "  }"
+                }
             }
-
         }
     }
 
