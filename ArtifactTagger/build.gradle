@@ -20,12 +20,7 @@ task run() <<{
 
     process(conf)
 }
-buildscript {
-    ...
-    dependencies {
-        classpath group:'org.jfrog.buildinfo', name: 'build-info-extractor-gradle', version: '3.0.1'
-    }
-}
+
 task tagMe() <<{
     logger.quiet("Artifact Tagger: ****************************************************************************")
     logger.quiet("viewOnly: ${viewOnly}")
