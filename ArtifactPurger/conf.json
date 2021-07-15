@@ -7,7 +7,7 @@
       "pathMatch" : "com/verint/puppet/logs",
       "pathExclude" : ""
     },
-	{
+    {
       "repoName" : "rec-dev-nuget",
       "daysToKeep" : 5,
       "minimumToKeep" : 5,
@@ -1122,6 +1122,27 @@
       "daysToKeep" : 5,
       "minimumToKeep" : 5,
       "pathMatch" : "com/verint",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "cd-release",
+      "daysToKeep" : 45,
+      "minimumToKeep" : 45,
+      "pathMatch" : "com/verint/kitbuilder/kit",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "cd-release",
+      "daysToKeep" : 60,
+      "minimumToKeep" : 30,
+      "pathMatch" : "com/verint/kitbuilder/goodkit",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "cd-release",
+      "daysToKeep" : 30,
+      "minimumToKeep" : 30,
+      "pathMatch" : "com/verint/kitbuilder/ArtifactRollback/dryrun",
       "pathExclude" : ""
     }
   ]
