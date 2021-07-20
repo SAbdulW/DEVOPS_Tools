@@ -1390,7 +1390,8 @@ def generateGradleRemote(String strCertName){
             ":good \n"+ 
             "echo GOOD! \n"+ 
             " \n"+ 
-            "cmd /c gradlew.bat -i runLocalDeploy aP -PcurrentVersion=${currentVersion} -PMasterBuildVersion=${MasterBuildVersion} -PvmIP=${vmIP} -PyamlFiles=${yamlFiles} -PdeployEarFile=${deployEarFile} -PchkApp=${chkApp} -PwfoService=${wfoService} \"-PstopStartservices=${stopStartservices}\" -PfillVersionRange=false -PremoteCmd=localfile -Picertname=${strCertName} 1> C:\\GradleUtils\\gradlelogDeploy.log 2>&1"
+            "cmd /c gradlew.bat -i runLocalDeploy aP \"-PcurrentVersion=${currentVersion}\" \"-PMasterBuildVersion=${MasterBuildVersion}\" \"-PvmIP=${vmIP}\" \"-PyamlFiles=${yamlFiles}\" \"-PdeployEarFile=${deployEarFile}\" \"-PchkApp=${chkApp}\" \"-PwfoService=${wfoService}\" \"-PstopStartservices=${stopStartservices}\" -PfillVersionRange=false -PremoteCmd=localfile \"-Picertname=${strCertName}\" 1> C:\\GradleUtils\\gradlelogDeploy.log 2>&1"
+            //"cmd /c gradlew.bat -i runLocalDeploy aP -PcurrentVersion=${currentVersion} -PMasterBuildVersion=${MasterBuildVersion} -PvmIP=${vmIP} -PyamlFiles=${yamlFiles} -PdeployEarFile=${deployEarFile} -PchkApp=${chkApp} -PwfoService=${wfoService} \"-PstopStartservices=${stopStartservices}\" -PfillVersionRange=false -PremoteCmd=localfile -Picertname=${strCertName} 1> C:\\GradleUtils\\gradlelogDeploy.log 2>&1"
 
     File cmdFile = new File ("${projectDir}\\runGradleLocalDeploy.bat")
     noticeLog ("GradleUtils: GRadle command to be run:\n ${sCmd}")
