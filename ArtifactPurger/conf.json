@@ -1152,6 +1152,17 @@
       "minimumToKeep" : 30,
       "pathMatch" : "com/verint/kitbuilder/ArtifactRollback/dryrun",
       "pathExclude" : ""
+    },
+    {
+      "repoName" : "cd-release",
+      "daysToKeep" : 20,
+      "minimumToKeep" : 20,
+      "pathMatch" : "com/verint/testkitbuilder/kit",
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.2.9.0", "end" : "15.2.9.99999"},
+        {"start" : "15.2.10.0", "end" : "15.2.10.99999"}
+      ]
     }
   ]
 }
