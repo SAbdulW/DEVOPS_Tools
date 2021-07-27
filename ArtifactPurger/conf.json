@@ -1129,14 +1129,22 @@
       "daysToKeep" : 45,
       "minimumToKeep" : 45,
       "pathMatch" : "com/verint/kitbuilder/kit",
-      "pathExclude" : ""
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.2.9.0", "end" : "15.2.9.99999"},
+        {"start" : "15.2.10.0", "end" : "15.2.10.99999"}
+      ]
     },
     {
       "repoName" : "cd-release",
       "daysToKeep" : 60,
       "minimumToKeep" : 30,
       "pathMatch" : "com/verint/kitbuilder/goodkit",
-      "pathExclude" : ""
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.2.9.0", "end" : "15.2.9.99999"},
+        {"start" : "15.2.10.0", "end" : "15.2.10.99999"}
+      ]
     },
     {
       "repoName" : "cd-release",
