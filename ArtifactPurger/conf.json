@@ -1157,7 +1157,7 @@
       "repoName" : "cd-release",
       "daysToKeep" : 20,
       "minimumToKeep" : 20,
-      "pathMatch" : "com/verint/testkitbuilder/kit",
+      "pathMatch" : "com/verint/testkitbuilder",
       "pathExclude" : "",
       "versionRanges" : [
         {"start" : "15.2.9.0", "end" : "15.2.9.99999"},
