@@ -337,13 +337,19 @@ def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap,
     String strDefaultMajorRelease=configData."MajorRelease"
     String strDefaultMinorRelease=configData."MinorRelease"
 
-    if (strMajorRelease=="") strMajorRelease=strDefaultMajorRelease
-    if (strMinorRelease=="") strMinorRelease=strDefaultMinorRelease
 
-
-    logger.quiet ("GradleUtils:componentMap:${componentMap}")
-    logger.quiet ("GradleUtils:strMajorRelease:${strMajorRelease}")
-    logger.quiet ("GradleUtils:strMinorRelease:${strMinorRelease}")
+    if (componentMap."MasterBuildVersion"){
+        def (m_majorVersion, m_minorVersion, m_subVersion, m_buildNumber) = componentMap."MasterBuildVersion".tokenize( '.' )
+        strMajorRelease="${m_majorVersion}.${m_minorVersion}"
+        strMinorRelease="${m_subVersion}"
+    }
+    else{
+        if (strMajorRelease=="") strMajorRelease=strDefaultMajorRelease
+        if (strMinorRelease=="") strMinorRelease=strDefaultMinorRelease
+    }
+    logger.quiet ("GradleUtils:componentMap: ${componentMap}")
+    logger.quiet ("GradleUtils:strMajorRelease: ${strMajorRelease}")
+    logger.quiet ("GradleUtils:strMinorRelease: ${strMinorRelease}")
 
 
     def tagsMap = componentMap."SearchProperties"
