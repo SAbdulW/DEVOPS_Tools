@@ -337,7 +337,7 @@ def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap,
     String strDefaultMajorRelease=configData."MajorRelease"
     String strDefaultMinorRelease=configData."MinorRelease"
 
-
+    logger.quiet ("GradleUtils:componentMap.MasterBuildVersion: " + componentMap."MasterBuildVersion")
     if (componentMap."MasterBuildVersion"){
         def (m_majorVersion, m_minorVersion, m_subVersion, m_buildNumber) = componentMap."MasterBuildVersion".tokenize( '.' )
         strMajorRelease="${m_majorVersion}.${m_minorVersion}"
@@ -547,6 +547,7 @@ def generateLegacyYaml (String configFilePath, Object m_zData){
             "wfoComponents:"
 
     def componentsMap = [:] as HashMap
+    def strMasterBuildVersion
     componentsMap += m_zData."Components"
     def keys=componentsMap.keySet().toArray()
     for(int i = 0; i < keys.size(); i++) { // Using "for" interator since it is serializable
@@ -571,6 +572,13 @@ def generateLegacyYaml (String configFilePath, Object m_zData){
 
         String strComponentGAV = componentItem."ComponentGAV"
         strComponentGAV=strComponentGAV.replaceAll(" ", "%20" )
+        if(componentItem."MasterBuildVersion"){
+            strMasterBuildVersion = componentItem."MasterBuildVersion"
+        }
+        else{
+            strMasterBuildVersion = m_zData."MasterBuildVersion"
+        }
+        strComponentGAV=strComponentGAV.replaceAll("\\[RELEASE\\]","${strMasterBuildVersion}")
         strYamlContent = strYamlContent + "\n" + "     ComponentGAV: '${strComponentGAV}'"
 
         String strComponentPC=componentItem."PromoteEnabled"

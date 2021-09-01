@@ -72,9 +72,10 @@ dependencyLock {
 }
 
 task updateRequestVersion () << {
-    tasks.generateLock.execute()
-    tasks.saveLock.execute()
-    updateYamlFiles "${yamlFiles}", "${projectDir}\\dependencies_${pp_timestamp}.info", "${aGAV}"
+    //tasks.generateLock.execute()
+    //tasks.saveLock.execute()
+    //updateYamlFiles "${yamlFiles}", "${projectDir}\\dependencies_${pp_timestamp}.info", "${aGAV}"
+    updateYamlFiles "${yamlFiles}", "${aGAV}"
 }
 
 import org.yaml.snakeyaml.Yaml
@@ -98,10 +99,36 @@ def String getRequestedVersion(String lockFileName){
     return strRtn
 }
 
-def updateYamlFiles (String iYamlFiles, String lockFileName, String srcGAV ){
+def updateYamlFiles (String iYamlFiles, String srcGAV ){
     def String[] yamlFiles = "${iYamlFiles}".split(',');
     yamlValidation (yamlFiles)
-    String requestedVersion = getRequestedVersion(lockFileName)
+    String filePath =""
+    File versionInfo = File.createTempFile("version",".info");
+    filePath = versionInfo.getAbsolutePath()
+    filePath = filePath.replaceAll("\\\\","/")
+    //String requestedVersion = getRequestedVersion(lockFileName)
+    String strGAV = srcGAV.split(":")[0]
+    String strArtifactId = srcGAV.split(":")[1]
+    String strVersion = srcGAV.split(":")[2]
+    String sCmd
+    if(strVersion.contains("RELEASE")){
+        sCmd = "curl -sSf \"${artifactory_contextUrl}/api/search/latestVersion?g=${strGAV}&a=${strArtifactId}&repos=${aRepoKey}\" -o \"$filePath\""
+    }
+    else{
+        strVersion = strVersion.replaceAll("\\+", "*")
+        sCmd = "curl -sSf \"${artifactory_contextUrl}/api/search/latestVersion?g=${strGAV}&a=${strArtifactId}&repos=${aRepoKey}&v=${strVersion}\" -o \"$filePath\""
+    }
+    logger.quiet("execute: ${sCmd}")
+    try {
+        exec {
+            commandLine 'cmd', '/c', sCmd
+        }
+    }
+    catch (Exception e) {
+        logger.quiet ("ArtifactoryPromotion: some " + e.toString())
+
+    }
+    def requestedVersion = new File(filePath).text
     for (String yamlSrcPath : yamlFiles) {
         updateYamlFile (yamlSrcPath,srcGAV,requestedVersion )
     }
