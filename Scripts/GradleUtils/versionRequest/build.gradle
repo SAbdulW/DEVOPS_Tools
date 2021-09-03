@@ -115,7 +115,8 @@ def updateYamlFiles (String iYamlFiles, String srcGAV ){
         sCmd = "curl -sSf \"${artifactory_contextUrl}/api/search/latestVersion?g=${strGAV}&a=${strArtifactId}&repos=${aRepoKey}\" -o \"$filePath\""
     }
     else{
-        strVersion = strVersion.replaceAll("\\+", "*")
+        strVersion = strVersion.replaceAll("\\+", "")
+        strVersion = strVersion + "*"
         sCmd = "curl -sSf \"${artifactory_contextUrl}/api/search/latestVersion?g=${strGAV}&a=${strArtifactId}&repos=${aRepoKey}&v=${strVersion}\" -o \"$filePath\""
     }
     logger.quiet("execute: ${sCmd}")
