@@ -111,23 +111,22 @@ def updateYamlFiles (String iYamlFiles, String srcGAV ){
     String strArtifactId = srcGAV.split(":")[1]
     String strVersion = srcGAV.split(":")[2]
     String sCmd
-    if(strVersion.contains("RELEASE")){
-        sCmd = "curl -sSf \"${artifactory_contextUrl}/api/search/latestVersion?g=${strGAV}&a=${strArtifactId}&repos=${aRepoKey}\" -o \"$filePath\""
-    }
-    else{
+    try{
         strVersion = strVersion.replaceAll("\\+", "")
         strVersion = strVersion + "*"
         sCmd = "curl -sSf \"${artifactory_contextUrl}/api/search/latestVersion?g=${strGAV}&a=${strArtifactId}&repos=${aRepoKey}&v=${strVersion}\" -o \"$filePath\""
-    }
-    logger.quiet("execute: ${sCmd}")
-    try {
+        logger.quiet("execute: ${sCmd}")
         exec {
             commandLine 'cmd', '/c', sCmd
         }
     }
     catch (Exception e) {
-        logger.quiet ("ArtifactoryPromotion: some " + e.toString())
-
+        logger.quiet ("** Get requestedVersion:: some exception " + e.toString())
+        sCmd = "curl -sSf \"${artifactory_contextUrl}/api/search/latestVersion?g=${strGAV}&a=${strArtifactId}&repos=${aRepoKey}\" -o \"$filePath\""
+        logger.quiet("Try latest version :: execute: ${sCmd}")
+        exec {
+            commandLine 'cmd', '/c', sCmd
+        }
     }
     def requestedVersion = new File(filePath).text
     for (String yamlSrcPath : yamlFiles) {
