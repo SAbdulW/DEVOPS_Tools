@@ -255,6 +255,13 @@
       "pathExclude" : ""
     },
     {
+      "repoName" : "ci-snapshot",
+      "daysToKeep" : 7,
+      "minimumToKeep" : 1,
+      "pathMatch" : "feature",
+      "pathExclude" : ""
+    },
+    {
       "repoName" : "foundation-ci-release",
       "daysToKeep" : 4,
       "minimumToKeep" : 2,
