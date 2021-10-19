@@ -5,8 +5,8 @@ pipeline {
         }
     }
     environment {
-        MAILFROM = 'chau.nguyen@verint.com'
-        MAILTO = 'chau.nguyen@verint.com'
+        MAILFROM = 'jenkinsdevops@lab.local'
+        MAILTO = 'chau.nguyen@verint.com, sai.srivathsav@verint.com'
     }
     options {
         buildDiscarder(logRotator(numToKeepStr: '10'))
