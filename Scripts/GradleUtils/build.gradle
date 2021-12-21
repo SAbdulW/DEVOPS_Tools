@@ -381,7 +381,7 @@ def runDeployEar (String iVmIP, String iUser, String iPw) {
     if (!strSoftwareDir) strSoftwareDir = "${impact360SoftwareDir}"
 
 
-    sCmd = "%windir%\\system32\\cscript.exe ${strSoftwareDir}\\WFODeployer\\DeployWfo.vbs WLSAdmin pumpkin1 true true"
+    sCmd = "%windir%\\system32\\cscript.exe ${strSoftwareDir}\\WFODeployer\\DeployWfo.cmd WLSAdmin pumpkin1 true true"
 
     String rtnCode = runRemote ("runDeployEar",sCmd, iVmIP,iUser,iPw)
     logger.quiet ("Ear Deployment: exitCode (${rtnCode})")
