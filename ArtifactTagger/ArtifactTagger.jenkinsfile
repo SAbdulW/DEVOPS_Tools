@@ -13,8 +13,9 @@ pipeline {
     }
     environment {
         MAILFROM = 'jenkinsdevops@lab.local'
-        //MAILTO = 'chau.nguyen@verint.com, sai.srivathsav@verint.com, Guy.Franco@verint.com, CSO_DevOps-T2@verint.com'
-        MAILTO = 'sai.srivathsav@verint.com'
+        MAILTO = 'chau.nguyen@verint.com, sai.srivathsav@verint.com, Guy.Franco@verint.com, CSO_DevOps-T2@verint.com'
+        //MAILTO = 'sai.srivathsav@verint.com'
+        MAILMSG = "Pipeline URL: ${BUILD_URL}"
     }
     options {
         buildDiscarder(logRotator(numToKeepStr: '10'))
@@ -28,11 +29,13 @@ pipeline {
     stages {
         stage('Process'){
             steps{
-                dir("./ArtifactTagger"){
-                    String strUrl = "${buildParams.artifactoryURL}/devops/com/verint/gradle/wrapper/gradle-wrapper.jar"
-                    String sCmd = "cd /d gradle\\wrapper && curl -f -u ${buildParams.artifactoryUser}:${buildParams.artifactoryPassword} -O ${strUrl}"
-                    bat(script: "${sCmd}")
-                    bat "gradlew.bat run"
+                script{
+                    dir("./ArtifactTagger"){
+                        String strUrl = "${buildParams.artifactoryURL}/devops/com/verint/gradle/wrapper/gradle-wrapper.jar"
+                        String sCmd = "cd /d gradle\\wrapper && curl -f -u ${buildParams.artifactoryUser}:${buildParams.artifactoryPassword} -O ${strUrl}"
+                        bat(script: "${sCmd}")
+                        bat "gradlew.bat run"
+                    }
                 }
             }
         }
@@ -44,7 +47,7 @@ pipeline {
         }
         failure {
             echo "FAILURE"
-            mail subject: "ArtifactTagger - FAILURE", body: "ArtifactTagger - FAILURE", from: "${MAILFROM}", to: "${MAILTO}"
+            mail subject: "ArtifactTagger - FAILURE", body: "${MAILMSG}", from: "${MAILFROM}", to: "${MAILTO}"
         }
     }
 }
