@@ -618,7 +618,7 @@
       "daysToKeep" : 5,
       "minimumToKeep" : 2,
       "pathMatch" : "com/verint",
-      "pathExclude" : ""
+      "pathExclude" : "com/verint/recorder/Platform_CryptoSDK"
     },
     {
       "repoName" : "rec-libs-dev",
@@ -1170,7 +1170,7 @@
       "daysToKeep" : 5,
       "minimumToKeep" : 5,
       "pathMatch" : "com/verint",
-      "pathExclude" : ""
+      "pathExclude" : "com/verint/recorder/Platform_CryptoSDK"
     },
     {
       "repoName" : "cd-release",
