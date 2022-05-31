@@ -28,13 +28,15 @@ pipeline {
     stages {
         stage('Process'){
             steps{
-                dir("./ArtifactPurger"){
-                    String strUrl = "${buildParams.artifactoryURL}/devops/com/verint/gradle/wrapper/gradle-wrapper.jar"
-                    String sCmd = "cd /d gradle\\wrapper && curl -f -u ${buildParams.artifactoryUser}:${buildParams.artifactoryPassword} -O ${strUrl}"
-                    bat(script: "${sCmd}")
-                    bat "del /q *.log"
-                    bat "gradlew.bat -PcontextURL=http://atlartifactory:8081/artifactory -PviewOnly=false emptyTrashCanTask"
-                    bat "gradlew.bat -PcontextURL=http://atlartifactory:8081/artifactory -PviewOnly=false purgeTask purgeNpmTask purgeDockerTask"
+                script{
+                    dir("./ArtifactPurger"){
+                        String strUrl = "${buildParams.artifactoryURL}/devops/com/verint/gradle/wrapper/gradle-wrapper.jar"
+                        String sCmd = "cd /d gradle\\wrapper && curl -f -u ${buildParams.artifactoryUser}:${buildParams.artifactoryPassword} -O ${strUrl}"
+                        bat(script: "${sCmd}")
+                        bat "del /q *.log"
+                        bat "gradlew.bat -PcontextURL=http://atlartifactory:8081/artifactory -PviewOnly=false emptyTrashCanTask"
+                        bat "gradlew.bat -PcontextURL=http://atlartifactory:8081/artifactory -PviewOnly=false purgeTask purgeNpmTask purgeDockerTask"
+                    }
                 }
             }
         }
