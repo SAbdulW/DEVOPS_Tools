@@ -1,3 +1,10 @@
+#!groovy
+
+// Build Params
+Map buildParams = [ artifactoryURL              : "http://atlartifactory.lab.local:8081/artifactory",
+                    artifactoryUser             : "devopstools",
+                    artifactoryPassword         : "AKCp5cbcrHz3XNdKcxvsavSVhQuBYpUpJYcpgsiHzy2PnzouKwfUnnhM47ZhYzLLGfP2MtnZo"
+                ] as HashMap
 pipeline {
     agent {
         node {
@@ -5,8 +12,9 @@ pipeline {
         }
     }
     environment {
-        MAILFROM = 'chau.nguyen@verint.com'
-        MAILTO = 'chau.nguyen@verint.com'
+        MAILFROM = 'jenkinsdevops@lab.local'
+        MAILTO = 'chau.nguyen@verint.com, sai.srivathsav@verint.com, Guy.Franco@verint.com, CSO_DevOps-T2@verint.com'
+        MAILMSG = "Pipeline URL: ${BUILD_URL}"
     }
     options {
         buildDiscarder(logRotator(numToKeepStr: '10'))
@@ -17,11 +25,13 @@ pipeline {
     triggers {
         cron('H 0 * * *')
     }
-
     stages {
         stage('Process'){
             steps{
                 dir("./ArtifactPurger"){
+                    String strUrl = "${buildParams.artifactoryURL}/devops/com/verint/gradle/wrapper/gradle-wrapper.jar"
+                    String sCmd = "cd /d gradle\\wrapper && curl -f -u ${buildParams.artifactoryUser}:${buildParams.artifactoryPassword} -O ${strUrl}"
+                    bat(script: "${sCmd}")
                     bat "del /q *.log"
                     bat "gradlew.bat -PcontextURL=http://atlartifactory:8081/artifactory -PviewOnly=false emptyTrashCanTask"
                     bat "gradlew.bat -PcontextURL=http://atlartifactory:8081/artifactory -PviewOnly=false purgeTask purgeNpmTask purgeDockerTask"
