@@ -102,6 +102,13 @@
       ]
     },
     {
+      "repoName" : "ci-snapshot",
+      "daysToKeep" : 2,
+      "minimumToKeep" : 1,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "com/verint/ear_mods/"
+    },
+    {
       "repoName" : "ci-release",
       "daysToKeep" : 3,
       "minimumToKeep" : 3,
