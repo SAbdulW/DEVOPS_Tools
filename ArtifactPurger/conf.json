@@ -635,6 +635,13 @@
       "pathExclude" : "com/verint/recorder/Platform_CryptoSDK"
     },
     {
+      "repoName" : "rec-dev-staging",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 2,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "com/verint/recorder/REC_DataModel"
+    },
+    {
       "repoName" : "rec-libs-dev",
       "daysToKeep" : 5,
       "minimumToKeep" : 2,
