@@ -103,7 +103,7 @@
     },
     {
       "repoName" : "ci-snapshot",
-      "daysToKeep" : 0,
+      "daysToKeep" : 2,
       "minimumToKeep" : 1,
       "pathMatch" : "com/verint",
       "pathExclude" : "com/verint/speech/rtaa-gateway-client/"
