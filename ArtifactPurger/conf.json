@@ -103,17 +103,17 @@
     },
     {
       "repoName" : "ci-snapshot",
-      "daysToKeep" : 2,
+      "daysToKeep" : 0,
       "minimumToKeep" : 1,
       "pathMatch" : "com/verint",
-      "pathExclude" : "com/verint/ear_mods/"
+      "pathExclude" : "com/verint/speech/rtaa-gateway-client/"
     },
     {
       "repoName" : "ci-snapshot",
       "daysToKeep" : 2,
       "minimumToKeep" : 1,
       "pathMatch" : "com/verint",
-      "pathExclude" : "com/verint/speech/rtaa-gateway-client/"
+      "pathExclude" : "com/verint/ear_mods/"
     },
     {
       "repoName" : "ci-release",
