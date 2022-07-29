@@ -116,6 +116,13 @@
       "pathExclude" : "com/verint/ear_mods/"
     },
     {
+      "repoName" : "ci-snapshot",
+      "daysToKeep" : 21,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint/emdb/seeddata/emdbSeedData/",
+      "pathExclude" : ""
+    },
+    {
       "repoName" : "ci-release",
       "daysToKeep" : 3,
       "minimumToKeep" : 3,
