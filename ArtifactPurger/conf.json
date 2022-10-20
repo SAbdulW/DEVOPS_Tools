@@ -107,20 +107,20 @@
       "minimumToKeep" : 1,
       "pathMatch" : "com/verint",
       "pathExclude" : "com/verint/speech/rtaa-gateway-client/"
-    },
+    }, 
+    {
+      "repoName" : "ci-snapshot",
+      "daysToKeep" : 30,
+      "minimumToKeep" : 1,
+      "pathMatch" : "ci-snapshot/com/verint/emdb/seeddata/",
+      "pathExclude" : ""
+    }, 
     {
       "repoName" : "ci-snapshot",
       "daysToKeep" : 2,
       "minimumToKeep" : 1,
       "pathMatch" : "com/verint",
       "pathExclude" : "com/verint/ear_mods/"
-    },
-    {
-      "repoName" : "ci-snapshot",
-      "daysToKeep" : 21,
-      "minimumToKeep" : 5,
-      "pathMatch" : "com/verint/emdb/seeddata/emdbSeedData/",
-      "pathExclude" : ""
     },
     {
       "repoName" : "ci-release",
