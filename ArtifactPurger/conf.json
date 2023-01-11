@@ -123,13 +123,6 @@
       "pathExclude" : "com/verint/ear_mods/"
     },
     {
-      "repoName" : "ci-snapshot",
-      "daysToKeep" : 30,
-      "minimumToKeep" : 30,
-      "pathMatch" : "com/verint",
-      "pathExclude" : "com/verint/HeapDumpRemoval/"
-    },
-    {
       "repoName" : "ci-release",
       "daysToKeep" : 3,
       "minimumToKeep" : 3,
