@@ -236,11 +236,13 @@ Map fillComponentData(String componentKey,Object componentMap, Object configData
     logger.quiet ("GradleUtils: data return form artifactory for: ${componentKey}:")
     prettyPrintMapData(compInfo)
 
-    def strVersion = componentMap."Version"
+    //def strVersion = componentMap."Version" // not use the full version - only use Major & Minor Release [sai]
+
+    def (m_majorVersion, m_minorVersion, m_subVersion, m_buildNumber) = componentMap."Version".tokenize( '.' )
+    def strVersion = "${m_majorVersion}.${m_minorVersion}.${m_subVersion}"
 
     //def strGAV =  "${compInfo.groupID}:${compInfo.artifactID}:${compInfo.version}"  // Not use the version from the search result but use the version from Input
     def strGAV =  "${compInfo.groupID}:${compInfo.artifactID}:${strVersion}"
-
 
     rtnMap.put("ComponentGAV",strGAV)
 
