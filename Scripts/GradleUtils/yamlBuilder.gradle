@@ -236,10 +236,11 @@ Map fillComponentData(String componentKey,Object componentMap, Object configData
     logger.quiet ("GradleUtils: data return form artifactory for: ${componentKey}:")
     prettyPrintMapData(compInfo)
 
-    //def strVersion = componentMap."Version" // not use the full version - only use Major & Minor Release [sai]
-
-    def (m_majorVersion, m_minorVersion, m_subVersion, m_buildNumber) = componentMap."Version".tokenize( '.' )
-    def strVersion = "${m_majorVersion}.${m_minorVersion}.${m_subVersion}"
+    def strVersion = componentMap."Version"
+    if(strVersion.contains("RELEASE")){
+        strVersion = "${compInfo.majorRelease}.${compInfo.minorRelease}.+"
+        logger.quiet ("GradleUtils: updated Version to " + strVersion)
+    }
 
     //def strGAV =  "${compInfo.groupID}:${compInfo.artifactID}:${compInfo.version}"  // Not use the version from the search result but use the version from Input
     def strGAV =  "${compInfo.groupID}:${compInfo.artifactID}:${strVersion}"
@@ -353,7 +354,6 @@ def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap,
     logger.quiet ("GradleUtils:strMajorRelease: ${strMajorRelease}")
     logger.quiet ("GradleUtils:strMinorRelease: ${strMinorRelease}")
 
-
     def tagsMap = componentMap."SearchProperties"
     logger.quiet ("GradleUtils:SearchProperties:${tagsMap}")
 
@@ -415,6 +415,8 @@ def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap,
 
     if (resultsList.size()>0){
         compInfo = pickItemFromSearchResult (resultsList)
+        compInfo.majorRelease = strMajorRelease
+        compInfo.minorRelease = strMinorRelease
     }else{
         throw new GradleException ("Couldn't find out the information about component need to install: ${componentKey}. Build failed")
     }
@@ -580,7 +582,7 @@ def generateLegacyYaml (String configFilePath, Object m_zData){
         else{
             strMasterBuildVersion = m_zData."MasterBuildVersion"
         }
-        strComponentGAV=strComponentGAV.replaceAll("\\[RELEASE\\]","${strMasterBuildVersion}")
+        //strComponentGAV=strComponentGAV.replaceAll("\\[RELEASE\\]","${strMasterBuildVersion}")
         strYamlContent = strYamlContent + "\n" + "     ComponentGAV: '${strComponentGAV}'"
 
         String strComponentPC=componentItem."PromoteEnabled"

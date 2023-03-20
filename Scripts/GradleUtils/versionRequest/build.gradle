@@ -61,7 +61,7 @@ configurations.aConfig {
 dependencies {
     String strGAV = "${aGAV}"
     strGAV = strGAV.replaceAll("%20"," ")
-    strGAV = strGAV.replaceAll("\\[RELEASE\\]",'+')
+    //strGAV = strGAV.replaceAll("\\[RELEASE\\]",'+')
     aConfig "${strGAV}@${aExt}"
     logger.info "REGISTER ${strGAV}@${aExt} \n "
 }
@@ -112,6 +112,7 @@ def updateYamlFiles (String iYamlFiles, String srcGAV ){
     String strVersion = srcGAV.split(":")[2]
     String sCmd
     try{
+        strVersion = strVersion.replaceAll("\\[RELEASE\\]","")
         strVersion = strVersion.replaceAll("\\+", "")
         strVersion = strVersion + "*"
         sCmd = "curl -sSf \"${artifactory_contextUrl}/api/search/latestVersion?g=${strGAV}&a=${strArtifactId}&repos=${aRepoKey}&v=${strVersion}\" -o \"$filePath\""
