@@ -352,6 +352,7 @@ def String buildParams(String sParams, String sParamName, String sParamValue){
 }
 
 def String generateURL(String serviceName){
+    println ("***********kbGenUrl: ${kbGenUrl}")
     def authenticationKBGen = "Basic " + "${kbGenUser}:${kbGenPw}".getBytes().encodeBase64().toString()
     def strURL =("${kbGenUrl}/" + serviceName.replace(' ', '%20'))
     def strParams = ""
