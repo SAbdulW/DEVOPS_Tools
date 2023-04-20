@@ -105,12 +105,19 @@
       "repoName" : "ci-snapshot",
       "daysToKeep" : 30,
       "minimumToKeep" : 1,
-      "pathMatch" : "ci-snapshot/com/verint/emdb/seeddata/",
-      "pathExclude" : ""
+      "pathMatch" : "com/verint",
+      "pathExclude" : "ci-snapshot/com/verint/emdb/seeddata/"
     },
     {
       "repoName" : "ci-snapshot",
       "daysToKeep" : 7,
+      "minimumToKeep" : 1,
+      "pathMatch" : "feature",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "ci-snapshot",
+      "daysToKeep" : 30,
       "minimumToKeep" : 1,
       "pathMatch" : "feature",
       "pathExclude" : ""
