@@ -123,6 +123,20 @@
       "pathExclude" : ""
     },
     {
+      "repoName" : "npm-registry",
+      "daysToKeep" : 30,
+      "minimumToKeep" : 1,
+      "pathMatch" : "@stoplight",
+      "pathExclude" : "npm-registry/@storybook/builder-webpack5/"
+    },
+    {
+      "repoName" : "npm-registry",
+      "daysToKeep" : 30,
+      "minimumToKeep" : 1,
+      "pathMatch" : "@stoplight",
+      "pathExclude" : "npm-registry/@storybook/manager-webpack5/"
+    },
+    {
       "repoName" : "ci-release",
       "daysToKeep" : 3,
       "minimumToKeep" : 3,
