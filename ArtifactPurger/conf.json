@@ -626,6 +626,13 @@
       "pathExclude" : "com/verint/bio/fusion/release"
     },
     {
+      "repoName" : "rec-libs-dev",
+      "daysToKeep" : 30,
+      "minimumToKeep" : 5,
+      "pathMatch" : "com/verint",
+      "pathExclude" : "com/verint/dpa/workassist/wa-services-common"
+    },  
+    {
       "repoName" : "RM_AA_PSR",
       "daysToKeep" : 4,
       "minimumToKeep" : 2,
