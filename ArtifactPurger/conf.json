@@ -213,6 +213,17 @@
       ]
     },
     {
+      "repoName" : "ci-release",
+      "daysToKeep" : 30,
+      "minimumToKeep" : 3,
+      "pathMatch" : "com/verint/iserver/fis-common",
+      "pathExclude" : "",
+      "versionRanges" : [
+        {"start" : "15.2.1024.13", "end" : "15.2.1024.99999"},
+        {"start" : "15.2.8000.0", "end" : "15.2.8000.99999"},
+      ]
+    }
+    {
       "repoName" : "ci-onlinehelp",
       "daysToKeep" : 5,
       "minimumToKeep" : 7,
