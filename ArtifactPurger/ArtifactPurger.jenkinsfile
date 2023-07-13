@@ -13,7 +13,7 @@ pipeline {
     }
     environment {
         MAILFROM = 'jenkinsdevops@lab.local'
-        MAILTO = 'chau.nguyen@verint.com, sai.srivathsav@verint.com, shaik.hussain@verint.com, Guy.Franco@verint.com, CSO_DevOps-T2@verint.com'
+        MAILTO = 'chau.nguyen@verint.com, sai.srivathsav@verint.com, shaik.hussain@verint.com, Guy.Franco@verint.com, CSO_DevOps-T2@verint.com, CSO_DevOps-IndiaT3@verint.com'
         MAILMSG = "Pipeline URL: ${BUILD_URL}"
     }
     options {
