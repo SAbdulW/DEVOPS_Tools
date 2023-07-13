@@ -11,15 +11,22 @@
       "repoName" : "rec-dev-nuget",
       "daysToKeep" : 5,
       "minimumToKeep" : 5,
-      "pathMatch" : "IEMdlls/*",
-      "pathExclude" : "com/verint/iem/lib/"
+      "pathMatch" : "IEMdlls/",
+      "pathExclude" : ""
      },
     {
       "repoName" : "rec-dev-nuget",
       "daysToKeep" : 5,
       "minimumToKeep" : 5,
-      "pathMatch" : "Common/*",
-      "pathExclude" : "com/verint/iem/lib/"
+      "pathMatch" : "Common/",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "rec-dev-nuget",
+      "minimumToKeep" : 5,
+      "daysToKeep" : 5,
+      "pathMatch" : "com/verint/iem/lib/",
+      "pathExclude" : ""
     },
     {
       "repoName" : "db-ci-release",
@@ -59,13 +66,12 @@
         {"start" : "11.2.4.41800", "end" : "11.2.4.41900"} 
       ]
     },
-    
     {
       "repoName" : "ci-snapshot",
       "daysToKeep" : 2,
       "minimumToKeep" : 1,
-      "pathMatch" : "com/verint",
-      "pathExclude" : "com/verint/token/vwt/,com/verint/HeapDumpRemoval/,com/verint/speech/rtaa-gateway-client/,com/verint/ear_mods/",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : "com/verint/token/vwt/,com/verint/HeapDumpRemoval/,com/verint/speech/rtaa-gateway-client/,com/verint/ear_mods/,com/verint/emdb/seeddata/",
       "versionRanges" : [
         {"start" : "11.2.0.0", "end" : "11.2.0.29999"},
         {"start" : "11.2.0.30000", "end" : "11.2.0.39999"},
@@ -105,81 +111,22 @@
       "repoName" : "ci-snapshot",
       "daysToKeep" : 30,
       "minimumToKeep" : 1,
-      "pathMatch" : "com/verint",
-      "pathExclude" : "ci-snapshot/com/verint/emdb/seeddata/"
+      "pathMatch" : "ci-snapshot/com/verint/emdb/seeddata/",
+      "pathExclude" : ""
     },
     {
       "repoName" : "ci-snapshot",
       "daysToKeep" : 7,
       "minimumToKeep" : 1,
-      "pathMatch" : "feature",
+      "pathMatch" : "feature/",
       "pathExclude" : ""
-    },
-    {
-      "repoName" : "ci-snapshot",
-      "daysToKeep" : 30,
-      "minimumToKeep" : 1,
-      "pathMatch" : "feature",
-      "pathExclude" : ""
-    },
-    {
-      "repoName" : "npm-registry",
-      "daysToKeep" : 30,
-      "minimumToKeep" : 1,
-      "pathMatch" : "@stoplight",
-      "pathExclude" : "npm-registry/@storybook/builder-webpack5/"
-    },
-    {
-      "repoName" : "npm-registry",
-      "daysToKeep" : 30,
-      "minimumToKeep" : 1,
-      "pathMatch" : "@stoplight",
-      "pathExclude" : "npm-registry/@storybook/manager-webpack5/"
     },
     {
       "repoName" : "ci-release",
       "daysToKeep" : 3,
       "minimumToKeep" : 3,
       "pathMatch" : "com/verint",
-      "pathExclude" : "com/verint/tenantizationtool",
-      "versionRanges" : [
-        {"start" : "11.2.0.0", "end" : "11.2.0.29999"},
-        {"start" : "11.2.0.30000", "end" : "11.2.0.39999"},
-        {"start" : "11.2.0.40000", "end" : "11.2.0.49999"},
-        {"start" : "11.2.0.50000", "end" : "11.2.0.59999"},
-
-        {"start" : "15.1.0.0", "end" : "15.1.0.14999"},
-        {"start" : "15.1.0.15000", "end" : "15.1.0.15999"},
-        {"start" : "15.1.0.16000", "end" : "15.1.0.16999"},
-        {"start" : "15.1.0.17000", "end" : "15.1.0.17999"},
-        {"start" : "15.1.0.31000", "end" : "15.1.0.31999"},
-        {"start" : "15.1.0.35000", "end" : "15.1.0.35999"},
-        {"start" : "15.1.0.36000", "end" : "15.1.0.36999"},
-        {"start" : "15.1.0.37000", "end" : "15.1.0.37999"},
-        
-        {"start" : "15.2.0.0", "end" : "15.2.0.99999"},
-        {"start" : "15.2.8000.0", "end" : "15.2.8000.99999"},
-
-        {"start" : "11.2.3.0", "end" : "11.2.3.949"},
-        {"start" : "11.2.3.1000", "end" : "11.2.3.31100"},
-        {"start" : "11.2.3.31200", "end" : "11.2.3.31300"},
-        {"start" : "11.2.3.31400", "end" : "11.2.3.31500"},
-        {"start" : "11.2.3.31600", "end" : "11.2.3.31700"},
-
-        {"start" : "11.2.4.0", "end" : "11.2.4.1000"},
-        {"start" : "11.2.4.41000", "end" : "11.2.4.41100"},
-        {"start" : "11.2.4.41200", "end" : "11.2.4.41300"},
-        {"start" : "11.2.4.41400", "end" : "11.2.4.41500"},
-        {"start" : "11.2.4.41600", "end" : "11.2.4.41700"},
-        {"start" : "11.2.4.41800", "end" : "11.2.4.41900"}
-      ]
-    },
-    {
-      "repoName" : "ci-release",
-      "daysToKeep" : 3,
-      "minimumToKeep" : 3,
-      "pathMatch" : "com/verint",
-      "pathExclude" : "com/verint/speech",
+      "pathExclude" : "com/verint/tenantizationtool/,com/verint/speech/",
       "versionRanges" : [
         {"start" : "11.2.0.0", "end" : "11.2.0.29999"},
         {"start" : "11.2.0.30000", "end" : "11.2.0.39999"},
@@ -216,10 +163,10 @@
       "repoName" : "ci-release",
       "daysToKeep" : 30,
       "minimumToKeep" : 3,
-      "pathMatch" : "com/verint/iserver/fis-common",
+      "pathMatch" : "com/verint/iserver/fis-common/",
       "pathExclude" : "",
       "versionRanges" : [
-        {"start" : "15.2.1024.13", "end" : "15.2.1024.99999"},
+        {"start" : "15.2.1024.0", "end" : "15.2.1024.99999"},
         {"start" : "15.2.8000.0", "end" : "15.2.8000.99999"}
       ]
     },
@@ -625,7 +572,7 @@
     {
       "repoName" : "rec-dev-staging",
       "daysToKeep" : 5,
-      "minimumToKeep" : 2,
+      "minimumToKeep" : 5,
       "pathMatch" : "com/verint",
       "pathExclude" : "com/verint/recorder/Platform_CryptoSDK,com/verint/recorder/REC_DataModel"
     },
@@ -634,15 +581,15 @@
       "daysToKeep" : 5,
       "minimumToKeep" : 2,
       "pathMatch" : "com/verint",
-      "pathExclude" : "com/verint/bio/fusion/release"
+      "pathExclude" : "com/verint/bio/fusion/release,com/verint/dpa/workassist/wa-services-common"
     },
     {
       "repoName" : "rec-libs-dev",
       "daysToKeep" : 30,
       "minimumToKeep" : 5,
-      "pathMatch" : "com/verint",
-      "pathExclude" : "com/verint/dpa/workassist/wa-services-common"
-    },  
+      "pathMatch" : "com/verint/dpa/workassist/wa-services-common",
+      "pathExclude" : ""
+    },
     {
       "repoName" : "RM_AA_PSR",
       "daysToKeep" : 4,
@@ -1168,25 +1115,11 @@
       "pathExclude" : ""
     },
     {
-      "repoName" : "rec-dev-nuget",
-      "minimumToKeep" : 5,
-      "daysToKeep" : 5,
-      "pathMatch" : "com/verint/iem/lib",
-      "pathExclude" : ""
-    },
-    {
       "repoName" : "ci-snapshot-sandbox",
       "minimumToKeep" : 5,
       "daysToKeep" : 5,
       "pathMatch" : "Monet_DC",
       "pathExclude" : ""
-    },
-    {
-      "repoName" : "rec-dev-staging",
-      "daysToKeep" : 5,
-      "minimumToKeep" : 5,
-      "pathMatch" : "com/verint",
-      "pathExclude" : "com/verint/recorder/Platform_CryptoSDK"
     },
     {
       "repoName" : "cd-release",
