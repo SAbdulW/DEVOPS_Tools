@@ -1171,6 +1171,20 @@
         {"start" : "15.2.9.0", "end" : "15.2.9.99999"},
         {"start" : "15.2.10.0", "end" : "15.2.10.99999"}
       ]
+    },
+    {
+      "repoName" : "npm-registry",
+      "daysToKeep" : 30,
+      "minimumToKeep" : 1,
+      "pathMatch" : "@storybook/builder-webpack5/",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "npm-registry",
+      "daysToKeep" : 30,
+      "minimumToKeep" : 1,
+      "pathMatch" : "@storybook/manager-webpack5/",
+      "pathExclude" : ""
     }
   ]
 }
