@@ -1,0 +1,862 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>-1</daysToKeep>
+    <numToKeep>200</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.4.1">
+      <useBuildBlocker>false</useBuildBlocker>
+    </hudson.plugins.buildblocker.BuildBlockerProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>ProvisioningRoot</name>
+          <description>&quot;Test bench Pool Path&quot; - A path that indicates where the environments are located in the Vcenter</description>
+          <defaultValue>Fixture/11.2.1.x/Green</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PendingPoolFolder</name>
+          <description>VM folder where the pending pool VM&apos;s are located (Relative to &apos;provisioning_root&apos;)</description>
+          <defaultValue>Pending</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>RunningPoolFolder</name>
+          <description>VM folder where the running pool VM&apos;s are located (Relative to &apos;provisioning_root&apos;)</description>
+          <defaultValue>Running</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ParkingPoolFolder</name>
+          <description>VM folder where the parking pool VM&apos;s are located (Relative to &apos;provisioning_root&apos;)</description>
+          <defaultValue>Parking</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>DevRootPath</name>
+          <description></description>
+          <defaultValue>Z_TPL011</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>RetryTime</name>
+          <description>The timeout in case the pool is empty. You can use  m -for minute or s- for seconds</description>
+          <defaultValue>6m</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>LeaseTime</name>
+          <description>The time (in hour) of the lease in case of KeepTheFixtureWhenDone=true</description>
+          <defaultValue>8</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PeriodicTime</name>
+          <description>Time (in hour) to have it released in case of KeepTheFixtureWhenDone=false and the machine is &quot;Back to the Pool&quot; generic job is not picking up.</description>
+          <defaultValue>2</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>KeepTheFixtureWhenDone</name>
+          <description>If this option is checked, the machine will not be reverted back and can be used for the developer investigation. The IP of the machine can be taken from the log. When you finish using the machine, turn it off.</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>Assign_Config_Branch</name>
+          <description>Branch for DevOps_Config repo</description>
+          <defaultValue>origin/WFO_POC</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>Assign_Config_Folder</name>
+          <description></description>
+          <defaultValue>AssignMachine</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>TypesOfClone</name>
+          <description>There are two types of clone if you select the SourceCatalog from archive:
+
+The Linked Clone (Default) — A linked clone is a copy of a virtual machine that shares virtual disks with the parent virtual machine in an ongoing manner. This conserves disk space, and allows multiple virtual machines to use the same software installation.
+The Full Clone — A full clone is an independent copy of a virtual machine that shares nothing with the parent virtual machine after the cloning operation. Ongoing operation of a full clone is entirely separate from the parent virtual machine.
+</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>Linked</string>
+              <string>Full</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition plugin="extended-choice-parameter@0.50">
+          <name>SelectedFixture</name>
+          <description>(latest) : default selection to get the latest machine from Pending Pool.  While specific archive image such as: : get the image, clone the vm base with selected @TypesOfClone</description>
+          <quoteValue>false</quoteValue>
+          <saveJSONParameterToFile>false</saveJSONParameterToFile>
+          <visibleItemCount>5</visibleItemCount>
+          <type>PT_SINGLE_SELECT</type>
+          <value>(latest),Templates/archive/10009-cons-green-After-GNG--15.1.0.1501,Templates/archive/10010-cons-green-After-GNG--15.1.0.1536</value>
+          <defaultValue>(latest)</defaultValue>
+          <multiSelectDelimiter>,</multiSelectDelimiter>
+        </com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <jenkins.plugins.slack.SlackNotifier_-SlackJobProperty plugin="slack@1.7">
+      <teamDomain></teamDomain>
+      <token></token>
+      <room></room>
+      <startNotification>false</startNotification>
+      <notifySuccess>false</notifySuccess>
+      <notifyAborted>false</notifyAborted>
+      <notifyNotBuilt>false</notifyNotBuilt>
+      <notifyUnstable>false</notifyUnstable>
+      <notifyFailure>false</notifyFailure>
+      <notifyBackToNormal>false</notifyBackToNormal>
+      <notifyRepeatedFailure>false</notifyRepeatedFailure>
+      <includeTestSummary>false</includeTestSummary>
+      <showCommitList>false</showCommitList>
+    </jenkins.plugins.slack.SlackNotifier_-SlackJobProperty>
+    <EnvInjectJobProperty plugin="envinject@1.90">
+      <info>
+        <loadFilesFromMaster>false</loadFilesFromMaster>
+      </info>
+      <on>true</on>
+      <keepJenkinsSystemVariables>true</keepJenkinsSystemVariables>
+      <keepBuildVariables>true</keepBuildVariables>
+      <overrideBuildParameters>true</overrideBuildParameters>
+      <contributors>
+        <org.jenkinsci.plugins.sharedobjects.SharedObjectJobProperty plugin="shared-objects@0.44">
+          <populateSharedObjects>false</populateSharedObjects>
+        </org.jenkinsci.plugins.sharedobjects.SharedObjectJobProperty>
+        <org.jenkinsci.plugins.sharedobjects.ToolInstallationJobProperty plugin="shared-objects@0.44">
+          <populateToolInstallation>false</populateToolInstallation>
+        </org.jenkinsci.plugins.sharedobjects.ToolInstallationJobProperty>
+      </contributors>
+    </EnvInjectJobProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.3.4">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>git@atlgit:DEVOPS_Configs</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>${Assign_Config_Branch}</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        <relativeTargetDir>${Assign_Config_Folder}</relativeTargetDir>
+      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+    </extensions>
+  </scm>
+  <assignedNode>ATL-FTW-Slaves</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <jdk>JDK7u55 (x32)</jdk>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <customWorkspace>$DevRootPath</customWorkspace>
+  <builders>
+    <hudson.plugins.groovy.Groovy plugin="groovy@1.27">
+      <scriptSource class="hudson.plugins.groovy.StringScriptSource">
+        <command>import java.sql.Timestamp
+import groovy.time.TimeCategory
+
+
+def vFile = new File (&quot;assign.prop&quot;)
+def vFile1 = new File (&quot;vSphere1.properties&quot;)
+def vFile2 = new File (&quot;vSphere2.properties&quot;)
+
+def String sTimeStamp = System.currentTimeMillis()
+def String sBuildId = System.getenv(&apos;BUILD_ID&apos;)
+def String sBUILD_TAG = System.getenv(&apos;BUILD_TAG&apos;)
+def String sSelectedFixture = System.getenv(&apos;SelectedFixture&apos;)
+def String sProvisioningRoot = System.getenv(&apos;ProvisioningRoot&apos;)
+def String sRunningPoolFolder = System.getenv(&apos;RunningPoolFolder&apos;)
+def String sParkingPoolFolder = System.getenv(&apos;ParkingPoolFolder&apos;)
+def String sKeepTheFixtureWhenDone = System.getenv(&apos;KeepTheFixtureWhenDone&apos;)
+def String sPendingPoolFolder = System.getenv(&apos;PendingPoolFolder&apos;)
+def String sPeriodicTime = System.getenv(&apos;PeriodicTime&apos;) //in hours
+def String sLeaseTime = System.getenv(&apos;LeaseTime&apos;) //in days
+
+
+def String sTemplateName=&quot;&quot;
+def String sNewVmName = &quot;&quot;
+def String sDestPool = &quot;&quot;
+def String sParkingFolderPath = &quot;&quot;
+def String sDestPoolVmFolder = &quot;&quot;
+def String sParkingFolderPathVmFolder = &quot;&quot;
+def String sJenkinsMaster=&quot;atljenkins&quot;
+def String sDeleteVMJob=&quot;/job/Z_DEVOPS/job/Utilities/job/Z_DeleteVM&quot;
+def String sVmFolderName=&quot;&quot;
+def String sDeleteVM=&quot;false&quot;
+def String sPendingFolderPath = &quot;${sProvisioningRoot}/${sPendingPoolFolder}&quot;
+def String sScheduleStartTime = &quot;&quot; //in HH:MM 24-hour format. TODO
+def String sScheduleStartDate = &quot;&quot; // in MM/DD/YYYY format  TODO
+
+println (&quot;sKeepTheFixtureWhenDone:${sKeepTheFixtureWhenDone}&quot;)
+
+sParkingFolderPath= &quot;${sProvisioningRoot}/${sParkingPoolFolder}&quot;
+if (sKeepTheFixtureWhenDone==&quot;true&quot;){
+	sDestPool = sParkingFolderPath
+}else{
+	sDestPool = &quot;${sProvisioningRoot}/${sRunningPoolFolder}&quot;
+}
+
+
+
+String formattedDate = getFormattedEndDate(sTimeStamp, sKeepTheFixtureWhenDone, sPeriodicTime,sLeaseTime)
+
+def sDateTime=formattedDate.split(&quot; &quot;)
+sScheduleStartDate = sDateTime[0]
+sScheduleStartTime = sDateTime[1]
+
+println (&quot;printFormattedEndDate: sd:${sScheduleStartDate} st:${sScheduleStartTime}&quot;) 
+
+
+String strPrefix = &quot;${formattedDate}&quot;
+strPrefix=strPrefix.replaceAll(&quot;/&quot;,&quot;_&quot;)
+strPrefix=strPrefix.replaceAll(&quot; &quot;,&quot;_&quot;)
+strPrefix=strPrefix.replaceAll(&quot;:&quot;,&quot;-&quot;)
+
+//Create the suffix
+
+sBUILD_TAG = &quot;${strPrefix}_&quot; + sBUILD_TAG.substring(0,sBUILD_TAG.indexOf(&quot;(&quot;)) 
+//Don&apos;t get too long limit to 200
+sBUILD_TAG = sBUILD_TAG.take(200)
+sBUILD_TAG = sBUILD_TAG + &quot;_${sBuildId}&quot;
+
+
+println (&quot;sDestPool:${sDestPool}&quot;)
+
+if (!sSelectedFixture.equals(&quot;(latest)&quot;)){
+  int iLast = sSelectedFixture.lastIndexOf(&quot;/&quot;)
+  sTemplateName = sSelectedFixture.substring(iLast+1)
+  
+  sNewVmName = &quot;${sBUILD_TAG}&quot;
+  sVmFolderName = &quot;${sTemplateName}_${sBuildId}&quot;
+  
+  sDestPoolVmFolder = &quot;${sDestPool}/${sVmFolderName}&quot;
+  	    
+  sParkingFolderPathVmFolder= &quot;${sProvisioningRoot}/${sParkingPoolFolder}/${sVmFolderName}&quot;	  
+  sDeleteVM = &quot;true&quot;
+}else{   
+//   sParkingFolderPath=&quot;${sProvisioningRoot}/${sParkingPoolFolder}&quot;	  
+}
+
+
+
+
+def String sText = &quot;TIMESTAMP=&quot; + sTimeStamp + &quot;\n&quot; +
+  //getPropertyLine(&quot;NewVmName&quot;,&quot;${sNewVmName}&quot;) + 
+//  getPropertyLine(&quot;DestPool&quot;,&quot;${sDestPool}&quot;) + 
+  //getPropertyLine(&quot;ParkingFolderPath&quot;,&quot;${sParkingFolderPath}&quot;) + 
+  //getPropertyLine(&quot;DestPoolVmFolder&quot;,&quot;${sDestPoolVmFolder}&quot;) + 
+  //getPropertyLine(&quot;ParkingFolderPathVmFolder&quot;,&quot;${sParkingFolderPathVmFolder}&quot;) + 
+  getPropertyLine(&quot;JenkinsMaster&quot;,&quot;${sJenkinsMaster}&quot;) + 
+  getPropertyLine(&quot;DeleteVMJob&quot;,&quot;${sDeleteVMJob}&quot;)  
+  //getPropertyLine(&quot;TemplateName&quot;,&quot;${sTemplateName}&quot;) +
+  //getPropertyLine(&quot;VmFolderName&quot;,&quot;${sVmFolderName}&quot;)	
+
+def String sText1 = getPropertyLine(&quot;NewVmName&quot;,&quot;${sNewVmName}&quot;) +   
+  getPropertyLine(&quot;ParkingFolderPath&quot;,&quot;${sParkingFolderPath}&quot;) + 
+  getPropertyLine(&quot;DestPoolVmFolder&quot;,&quot;${sDestPoolVmFolder}&quot;) + 
+  getPropertyLine(&quot;ParkingFolderPathVmFolder&quot;,&quot;${sParkingFolderPathVmFolder}&quot;) + 
+  getPropertyLine(&quot;TemplateName&quot;,&quot;${sTemplateName}&quot;) +
+  getPropertyLine(&quot;VmFolderName&quot;,&quot;${sVmFolderName}&quot;) +	
+  getPropertyLine(&quot;PendingFolderPath&quot;,&quot;${sPendingFolderPath}&quot;) +	
+  getPropertyLine(&quot;ScheduleStartDate&quot;,&quot;${sScheduleStartDate}&quot;) +	
+  getPropertyLine(&quot;ScheduleStartTime&quot;,&quot;${sScheduleStartTime}&quot;) +	
+  getPropertyLine(&quot;DeleteVM&quot;,&quot;${sDeleteVM}&quot;)
+
+
+def String sText2 = getPropertyLine(&quot;DestPool&quot;,&quot;${sDestPool}&quot;) +
+  getPropertyLine(&quot;VMFolderSuffix&quot;,&quot;${sBUILD_TAG}&quot;) 
+  
+    
+println (&quot;sText:\n${sText}&quot;);
+
+//vFile.text=&quot;${sText}\n${sText1}\n${sText2}&quot; 
+vFile.text=&quot;${sText}&quot; 
+vFile1.text=&quot;${sText1}&quot;
+vFile2.text=&quot;${sText2}&quot;
+
+//TESTING ----
+
+//def String sCmdPaExecsetUpVM (&quot;1448301561435&quot;, &quot;10.156.15.6&quot;,)
+
+//TESTING ---- END
+
+//Generic function
+def String getPropertyLine(String pName, String pValue){
+  String rtnLine = &quot;&quot;
+  if (!pValue.equals(&quot;&quot;)){
+    rtnLine = &quot;${pName}=${pValue}\n&quot;
+  }
+  return rtnLine
+}
+
+
+
+def String getFormattedEndDate (String sTimeStamp, String sKeepTheFixtureWhenDone,String sPeriodicTime,String sLeaseTime){
+  
+  String strRtn = &quot;&quot;
+  long l = Long.parseLong(sTimeStamp);
+  Timestamp stamp = new Timestamp(l);
+  Date date = new Date(stamp.getTime());  
+  
+  String sTimeStampFormated= date.format(&quot;MM/dd/YYYY HH:mm&quot;)
+  println (&quot;sTimeStampFormated: ${sTimeStampFormated}&quot;)
+  
+  if (sKeepTheFixtureWhenDone==&quot;true&quot;){ //using the LeaseTime
+    long newL = l + Long.parseLong(&quot;${sLeaseTime}&quot;)*3600000
+    Timestamp newstamp = new Timestamp(newL);
+  	date = new Date(newstamp.getTime()); 
+    
+  	//date = date +  &quot;${sLeaseTime}&quot;.toInteger()	
+  }else{
+    long newL = l + Long.parseLong(&quot;${sPeriodicTime}&quot;)*3600000
+    Timestamp newstamp = new Timestamp(newL);
+  	date = new Date(newstamp.getTime()); 
+  }
+
+  
+  strRtn= date.format(&quot;MM/dd/YYYY HH:mm&quot;)
+  
+  println (&quot;getFormattedEndDate: ${strRtn}&quot;)
+  
+  return strRtn
+  
+}
+
+
+
+
+</command>
+      </scriptSource>
+      <groovyName>Groovy2.4.3</groovyName>
+      <parameters></parameters>
+      <scriptParameters>-DProvisioningRoot=$ProvisioningRoot
+-DRunningPoolFolder=$RunningPoolFolder
+-DBUILD_ID=$BUILD_ID
+-DParkingPoolFolder=$ParkingPoolFolder
+-DSelectedFixture=$SelectedFixture
+-DKeepTheFixtureWhenDone=$KeepTheFixtureWhenDone
+-DAssign_Config_Folder=$Assign_Config_Folder
+-DPendingPoolFolder=$PendingPoolFolder
+-DPeriodicTime=$PeriodicTime
+-DLeaseTime=$LeaseTime
+-DBUILD_TAG=$BUILD_TAG</scriptParameters>
+      <properties></properties>
+      <javaOpts></javaOpts>
+      <classPath></classPath>
+    </hudson.plugins.groovy.Groovy>
+    <EnvInjectBuilder plugin="envinject@1.90">
+      <info>
+        <propertiesFilePath>assign.prop</propertiesFilePath>
+      </info>
+    </EnvInjectBuilder>
+    <EnvInjectBuilder plugin="envinject@1.90">
+      <info>
+        <propertiesFilePath>vSphere2.properties</propertiesFilePath>
+      </info>
+    </EnvInjectBuilder>
+    <EnvInjectBuilder plugin="envinject@1.90">
+      <info>
+        <propertiesFilePath>vSphere1.properties</propertiesFilePath>
+      </info>
+    </EnvInjectBuilder>
+    <hudson.tasks.BatchFile>
+      <command>TYPE assign.prop&#xd;
+TYPE vSphere1.properties&#xd;
+TYPE vSphere2.properties&#xd;
+&#xd;
+echo TIMESTAMP=%TIMESTAMP%&#xd;
+echo NewVmName=%NewVmName%&#xd;
+echo DestPool=%DestPool%&#xd;
+echo ParkingFolderPath=%ParkingFolderPath%&#xd;
+echo DestPoolVmFolder=%DestPoolVmFolder%&#xd;
+echo ParkingFolderPathVmFolder=%ParkingFolderPathVmFolder%&#xd;
+echo JenkinsMaster=%JenkinsMaster%&#xd;
+echo DeleteVMJob=%DeleteVMJob%&#xd;
+echo TemplateName=%TemplateName%&#xd;
+echo VmFolderName=%VmFolderName%&#xd;
+echo VMFolderSuffix=%VMFolderSuffix%&#xd;
+</command>
+    </hudson.tasks.BatchFile>
+    <org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder plugin="conditional-buildstep@1.3.3">
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+      <runCondition class="org.jenkins_ci.plugins.run_condition.logic.And" plugin="run-condition@1.0">
+        <conditions>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.core.AlwaysRun"/>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.core.StringsMatchCondition">
+              <arg1>$SelectedFixture</arg1>
+              <arg2>(latest)</arg2>
+              <ignoreCase>false</ignoreCase>
+            </condition>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+        </conditions>
+      </runCondition>
+      <conditionalbuilders>
+        <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@11.2.1.8">
+          <buildStep class="org.jenkinsci.plugins.vsphere.builders.GetFolderInfo">
+            <sourceName>${ProvisioningRoot}/${PendingPoolFolder}</sourceName>
+            <numberVM>0</numberVM>
+            <numberFolder>0</numberFolder>
+          </buildStep>
+          <serverName>ATL Vsphere Server</serverName>
+          <serverHash>-1412856745</serverHash>
+        </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+      </conditionalbuilders>
+    </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>
+    <org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder plugin="conditional-buildstep@1.3.3">
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+      <runCondition class="org.jenkins_ci.plugins.run_condition.logic.And" plugin="run-condition@1.0">
+        <conditions>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.core.AlwaysRun"/>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.core.StringsMatchCondition">
+              <arg1>$SelectedFixture</arg1>
+              <arg2>(latest)</arg2>
+              <ignoreCase>false</ignoreCase>
+            </condition>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.core.NumericalComparisonCondition">
+              <lhs>$NUM_FOLDER</lhs>
+              <rhs>0</rhs>
+              <comparator class="org.jenkins_ci.plugins.run_condition.core.NumericalComparisonCondition$EqualTo"/>
+            </condition>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+        </conditions>
+      </runCondition>
+      <conditionalbuilders>
+        <hudson.tasks.BatchFile>
+          <command>echo &quot;%ProvisioningRoot%/%PendingPoolFolder%&quot; is empty. Will try again in %RetryTime% .&#xd;
+sleep %RetryTime%</command>
+        </hudson.tasks.BatchFile>
+        <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@11.2.1.8">
+          <buildStep class="org.jenkinsci.plugins.vsphere.builders.GetFolderInfo">
+            <sourceName>${ProvisioningRoot}/${PendingPoolFolder}</sourceName>
+            <numberVM>0</numberVM>
+            <numberFolder>0</numberFolder>
+          </buildStep>
+          <serverName>ATL Vsphere Server</serverName>
+          <serverHash>-1412856745</serverHash>
+        </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+        <hudson.tasks.BatchFile>
+          <command>IF &quot;0&quot; GEQ &quot;%NUM_FOLDER%&quot; (&#xd;
+  echo %ProvisioningRoot%\%PendingPoolFolder% is still empty. Build has failed!!!.&#xd;
+  exit 1&#xd;
+)</command>
+        </hudson.tasks.BatchFile>
+      </conditionalbuilders>
+    </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>
+    <org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder plugin="conditional-buildstep@1.3.3">
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+      <runCondition class="org.jenkins_ci.plugins.run_condition.logic.And" plugin="run-condition@1.0">
+        <conditions>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.core.AlwaysRun"/>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.core.StringsMatchCondition">
+              <arg1>$SelectedFixture</arg1>
+              <arg2>(latest)</arg2>
+              <ignoreCase>false</ignoreCase>
+            </condition>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+        </conditions>
+      </runCondition>
+      <conditionalbuilders>
+        <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@11.2.1.8">
+          <buildStep class="org.jenkinsci.plugins.vsphere.builders.Move">
+            <sourceName>${ProvisioningRoot}/${PendingPoolFolder}/${LAST_FOLDER}</sourceName>
+            <location>${DestPool}</location>
+          </buildStep>
+          <serverName>ATL Vsphere Server</serverName>
+          <serverHash>-1412856745</serverHash>
+        </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+        <hudson.tasks.BatchFile>
+          <command>echo VmFolderName=%LAST_FOLDER%&gt;&gt;&quot;assign.prop&quot;&#xd;
+echo PendingFolderPathVmFolder=%ProvisioningRoot%/%PendingPoolFolder%/%LAST_FOLDER%&gt;&gt;&quot;assign.prop&quot;&#xd;
+echo DestPoolVmFolder=%DestPool%/%LAST_FOLDER%&gt;&gt;&quot;assign.prop&quot;&#xd;
+&#xd;
+echo VmFolderName=%LAST_FOLDER%&gt;&quot;inject.properties&quot;&#xd;
+echo PendingFolderPathVmFolder=%ProvisioningRoot%/%PendingPoolFolder%/%LAST_FOLDER%&gt;&gt;&quot;inject.properties&quot;&#xd;
+echo DestPoolVmFolder=%DestPool%/%LAST_FOLDER%&gt;&gt;&quot;inject.properties&quot;</command>
+        </hudson.tasks.BatchFile>
+        <EnvInjectBuilder plugin="envinject@1.90">
+          <info>
+            <propertiesFilePath>inject.properties</propertiesFilePath>
+          </info>
+        </EnvInjectBuilder>
+        <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@11.2.1.8">
+          <buildStep class="org.jenkinsci.plugins.vsphere.builders.GetFolderInfo">
+            <sourceName>${DestPool}/${LAST_FOLDER}</sourceName>
+            <numberVM>0</numberVM>
+            <numberFolder>0</numberFolder>
+          </buildStep>
+          <serverName>ATL Vsphere Server</serverName>
+          <serverHash>-1412856745</serverHash>
+        </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+        <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@11.2.1.8">
+          <buildStep class="org.jenkinsci.plugins.vsphere.builders.Rename">
+            <oldName>${FIRST_VM}</oldName>
+            <newName>${VMFolderSuffix}</newName>
+          </buildStep>
+          <serverName>ATL Vsphere Server</serverName>
+          <serverHash>-1412856745</serverHash>
+        </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+      </conditionalbuilders>
+    </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>
+    <org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder plugin="conditional-buildstep@1.3.3">
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+      <runCondition class="org.jenkins_ci.plugins.run_condition.logic.And" plugin="run-condition@1.0">
+        <conditions>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.core.AlwaysRun"/>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.logic.Not">
+              <condition class="org.jenkins_ci.plugins.run_condition.core.StringsMatchCondition">
+                <arg1>$SelectedFixture</arg1>
+                <arg2>(latest)</arg2>
+                <ignoreCase>false</ignoreCase>
+              </condition>
+            </condition>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.core.StringsMatchCondition">
+              <arg1>$TypesOfClone</arg1>
+              <arg2>Linked</arg2>
+              <ignoreCase>false</ignoreCase>
+            </condition>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+        </conditions>
+      </runCondition>
+      <conditionalbuilders>
+        <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@11.2.1.8">
+          <buildStep class="org.jenkinsci.plugins.vsphere.builders.Clone">
+            <sourceName>$TemplateName</sourceName>
+            <clone>$NewVmName</clone>
+            <linkedClone>true</linkedClone>
+            <resourcePool>hpe4bl11.lab.local</resourcePool>
+            <cluster>ATL_CI</cluster>
+            <datastore>VNX1061_LUN65_6TB</datastore>
+            <location>$DestPoolVmFolder</location>
+          </buildStep>
+          <serverName>ATL Vsphere Server</serverName>
+          <serverHash>-1412856745</serverHash>
+        </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+        <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@11.2.1.8">
+          <buildStep class="org.jenkinsci.plugins.vsphere.builders.PowerOn">
+            <vm>$NewVmName</vm>
+            <timeoutInSeconds>180</timeoutInSeconds>
+          </buildStep>
+          <serverName>ATL Vsphere Server</serverName>
+          <serverHash>-1412856745</serverHash>
+        </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+      </conditionalbuilders>
+    </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>
+    <org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder plugin="conditional-buildstep@1.3.3">
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+      <runCondition class="org.jenkins_ci.plugins.run_condition.logic.And" plugin="run-condition@1.0">
+        <conditions>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.core.AlwaysRun"/>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.logic.Not">
+              <condition class="org.jenkins_ci.plugins.run_condition.core.StringsMatchCondition">
+                <arg1>$SelectedFixture</arg1>
+                <arg2>(latest)</arg2>
+                <ignoreCase>false</ignoreCase>
+              </condition>
+            </condition>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+          <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            <condition class="org.jenkins_ci.plugins.run_condition.core.StringsMatchCondition">
+              <arg1>$TypesOfClone</arg1>
+              <arg2>Full</arg2>
+              <ignoreCase>false</ignoreCase>
+            </condition>
+          </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+        </conditions>
+      </runCondition>
+      <conditionalbuilders>
+        <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@11.2.1.8">
+          <buildStep class="org.jenkinsci.plugins.vsphere.builders.Clone">
+            <sourceName>$TemplateName</sourceName>
+            <clone>$NewVmName</clone>
+            <linkedClone>false</linkedClone>
+            <resourcePool>hpe4bl11.lab.local</resourcePool>
+            <cluster>ATL_CI</cluster>
+            <datastore>VNX1061_LUN65_6TB</datastore>
+            <location>$DestPoolVmFolder</location>
+          </buildStep>
+          <serverName>ATL Vsphere Server</serverName>
+          <serverHash>-1412856745</serverHash>
+        </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+        <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@11.2.1.8">
+          <buildStep class="org.jenkinsci.plugins.vsphere.builders.PowerOn">
+            <vm>$NewVmName</vm>
+            <timeoutInSeconds>180</timeoutInSeconds>
+          </buildStep>
+          <serverName>ATL Vsphere Server</serverName>
+          <serverHash>-1412856745</serverHash>
+        </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+      </conditionalbuilders>
+    </org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder>
+    <hudson.tasks.BatchFile>
+      <command>if &quot;%DestPoolVmFolder%&quot; == &quot;&quot; (&#xd;
+  echo DestPoolVmFolder is empty!&#xd;
+  exit 1&#xd;
+)</command>
+    </hudson.tasks.BatchFile>
+    <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@11.2.1.8">
+      <buildStep class="org.jenkinsci.plugins.vsphere.builders.GetFolderInfo">
+        <sourceName>${DestPoolVmFolder}</sourceName>
+        <numberVM>0</numberVM>
+        <numberFolder>0</numberFolder>
+      </buildStep>
+      <serverName>ATL Vsphere Server</serverName>
+      <serverHash>-1412856745</serverHash>
+    </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+    <hudson.tasks.BatchFile>
+      <command>echo VmPath=%DestPoolVmFolder%/%FIRST_VM%&gt;&gt;&quot;assign.prop&quot;&#xd;
+echo VmName=%FIRST_VM%&gt;&gt;&quot;assign.prop&quot;&#xd;
+&#xd;
+echo VmPath=%DestPoolVmFolder%/%FIRST_VM%&gt;&quot;inject.properties&quot;&#xd;
+echo VmName=%FIRST_VM%&gt;&gt;&quot;inject.properties&quot;&#xd;
+TYPE &quot;assign.prop&quot;</command>
+    </hudson.tasks.BatchFile>
+    <EnvInjectBuilder plugin="envinject@1.90">
+      <info>
+        <propertiesFilePath>inject.properties</propertiesFilePath>
+      </info>
+    </EnvInjectBuilder>
+    <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@11.2.1.8">
+      <buildStep class="org.jenkinsci.plugins.vsphere.builders.GetIp">
+        <vm>${VmPath}</vm>
+        <timeoutInSeconds>120</timeoutInSeconds>
+      </buildStep>
+      <serverName>ATL Vsphere Server</serverName>
+      <serverHash>-1412856745</serverHash>
+    </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+    <hudson.tasks.BatchFile>
+      <command>echo VmIp=%VM_IP%&gt;&gt;&quot;assign.prop&quot;&#xd;
+echo MasterBuildVersion=%MasterBuildVersion%&gt;&gt;&quot;assign.prop&quot;&#xd;
+echo AssignConfigFolder=%Assign_Config_Folder%&gt;&gt;&quot;assign.prop&quot;&#xd;
+echo VmIp=%VM_IP%&gt;&quot;inject.properties&quot;&#xd;
+TYPE &quot;assign.prop&quot;</command>
+    </hudson.tasks.BatchFile>
+    <EnvInjectBuilder plugin="envinject@1.90">
+      <info>
+        <propertiesFilePath>inject.properties</propertiesFilePath>
+      </info>
+    </EnvInjectBuilder>
+    <hudson.plugins.groovy.Groovy plugin="groovy@1.27">
+      <scriptSource class="hudson.plugins.groovy.StringScriptSource">
+        <command>import java.sql.Timestamp
+
+def String sVmFolderName = System.getenv(&apos;VmFolderName&apos;)
+def String sBuildId = System.getenv(&apos;BUILD_ID&apos;)
+def String sProjectName = System.getenv(&apos;JOB_NAME&apos;)
+def String sTimeStamp = System.getenv(&apos;TimeStamp&apos;)
+def String sDestPoolVmFolder = System.getenv(&apos;DestPoolVmFolder&apos;)
+def String sPendingFolderPath = System.getenv(&apos;PendingFolderPath&apos;)
+def String sLeaseTime = System.getenv(&apos;LeaseTime&apos;)
+def String sKeepTheFixtureWhenDone = System.getenv(&apos;KeepTheFixtureWhenDone&apos;)
+def String sDeleteVM = System.getenv(&apos;DeleteVM&apos;)
+def String sVmName = System.getenv(&apos;VmName&apos;)
+def String sVmIp = System.getenv(&apos;VmIp&apos;)
+def String sAssign_Config_Folder = System.getenv(&apos;Assign_Config_Folder&apos;)
+def String sJenkinsMaster = System.getenv(&apos;JenkinsMaster&apos;)
+def String sDeleteVMJob = System.getenv(&apos;DeleteVMJob&apos;)
+def String sSelectedFixture = System.getenv(&apos;SelectedFixture&apos;)
+def String sScheduleStartTime = System.getenv(&apos;ScheduleStartTime&apos;) //in HH:MM 24-hour format. TODO
+def String sScheduleStartDate = System.getenv(&apos;ScheduleStartDate&apos;) // in MM/DD/YYYY format  TODO
+
+
+
+def String jsonPath = &quot;${sAssign_Config_Folder}\\Jenkins\\Workflows\\Templates\\DevOps\\json-default.json&quot;
+File jsonFile = new File (jsonPath)  
+String jsonText = jsonFile.text
+println (&quot;Original default jsonText:\n${jsonText}&quot;);
+
+//format the date from timestamp
+long l = Long.parseLong(sTimeStamp);
+Timestamp stamp = new Timestamp(l);
+Date date = new Date(stamp.getTime());
+def String sTimeStampFormated= date.format(&quot;yyyy-MM-dd HH:mm:ss&quot;)
+
+jsonText = jsonText.replaceAll(&quot;_VmFolderName&quot;,sVmFolderName)
+jsonText = jsonText.replaceAll(&quot;_buildNumber&quot;,sBuildId)
+jsonText = jsonText.replaceAll(&quot;_projectName&quot;,sProjectName)
+jsonText = jsonText.replaceAll(&quot;_timeStamp&quot;,sTimeStampFormated)
+jsonText = jsonText.replaceAll(&quot;_sourceFolderPath&quot;,sDestPoolVmFolder)
+jsonText = jsonText.replaceAll(&quot;_destFolderPath&quot;,sPendingFolderPath)
+jsonText = jsonText.replaceAll(&quot;_leaseTime&quot;,sLeaseTime)
+jsonText = jsonText.replaceAll(&quot;_KeepTheFixtureWhenDone&quot;,sKeepTheFixtureWhenDone)
+jsonText = jsonText.replaceAll(&quot;_deleteVM&quot;,sDeleteVM)
+jsonText = jsonText.replaceAll(&quot;_VmName&quot;,sVmName)
+jsonText = jsonText.replaceAll(&quot;_VmIp&quot;,sVmIp)
+
+
+File jsonUpdateFile = new File (&quot;${sTimeStamp}.json&quot;)
+
+jsonUpdateFile.text = jsonText
+
+println (&quot;After updating jsonText:\n${jsonText}&quot;);
+//TODO copyFile (&quot;${sTimeStamp}.json&quot;, &quot;\\\\${sJenkinsMaster}\\users\\DevOps\\AssignMachines\\${sTimeStamp}_${sBuildId}_${sVmFolderName}.json&quot;)
+
+String sSetHostCmd = &quot;echo No need to set up host&quot;
+
+if (!sSelectedFixture.equals(&quot;(latest)&quot;)){
+	sSetHostCmd = setUpVM(sTimeStamp,sVmIp) 
+}
+
+String sCreateScheduleCmd = createScheduleTasks(sLeaseTime,sJenkinsMaster,sDeleteVMJob,sDestPoolVmFolder,sTimeStamp,sVmIp,sScheduleStartDate,sScheduleStartTime)
+//Inject the SetHostCmd
+
+
+File injectFile = new File (&quot;inject.properties&quot;)
+injectFile.text = &quot;SetHostCmd=${sSetHostCmd}&quot; + 
+  &quot;\nCreateScheduleCmd=${sCreateScheduleCmd}&quot;
+
+
+def copyFile (String srcPath, String destPath){
+	File jsonFileSrc = new File (srcPath)  
+    File jsonFileDest = new File (destPath)  
+  
+	jsonFileDest.text = jsonFileSrc.text
+  
+}
+
+def String createScheduleTasks(String sLeaseTime, String sJenkinsMaster, String sDeleteVMJob, String sDestPoolVmFolder, 
+                   String  sTimeStamp,
+                  String sVmIp, String ScheduleStartDate , String sScheduleStartTime){
+  
+  String strCmdText=&quot;&quot;  
+  
+  // Calculate the start time of the schedule base on ${sLeaseTime}
+  // Start date: /sd 03/01/2002  - MM/DD/YYYY
+  // Start time: /st 00:05 - HH:MM
+  
+  //Run every 20 after start time 
+  // Can&apos;t put the sVmName else the name is going too long
+  strCmdText = &quot;schtasks /Create /RU systemadmin /RP !veRinT\$5 /SC MINUTE /MO 20 /SD ${ScheduleStartDate} /ST ${sScheduleStartTime} /TN VMPurging /TR \&quot;C:\\curl -X POST &apos;http://${sJenkinsMaster}:8080${sDeleteVMJob}/buildWithParameters?VmFolder=${sDestPoolVmFolder}&amp;VmIp=${sVmIp}&apos;\&quot; /F /RL HIGHEST&quot;
+  
+  println (&quot;Schedule tasks command:\n${strCmdText}&quot;);
+  
+  String taskFileName = &quot;createtask_${sTimeStamp}.cmd&quot;
+  File taskFile = new File (taskFileName)
+  taskFile.text = strCmdText
+  
+  
+  File paexecFile = new File (&quot;paexec.exe&quot;) 
+  
+ 
+  String strRtn = &quot;${paexecFile.getAbsolutePath()} \\\\${sVmIp} -u ${sVmIp}\\systemadmin -p !veRinT\$5 -s -c -f -csrc \&quot;${taskFile.getAbsolutePath()}\&quot; createtask_${sTimeStamp}.bat&quot;
+  
+  return strRtn
+
+}  
+
+def String setUpVM(String sTimeStamp,String sVmIp){	
+  
+  String strCmdText = &quot;&quot;
+  
+  strCmdText = &quot;cmd /c \&quot;echo 127.0.0.1 localhost  &gt;C:\\Windows\\System32\\drivers\\etc\\hosts\&quot;&quot;
+  strCmdText = strCmdText + &quot;\ncmd /c \&quot;echo ${sVmIp} localhost  &gt;&gt;C:\\Windows\\System32\\drivers\\etc\\hosts\&quot;&quot;
+  
+  File taskFile = new File (&quot;set_hosts_${sTimeStamp}.bat&quot;)
+  taskFile.text = strCmdText
+  
+  File paexecFile = new File (&quot;paexec.exe&quot;) 
+  
+  
+  String strRtn = &quot;${paexecFile.getAbsolutePath()} \\\\${sVmIp} -u ${sVmIp}\\systemadmin -p !veRinT\$5 -s -c -f -csrc \&quot;${taskFile.getAbsolutePath()}\&quot; set_hosts_${sTimeStamp}.bat&quot;
+  
+  return strRtn
+}  
+</command>
+      </scriptSource>
+      <groovyName>Groovy2.4.3</groovyName>
+      <parameters></parameters>
+      <scriptParameters>-DVmFolderName=$VmFolderName
+-DBUILD_ID=$BUILD_ID
+-DJOB_NAME=$JOB_NAME
+-DTimeStamp=$TimeStamp
+-DDestPoolVmFolder=$DestPoolVmFolder
+-DPendingFolderPath=$PendingFolderPath
+-DLeaseTime=$LeaseTime
+-DKeepTheFixtureWhenDone=$KeepTheFixtureWhenDone
+-DDeleteVM=$DeleteVM
+-DVmName=$VmName
+-DVmIp=$VmIp
+-DAssign_Config_Folder=$Assign_Config_Folder
+-DJenkinsMaster=$JenkinsMaster
+-DSelectedFixture=$SelectedFixture
+-DScheduleStartTime=$ScheduleStartTime
+-DScheduleStartDate=$ScheduleStartDate
+-DDeleteVMJob=$DeleteVMJob</scriptParameters>
+      <properties></properties>
+      <javaOpts></javaOpts>
+      <classPath></classPath>
+    </hudson.plugins.groovy.Groovy>
+    <EnvInjectBuilder plugin="envinject@1.90">
+      <info>
+        <propertiesFilePath>inject.properties</propertiesFilePath>
+      </info>
+    </EnvInjectBuilder>
+    <hudson.tasks.BatchFile>
+      <command>COPY &quot;assign.prop&quot; &quot;%WORKSPACE%\Z_TPL010_%MasterBuildVersion%.prop&quot;&#xd;
+curl -f -X GET -o &quot;%WORKSPACE%\paexec.zip&quot; &quot;http://atlartifactory:8081/artifactory/ext-release-local/com/poweradmin/paexec/1.26/paexec-1.26.zip&quot;&#xd;
+&quot;%JAVA_HOME%\bin\jar.exe&quot; xf &quot;%WORKSPACE%\paexec.zip&quot;&#xd;
+&#xd;
+curl -f -X GET -o &quot;curl.zip&quot; &quot;http://atlartifactory:8081/artifactory/ext-release-local/haxx/se/curl/7.44.0/curl-7.44.0.zip&quot;&#xd;
+&quot;%JAVA_HOME%\bin\jar.exe&quot; xf curl.zip&#xd;
+&#xd;
+cmd /c %SetHostCmd%&#xd;
+&#xd;
+net use \\%VmIp%\c$ /user:systemadmin !veRinT$5&#xd;
+xcopy /y curl.exe \\%VmIp%\C$\&#xd;
+&#xd;
+cmd /c %CreateScheduleCmd%&#xd;
+</command>
+    </hudson.tasks.BatchFile>
+    <org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer plugin="vsphere-cloud@11.2.1.8">
+      <buildStep class="org.jenkinsci.plugins.vsphere.builders.UpdateCustomAttr">
+        <vm>${VmPath}</vm>
+        <attrName>notes</attrName>
+        <attrValue>${BUILD_URL}   at    ${TIMESTAMP}</attrValue>
+      </buildStep>
+      <serverName>ATL Vsphere Server</serverName>
+      <serverHash>-1412856745</serverHash>
+    </org.jenkinsci.plugins.vsphere.VSphereBuildStepContainer>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder plugin="versionnumber@1.4.1">
+      <versionNumberString>${MasterBuildVersion}</versionNumberString>
+      <projectStartDate>1969-12-31 05:00:00.0 UTC</projectStartDate>
+      <environmentVariableName>MasterBuildVersion</environmentVariableName>
+      <oBuildsToday>-1</oBuildsToday>
+      <oBuildsThisMonth>-1</oBuildsThisMonth>
+      <oBuildsThisYear>-1</oBuildsThisYear>
+      <oBuildsAllTime>-1</oBuildsAllTime>
+      <skipFailedBuilds>false</skipFailedBuilds>
+      <useAsBuildDisplayName>true</useAsBuildDisplayName>
+    </org.jvnet.hudson.tools.versionnumber.VersionNumberBuilder>
+  </buildWrappers>
+</project>

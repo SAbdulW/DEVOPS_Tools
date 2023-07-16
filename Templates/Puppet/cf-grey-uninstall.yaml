@@ -1,0 +1,7 @@
+---
+wfoComponents:
+   - ComponentName: I360 CF ETL HotFix KB130286
+     ComponentGAV: 'com.verint.cf.kbs.CFETL:KB130286:[RELEASE]'
+     ComponentRepo: cf-ci-release
+     ComponentPC: false
+     ComponentActionReceive: uninstall

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TestCase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <FileName>BasicInt.script</FileName>
+  <Name>CreateServers</Name>
+  <Description />
+  <Enabled>true</Enabled>
+  <LocalParams />
+  <TestCaseParams>
+    <ActionParams Key="RemoteIPAddress, " Value="-">
+      <Variable>
+        <Name>RemoteIPAddress, </Name>
+        <Type>String</Type>
+        <Value>-</Value>
+      </Variable>
+    </ActionParams>
+    <ActionParams Key="AppServer" Value="">
+      <Variable>
+        <Name>AppServer</Name>
+        <Type>String</Type>
+        <Value />
+      </Variable>
+    </ActionParams>
+    <ActionParams Key="ConsolidateSiteGroupName" Value="Site Group">
+      <Variable>
+        <Name>ConsolidateSiteGroupName</Name>
+        <Type>String</Type>
+        <Value>Site Group</Value>
+      </Variable>
+    </ActionParams>
+    <ActionParams Key="ConsolidateSiteName" Value="ConsSite">
+      <Variable>
+        <Name>ConsolidateSiteName</Name>
+        <Type>String</Type>
+        <Value>ConsSite</Value>
+      </Variable>
+    </ActionParams>
+    <ActionParams Key="DBPassword" Value="">
+      <Variable>
+        <Name>DBPassword</Name>
+        <Type>String</Type>
+        <Value />
+      </Variable>
+    </ActionParams>
+    <ActionParams Key="DBServer" Value="">
+      <Variable>
+        <Name>DBServer</Name>
+        <Type>String</Type>
+        <Value />
+      </Variable>
+    </ActionParams>
+    <ActionParams Key="DBUsername" Value="">
+      <Variable>
+        <Name>DBUsername</Name>
+        <Type>String</Type>
+        <Value />
+      </Variable>
+    </ActionParams>
+    <ActionParams Key="LicenseXmlPath" Value="11.2.EntireSuite.xml">
+      <Variable>
+        <Name>LicenseXmlPath</Name>
+        <Type>String</Type>
+        <Value>11.2.EntireSuite.xml</Value>
+      </Variable>
+    </ActionParams>
+    <ActionParams Key="nMilliseconds" Value="420000">
+      <Variable>
+        <Name>nMilliseconds</Name>
+        <Type>String</Type>
+        <Value>420000</Value>
+      </Variable>
+    </ActionParams>
+    <ActionParams Key="ServerNameApp" Value="">
+      <Variable>
+        <Name>ServerNameApp</Name>
+        <Type>String</Type>
+        <Value />
+      </Variable>
+    </ActionParams>
+    <ActionParams Key="ServerNameConsolidate" Value="">
+      <Variable>
+        <Name>ServerNameConsolidate</Name>
+        <Type>String</Type>
+        <Value />
+      </Variable>
+    </ActionParams>
+    <ActionParams Key="ServerNameFWDB" Value="">
+      <Variable>
+        <Name>ServerNameFWDB</Name>
+        <Type>String</Type>
+        <Value />
+      </Variable>
+    </ActionParams>
+    <ActionParams Key="WinDomain" Value="">
+      <Variable>
+        <Name>WinDomain</Name>
+        <Type>String</Type>
+        <Value />
+      </Variable>
+    </ActionParams>
+    <ActionParams Key="WinPassword" Value="">
+      <Variable>
+        <Name>WinPassword</Name>
+        <Type>String</Type>
+        <Value />
+      </Variable>
+    </ActionParams>
+    <ActionParams Key="WinUsername" Value="">
+      <Variable>
+        <Name>WinUsername</Name>
+        <Type>String</Type>
+        <Value />
+      </Variable>
+    </ActionParams>
+  </TestCaseParams>
+  <Steps>
+    <Action Name="Clear IE Cache" Command="ClearIECache">
+      <XML>&lt;Step name="InternetExplorer.BrowserActions.ClearIECache" reference="InternetExplorer.dll"&gt;&lt;ClearIECacheData&gt;&lt;DeleteHistory&gt;True&lt;/DeleteHistory&gt;&lt;DeleteCookies&gt;True&lt;/DeleteCookies&gt;&lt;DeleteTemporaryInternetFiles&gt;True&lt;/DeleteTemporaryInternetFiles&gt;&lt;DeleteFormData&gt;True&lt;/DeleteFormData&gt;&lt;DeletePasswords&gt;True&lt;/DeletePasswords&gt;&lt;/ClearIECacheData&gt;&lt;/Step&gt;</XML>
+      <Method DLL.Name="InternetExplorer.dll" Method.Name="ClearIECache" Method.Params="clearIECacheData" Method.FullName="InternetExplorer.BrowserActions.BrowserActions.ClearIECache(clearIECacheData)" Method.ClassName="BrowserActions" Method.Namespace="InternetExplorer" />
+      <UpdateParam />
+      <ExpectedResult />
+      <StopOnFailed>false</StopOnFailed>
+      <StepTimeOut>-1</StepTimeOut>
+      <TakeSnapShot>false</TakeSnapShot>
+      <StepParams />
+      <SubSteps />
+    </Action>
+    <Action Name="Kill running IE browsers" Command="KillProcess">
+      <XML>&lt;Step name="ProcessManager.ProcessMng.KillProcess" reference="ProcessManager.dll"&gt;&lt;ProcessName&gt;iexplore&lt;/ProcessName&gt;&lt;/Step&gt;</XML>
+      <Method DLL.Name="ProcessManager.dll" Method.Name="KillProcess" Method.ClassName="ProcessMng" Method.Namespace="ProcessManager" />
+      <UpdateParam />
+      <ExpectedResult />
+      <StopOnFailed>false</StopOnFailed>
+      <StepTimeOut>-1</StepTimeOut>
+      <TakeSnapShot>false</TakeSnapShot>
+      <StepParams />
+      <SubSteps />
+    </Action>
+    <Action Name="Wait until WFO service is up" Command="WaitUntilProcessMemoryIsStable">
+      <XML>&lt;Step name="RemoteExecutionManager.RemoteExecutionManager.WaitUntilProcessMemoryIsStable" reference="RemoteExecutionManager.dll"&gt;&lt;StableProcessDetails&gt;&lt;Name&gt;beasvc&lt;/Name&gt;&lt;Hostname&gt;%ServerNameApp%&lt;/Hostname&gt;&lt;Username&gt;%WinDomain%\%WinUsername%&lt;/Username&gt;&lt;Password&gt;%WinPassword%&lt;/Password&gt;&lt;WaitTimeUntilStable&gt;300&lt;/WaitTimeUntilStable&gt;&lt;StartWaitingFromMemory&gt;1200000&lt;/StartWaitingFromMemory&gt;&lt;TotalTimeout&gt;1800&lt;/TotalTimeout&gt;&lt;CheckInterval&gt;30&lt;/CheckInterval&gt;&lt;MaxDifferenceBetweenIntervals&gt;10&lt;/MaxDifferenceBetweenIntervals&gt;&lt;/StableProcessDetails&gt;&lt;/Step&gt;</XML>
+      <Method DLL.Name="RemoteExecutionManager.dll" Method.Name="WaitUntilProcessMemoryIsStable" Method.Params="process" Method.FullName="RemoteExecutionManager.RemoteExecutionManager.RemoteExecutionManager.WaitUntilProcessMemoryIsStable(process)" Method.ClassName="RemoteExecutionManager" Method.Namespace="RemoteExecutionManager" />
+      <UpdateParam />
+      <ExpectedResult />
+      <StopOnFailed>false</StopOnFailed>
+      <StepTimeOut>-1</StepTimeOut>
+      <TakeSnapShot>false</TakeSnapShot>
+      <StepParams />
+      <SubSteps />
+    </Action>
+    <Action Name="EM Login with wsuperuser" Command="EMLogin">
+      <XML>&lt;Step name="Login.LoginActionManager.EMLogin" reference="Login.dll"&gt;&lt;LoginDetails&gt;&lt;username IsMandatory="true"&gt;wsuperuser&lt;/username&gt;&lt;password IsMandatory="true"&gt;pumpkin1&lt;/password&gt;&lt;machineName IsMandatory="true"&gt;%ServerNameApp%&lt;/machineName&gt;&lt;loginAs desc="Login sequence in v11 requires a 'login as' input" options="Leader/Agent"&gt;null&lt;/loginAs&gt;&lt;/LoginDetails&gt;&lt;/Step&gt;</XML>
+      <Method DLL.Name="Login.dll" Method.Name="EMLogin" Method.ClassName="LoginActionManager" Method.Namespace="Login" />
+      <UpdateParam />
+      <ExpectedResult />
+      <StopOnFailed>false</StopOnFailed>
+      <StepTimeOut>-1</StepTimeOut>
+      <TakeSnapShot>false</TakeSnapShot>
+      <StepParams />
+      <SubSteps />
+    </Action>
+    <Action Name="Logout from WFO" Command="EMLogout">
+      <XML>&lt;Step name="Login.LoginActionManager.EMLogout" reference="Login.dll"&gt;&lt;/Step&gt;</XML>
+      <Method DLL.Name="Login.dll" Method.Name="EMLogout" Method.Params="" Method.FullName="Login.LoginActionManager.LoginActionManager.EMLogout()" Method.ClassName="LoginActionManager" Method.Namespace="Login" />
+      <UpdateParam />
+      <ExpectedResult />
+      <StopOnFailed>false</StopOnFailed>
+      <StepTimeOut>-1</StepTimeOut>
+      <TakeSnapShot>false</TakeSnapShot>
+      <StepParams />
+      <SubSteps />
+    </Action>
+  </Steps>
+  <Testcases />
+</TestCase>

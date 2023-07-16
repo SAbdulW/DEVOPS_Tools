@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.verint.devkit</groupId>
+  <artifactId>wfoSuite</artifactId>
+  <version1></version1>
+  <packaging>ear</packaging>
+  <dependencies>
+    <dependency>
+      <groupId>com.verint.iserver.frameworkintegrationserver.components</groupId>
+      <artifactId>Framework Integration Server</artifactId>
+      <version2></version2>
+      <scope>compile</scope>
+      <type>msi</type>
+    </dependency>
+  </dependencies>
+</project>

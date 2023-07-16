@@ -1,0 +1,64 @@
+{
+  "conf" : [
+    {
+      "repoName" : "cf-ci-release",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "ci-release",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "cd-passed-pl",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "ci-snapshot",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "gate0-master",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "gate0-int",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "gate1-master",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "gate1-int",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "gate1-test-int",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "T3-Passed-QA",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "cd-passed-pl-archive",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
+    },
+    {
+      "repoName" : "decaf-release-repo",
+      "pathMatch" : "com/verint/",
+      "pathExclude" : ""
+    }
+  ]
+}

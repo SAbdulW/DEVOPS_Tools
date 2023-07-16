@@ -1,0 +1,6 @@
+---
+wfoComponents:
+   - ComponentName: I360 Enterprise Manager HotFix KB130044
+     ComponentGAV: 'com.verint.em.kbs:KB130044:[RELEASE]'
+     ComponentRepo: ci-release
+     ComponentActionReceive: uninstall

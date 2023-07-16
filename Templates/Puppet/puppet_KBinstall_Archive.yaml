@@ -1,0 +1,6 @@
+---
+wfoComponents:        
+   - ComponentName: Archive Database KB130072
+     ComponentGAV: 'com.verint.archivedb.kbs:KB130072:[RELEASE]'
+     ComponentRepo: ci-release
+     ComponentActionReceive: install

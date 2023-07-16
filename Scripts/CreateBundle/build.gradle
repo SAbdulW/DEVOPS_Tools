@@ -1,0 +1,238 @@
+import groovy.json.JsonSlurper
+import groovy.xml.MarkupBuilder
+
+apply plugin: 'base'
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+
+buildscript {
+    project.ext.artifactory_contextUrl = "http://atlartifactory.lab.local:8081/artifactory"
+    project.ext.artifactory_user = "deployer"
+    project.ext.artifactory_password = "{DESede}woAQYzl5PuY="
+
+    repositories {
+        maven {
+            url "${artifactory_contextUrl}/repo"
+            credentials {
+                username = "${artifactory_user}"
+                password = "${artifactory_password}"
+            }
+        }
+    }
+
+    dependencies {
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.4.0"
+    }
+}
+apply plugin: 'com.jfrog.artifactory'
+
+// Archive purposes.
+group = groupId
+archivesBaseName = "${bundleName}"
+
+artifactory {
+    publish {
+        contextUrl = "${artifactory_contextUrl}"
+        repository {
+            repoKey = "${targetRepo}"
+            username = "${artifactory_user}"
+            password = "${artifactory_password}"
+        }
+        defaults {
+            publications ('mavenJava')
+        }
+    }
+}
+
+/*
+  Only specifying the artifact id here because it defaults to the project name which is read only.
+*/
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact source: assembleArtifact, extension: 'zip'
+            artifactId "${bundleName}"
+        }
+        /*  mavenJava(MavenPublication) {
+            artifactId "${bundleName}"
+            from components.java
+          }*/
+    }
+}
+
+repositories {
+
+
+    maven {
+        url "${artifactory_contextUrl}/${resolveRepo}"
+        credentials {
+            username = "${artifactory_user}"
+            password = "${artifactory_password}"
+        }
+    }
+
+}
+
+configurations {
+    util
+    compile
+}
+
+dependencies {
+    def kbList
+    println "jsonFile=${jsonFile}"
+    if ("${jsonFile}"!=""){
+        def kbMap=parseJson("${jsonFile}")
+        kbList=kbMap.toString().replaceAll("(, )", ",").replaceAll("[\\[\\]]", "")  //.replaceAll(' ','%20')
+        println "kbList=${kbList}"
+    }
+    else { //if using a list of GAV instead of JSON file
+        kbList = "${kbDependencies}".replaceAll("(, )", ",") //.replaceAll(' ', '%20')
+    }
+    kbList.toString().split(",").eachWithIndex { item, index ->
+        println "item=${item}"
+        def gav = item.replaceAll("'",'').replaceAll("%20"," ").split(":")
+        println "group: ${gav[0]}, name: ${gav[1]}, version: ${gav[2]}, ext: 'msi'"
+        compile(group: gav[0], name: gav[1], version: gav[2], ext: 'msi')
+     }
+    util(group: 'com.verint.sustaining.util', name: 'hotfix_base_kit', version: baseKitVersion, ext: 'zip')
+}
+
+task copyHFTool(type:Copy) {
+    dependsOn configurations.util
+    from configurations.util
+    into "${buildDir}/util"
+}
+
+task unpackHFTool(type:Copy) {
+    dependsOn copyHFTool
+    def zipFile = file("${buildDir}/util/hotfix_base_kit-${baseKitVersion}.zip")
+
+    from zipTree(zipFile)
+    into "${buildDir}/hf"
+
+}
+
+/*
+task copyKbPrepTool(type:Copy) {
+  from "\\\\corpvssca\\!qa\\15.1.0\\Hotfix Deploy Tool 15.1\\UpdateKB4DeployToolw.EXE"
+  into "${buildDir}/tools"
+}
+*/
+def chageVerionInfo(String xmlFile,String displayName) {
+    def versionInfo = new XmlParser().parse(xmlFile)
+    println("versionInfo = ${versionInfo}")
+    println(" versionInfo.DisplayName[0]  = ${versionInfo.DisplayName[0]}")
+    versionInfo.DisplayName[0].value = displayName
+     versionInfo.BuildNumber[0].value = version
+    new XmlNodePrinter(new PrintWriter(new FileWriter(xmlFile))).print(versionInfo)
+
+}
+/*task runHFTool(type:Exec) {
+    println("Running HF tool")
+    dependsOn unpackHFTool
+    workingDir "${buildDir}/hf"
+    commandLine "${buildDir}/hf/Hotfix Deploy Tool 15.1.exe"
+    args = ['/s']
+    //store the output instead of printing to the console:
+    standardOutput = new ByteArrayOutputStream()
+
+    //extension method stopTomcat.output() can be used to obtain the output:
+    ext.output = {
+        return standardOutput.toString()
+    }
+}*/
+
+def releaseNotesFileName = "hf-bundle-release-notes-${version}.txt"
+def releaseNotesFile = new File("${buildDir}/hf/" + releaseNotesFileName);
+
+def String[] parseJson(String jsonFile) {
+    println "start JSON parsing"
+    def jsonText = (new File("${jsonFile}")).getText()
+    def JsonSlurper jsonSlurper = new JsonSlurper();
+    def kbs=[]
+    def Object result = jsonSlurper.parseText(jsonText);
+    println "jsonMap=${result}"
+    println " =============== size=${result.size()}"
+    for (int i = 0; i < result.size(); i++) {
+        def entry = result.get(i);
+        def artifact=entry.Artifact
+		def tagsValue = entry.Tags
+        kbs.add("${artifact.groupId}:${artifact.artifactId}:${artifact.version}:${tagsValue}")
+    }
+    result=null
+    jsonSlurper=null
+    return kbs
+
+}
+
+task explodeKbs(type: Copy) {
+    dependsOn configurations.compile, unpackHFTool
+    from configurations.compile
+    into "${buildDir}/hf/Components/Hotfix Deployment/Hotfixes"
+    eachFile {
+        println ' - ' + it.name
+        releaseNotesFile.append(it.name + System.getProperty("line.separator"))
+    }
+    //rename '(.*)-[0-9\\.]*(\\..*)', '$1$2'
+	
+	/*
+	doLast {
+	
+		def kbMap1=parseJson("${jsonFile}")
+        def kbList1=kbMap1.toString().replaceAll("(, )", ",").replaceAll("[\\[\\]]", "")	
+		def b=kbList1.toString().split(",").eachWithIndex { item, index ->
+        println "item=${item}"
+        def gav1 = b.toString().split(":")
+		println "group: ${gav[0]}, name: ${gav[1]}, version: ${gav[2]}"
+		releaseNotesFile.eachLine{
+		releaseNotesFile.append((gav1[3] != ${releaseName} ? 'Old ' : 'NEW! ') + gav1[0] + ${line})
+		}
+		}
+	} //doLast
+	*/
+}
+
+
+
+//explodeKbs.dependsOn updateVersionInfo
+assemble.dependsOn explodeKbs
+
+/*jar (type: Zip){
+  baseName = "${bundleName}"
+  from("${buildDir}/hf") {
+    exclude 'Hotfix Deploy Tool*.exe'
+  }
+}*/
+task assembleArtifact (type: Zip   )  {
+    archiveName "${bundleName}"
+    destinationDir file("$buildDir/libs/")
+    from("${buildDir}/hf")
+
+}
+task updateVersionInfo(dependsOn: unpackHFTool) <<{
+        println 'Changing Kit display name'
+    chageVerionInfo("${buildDir}/${versionInfoFile}",bundleDisplayName)
+}
+gradle.taskGraph.beforeTask { Task task ->
+    println "executing $task ..."
+}
+
+gradle.taskGraph.afterTask { Task task, TaskState state ->
+    if (state.failure) {
+        println "FAILED"
+    }
+    else {
+        println "done"
+    }
+}
+/*
+task zip(type:Zip) {
+  dependsOn build
+  baseName = 'hotfix-deploy-tool'
+  version = "${version}"
+  from ("${buildDir}/hf/") {
+    exclude 'Hotfix Deploy Tool 15.1.exe'
+  }
+}
+*/

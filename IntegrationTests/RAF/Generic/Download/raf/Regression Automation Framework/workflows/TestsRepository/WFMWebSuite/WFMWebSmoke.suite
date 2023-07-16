@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TestSuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Name>WFMWebSmoke
+</Name>
+  <Description>Suite to run all Products Smoke Scripts</Description>
+  <Enabled>true</Enabled>
+  <SuiteParams />
+  <TestCases>
+    <TestCaseProcedure>
+      <FileName>C:\AutomationSD\Scripts\TestsRepository\WFMWebSuite\FnS\FnsSmoke.suite</FileName>
+      <Name>FnS Suite</Name>
+      <Description />
+      <Enabled>true</Enabled>
+      <LocalParams />
+      <Testcases />
+    </TestCaseProcedure>
+  </TestCases>
+</TestSuite>

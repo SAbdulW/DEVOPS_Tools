@@ -1,0 +1,11 @@
+{
+  "conf" : [
+    {
+      "repoName" : "ci-ea-local",
+      "daysToKeep" : 5,
+      "minimumToKeep" : 5,
+      "pathMatch" : "*",
+      "pathExclude" : ""
+    }
+  ]
+}

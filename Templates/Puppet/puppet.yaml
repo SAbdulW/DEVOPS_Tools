@@ -1,0 +1,37 @@
+---
+wfoComponents:
+#   - ComponentName: WebLogic Server 64-Bit
+#     ComponentGAV: 'com.verint.wl.components:WLSInstaller:[RELEASE]'
+#     ComponentRepo: ci-release
+#   - ComponentName: Framework App Server Environment
+#     ComponentGAV: 'com.verint.wl.components:FrameworkAppServerEnvironment:[RELEASE]'
+#     ComponentRepo: ci-release
+#     ComponentInstallOptions:  ARPSYSTEMCOMPONENT=false,ARPSYSTEMCOMPONENT=false,TARGETDIR=C:\Impact360\Software,OEM_BRAND_NAME=Verint,NEWBRANDNAME=default,COMMONSQLSERVERNAME=ATLCONW12GL001,COMMONSQLSERVERPORT=1433,WLSADMIN=WLSAdmin,HTTPPORT=7001,HTTPSPORT=7002,ULTRAUSERDOMAIN=ATLCONW12GL001,ULTRAUSERNAME=systemadmin,ULTRAUSERPASSWORD=!veRinT$5
+   - ComponentName: Framework CF ETL DB
+     ComponentGAV: 'com.verint.db.frameworkcustomerfeedbacketldb.components:FrameworkCFETLDBInstaller:[RELEASE]'
+     ComponentRepo: ci-wfo-dev-repos
+     ComponentInstallOptions: ARPSYSTEMCOMPONENT=false,IMPACT360DATADIR=C:\Impact360\Data\,IMPACT360SOFTWAREDIR=C:\Impact360\Software\,SQLSERVERHOSTNAMECOMMON=ATLCONW12GL001,SQLSERVERPORTCOMMON=1433,IMSA_DOMAIN=ATLCONW12GL001,IMSA_NAME=systemadmin,IMSA_PASSWORD=!veRinT$5,DMSA_DOMAIN=ATLCONW12GL001,DMSA_NAME=systemadmin,DMSA_PASSWORD=!veRinT$5,INSTALLLANGUAGE=en_US,DATAFILESPATH=C:\Impact360\Databases,LOGFILESPATH=C:\Impact360\Databases,DBTYPE=ETL,DBNAME=ETLSTAGINGDB
+#   - ComponentName: Framework DB
+#     ComponentGAV: 'com.verint.db.frameworkdb.components:FrameworkDBInstaller:[RELEASE]'
+#     ComponentRepo: ci-release
+#     ComponentInstallOptions: ARPSYSTEMCOMPONENT=false,IMPACT360DATADIR=C:\Impact360\Data\,IMPACT360SOFTWAREDIR=C:\Impact360\Software\,SQLSERVERHOSTNAMECOMMON=ATLCONW12GL001,SQLSERVERPORTCOMMON=1433,IMSA_DOMAIN=ATLCONW12GL001,IMSA_NAME=systemadmin,IMSA_PASSWORD=!veRinT$5,DMSA_DOMAIN=ATLCONW12GL001,DMSA_NAME=systemadmin,DMSA_PASSWORD=!veRinT$5,INSTALLLANGUAGE=en_US,DATAFILESPATH=C:\Impact360\Databases,LOGFILESPATH=C:\Impact360\Databases,DBTYPE=MAIN,DBNAME=BPMAINDB
+   - ComponentName: Framework Warehouse DB
+     ComponentGAV: 'com.verint.db.frameworkwarehousedb.components:FrameworkWarehouseDBInstaller:[RELEASE]'
+     ComponentRepo: ci-wfo-dev-repos
+     ComponentInstallOptions: ARPSYSTEMCOMPONENT=false,IMPACT360DATADIR=C:\Impact360\Data\,IMPACT360SOFTWAREDIR=C:\Impact360\Software\,SQLSERVERHOSTNAMECOMMON=ATLCONW12GL001,SQLSERVERPORTCOMMON=1433,IMSA_DOMAIN=ATLCONW12GL001,IMSA_NAME=systemadmin,IMSA_PASSWORD=!veRinT$5,DMSA_DOMAIN=ATLCONW12GL001,DMSA_NAME=systemadmin,DMSA_PASSWORD=!veRinT$5,INSTALLLANGUAGE=en_US,DATAFILESPATH=C:\Impact360\Databases,LOGFILESPATH=C:\Impact360\Databases,DBTYPE=WH,DBNAME=BPWAREHOUSEDB
+   - ComponentName: Framework Foundation
+     ComponentGAV: 'com.verint.foundation.components:Framework%20Foundation:[RELEASE]'
+     ComponentRepo: ci-wfo-dev-repos
+     ComponentInstallOptions: IMSA_NAME=systemadmin,IMSA_PASSWORD=!veRinT$5
+   - ComponentName: Enterprise Manager
+     ComponentGAV: 'com.verint.em.components:Enterprise%20Manager:[RELEASE]'
+     ComponentRepo: ci-wfo-dev-repos
+   - ComponentName: Backoffice Operations
+     ComponentGAV: 'com.verint.ops.am.components:Backoffice%20Operations:[RELEASE]'
+     ComponentRepo: ci-wfo-dev-repos
+   - ComponentName: WFM Common
+     ComponentGAV: 'com.verint.wfm.common.components:WFM%20Common:[RELEASE]'
+     ComponentRepo: ci-wfo-dev-repos
+   - ComponentName: Performance Management
+     ComponentGAV: 'com.verint.pm.performancemanagement.components:Performance%20Management:[RELEASE]'
+     ComponentRepo: ci-wfo-dev-repos

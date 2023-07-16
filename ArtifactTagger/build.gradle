@@ -1,0 +1,432 @@
+import groovy.json.JsonSlurper
+
+ext.supportedGradleVersion = '2.3'
+task wrapper(type: Wrapper) {
+    gradleVersion = supportedGradleVersion
+}
+
+allprojects {
+    apply plugin: 'idea'
+    group = 'com.verint.artifactmodifier'
+    version = currentVersion
+}
+
+task run() <<{
+    String conf = new File('./conf.json').text
+    logger.quiet("Artifact Tagger: ****************************************************************************")
+    logger.quiet("viewOnly: ${viewOnly}")
+    logger.quiet("configuration:\r\n${conf}")
+    logger.quiet("Artifact Tagger: ****************************************************************************")
+
+    process(conf)
+}
+
+task tagMe() <<{
+    logger.quiet("Artifact Tagger: ****************************************************************************")
+    logger.quiet("viewOnly: ${viewOnly}")
+    logger.quiet("masterBuildVersion: ${masterBuildVersion}")
+    logger.quiet("repo: ${repo}")
+    logger.quiet("groupId: ${groupId}")
+    logger.quiet("artifactId: ${artifactId}")
+    logger.quiet("tags: ${tags}")
+    logger.quiet("Artifact Tagger: ****************************************************************************")
+
+    processOneArtifact(repo, groupId, artifactId, masterBuildVersion, tags)
+}
+
+def process (String conf){
+    def obj = new JsonSlurper().parseText(conf)
+    List repoConfList = obj.conf
+
+    repoConfList.each{repoConf ->
+        logger.quiet("\r\nSTART PROCESSING -> repo: ${repoConf.repoName} - path match: ${repoConf.pathMatch} - path exclude: ${repoConf.pathExclude}")
+
+        String repoKey = repoConf.repoName
+        String pathMatch = repoConf.pathMatch
+        String pathExclude = repoConf.pathExclude
+
+        File fFullL = new File ("$projectDir/${repoKey}_FullList.log")
+        fFullL.setText("ALL ARTIFACTS\r\n")
+
+        def watermark = getRepoWatermark(repoKey)
+        logger.quiet("Got Watermark: ${watermark}")
+
+        // get all artifacts
+        List candidateList = getListOfMSI (repoKey, pathMatch, watermark)
+        candidateList.each { item ->
+            fFullL << "--> " + item.path + "/" + item.name + "\r\n"
+            String localFileName = item.name.replaceAll(" ", "")
+            downloadMSI(repoKey, item.path, item.name, localFileName)
+            File msiFile = new File("./${localFileName}")
+            def msi = null
+            if(msiFile.exists()){
+                msi = extractMSIInfo(localFileName)
+                if(msi != null){
+                    logger.quiet ("${item.name} :: " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID)
+                    msiFile.delete()
+                    fFullL << "   |--> " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID + "\r\n"
+
+                    String buildVersion = extractBuildVersionFromPath(item.path)
+                    String groupId = extractGroupIdFromPath(item.path)
+                    String artifactId = extractArtifactIdFromPath(item.path)
+                    String majorRelease = ""
+                    String minorRelease = ""
+                    String tags = ""
+                    String artifactOrigin = ""
+                    if(artifactId.indexOf("KB") == 0){
+                        tags = "Gray"
+                        if(artifactId.indexOf("KB99") == 0){
+                            artifactOrigin = "snapshot"
+                        }
+                        else{
+                            artifactOrigin = "dev"
+                        }
+                    }
+                    else{
+                        tags = "Green"
+                        artifactOrigin = "dev"
+                    }
+                    def v = buildVersion.tokenize(".")
+                    if(v != null && v.size() > 2){
+                        majorRelease = "${v[0]}.${v[1]}"
+                        minorRelease = "${v[2]}"
+                    }
+                    def props = [:]
+                    props.put("Tagger", "ArtifactTagger")
+                    props.put("ProductName", msi.ProductName)
+                    props.put("ProductCode", msi.ProductCode)
+                    props.put("Manufacturer", msi.Manufacturer)
+                    props.put("INSTALLATIONUNITGUID", msi.INSTALLATIONUNITGUID)
+                    props.put("INSTALLATIONUNIT", msi.INSTALLATIONUNIT)
+                    props.put("MajorRelease", majorRelease)
+                    props.put("MinorRelease", minorRelease)
+                    props.put("Tags", tags)
+                    props.put("GroupID", groupId)
+                    props.put("ArtifactID", artifactId)
+                    props.put("ArtifactOrigin", artifactOrigin)
+
+                    props.put("MasterBuildVersion", buildVersion)
+                    props.put("Version", buildVersion)
+                    putArtifactProperties(repoKey, item.path, item.name, props)
+
+                    Map newProps = getArtifactProperties(repoKey, item.path, item.name)
+                    newProps.each{prop ->
+                        logger.quiet(prop.key + " : " + prop.value)
+                    }
+                }
+            }
+            else{
+                logger.quiet("File not found: ${msiFile}")
+            }
+        }
+
+        setRepoWatermark(repoKey)
+        logger.quiet("DONE PROCESSING -> repo: ${repoConf.repoName}\r\n")
+    }
+}
+
+def processOneArtifact (String repo, String groupId, String artifactId, String masterBuildVersion, String tags){
+    logger.quiet("\r\nSTART PROCESSING -> repo: ${repo} - groupId: ${groupId} - artifactId: ${artifactId} - masterBuildVersion: ${masterBuildVersion} - tags: ${tags}")
+
+    String majorRelease = ""
+    String minorRelease = ""
+    def v = masterBuildVersion.tokenize(".")
+    if(v != null && v.size() > 2){
+        majorRelease = "${v[0]}.${v[1]}"
+        minorRelease = "${v[2]}"
+    }
+    String groupName = groupId.replace('.', '/')
+    logger.quiet(groupName)
+    String artifactPath = "${groupName}/${artifactId}/${masterBuildVersion}"
+    String artifactName = "${artifactId}-${masterBuildVersion}.msi"
+    String localFileName = artifactName.replaceAll(" ", "")
+    downloadMSI(repo, artifactPath, artifactName, localFileName)
+    File msiFile = new File("./${localFileName}")
+    def msi = null
+    if(msiFile.exists()){
+        msi = extractMSIInfo(localFileName)
+        if(msi != null){
+            logger.quiet ("${artifactName} :: " + msi.ProductName + " - " + msi.ProductCode + " - " + msi.Manufacturer + " - " + msi.INSTALLATIONUNITGUID)
+            msiFile.delete()
+
+            String artifactOrigin = ""
+            if(artifactId.indexOf("KB") == 0){
+                if(artifactId.indexOf("KB99") == 0){
+                    artifactOrigin = "snapshot"
+                }
+                else{
+                    artifactOrigin = "dev"
+                }
+
+                if(tags.indexOf("Gray") < 0){
+                    tags = tags + ",Gray"
+                }
+            }
+            else{
+                artifactOrigin = "dev"
+                if(tags.indexOf("Green") < 0){
+                    tags = tags + ",Green"
+                }
+            }
+
+            def props = [:]
+            props.put("Tagger", "Pipeline")
+            props.put("ProductName", msi.ProductName)
+            props.put("ProductCode", msi.ProductCode)
+            props.put("Manufacturer", msi.Manufacturer)
+            props.put("INSTALLATIONUNITGUID", msi.INSTALLATIONUNITGUID)
+            props.put("INSTALLATIONUNIT", msi.INSTALLATIONUNIT)
+            props.put("MajorRelease", majorRelease)
+            props.put("MinorRelease", minorRelease)
+            props.put("Tags", tags)
+            props.put("GroupID", groupId)
+            props.put("ArtifactID", artifactId)
+            props.put("MasterBuildVersion", masterBuildVersion)
+            props.put("Version", masterBuildVersion)
+            props.put("ArtifactOrigin", artifactOrigin)
+
+            putArtifactProperties(repo, artifactPath, artifactName, props)
+
+            Map newProps = getArtifactProperties(repo, artifactPath, artifactName)
+            newProps.each{prop ->
+                logger.quiet(prop.key + " : " + prop.value)
+            }
+        }
+    }
+    else{
+        logger.quiet("File not found: ${msiFile}")
+    }
+
+    logger.quiet("\r\nDONE PROCESSING -> repo: ${repo} - groupId: ${groupId} - artifactId: ${artifactId} - masterBuildVersion: ${masterBuildVersion} - tags: ${tags}")
+}
+
+def List getListOfMSI(String repo, String pathMatch, String watermark){
+    watermark = watermark.replaceAll(" ","T")
+    String notMatch="maven-metadata.xml"
+
+    String aqlQuery =
+            "items.find" +
+                    "(" +
+                    "    {" +
+                    "        \"repo\":{\"\$eq\":\"${repo}\"}" +
+                    "        ,\"created\":{\"\$gt\":\"${watermark}\"}" +
+                    "        ,\"updated\":{\"\$gt\":\"${watermark}\"}" +
+                    "        ,\"path\":{\"\$match\":\"${pathMatch}*\"}" +
+                    "        ,\"path\":{\"\$nmatch\":\".index\"}" +
+                    "        ,\"path\":{\"\$nmatch\":\".npm/*\"}" +
+                    "        ,\"\$or\":[{\"name\":{\"\$match\":\"*.MSI\"}}, {\"name\":{\"\$match\":\"*.msi\"}}]" +
+                    "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" +
+                    "        ,\"@Tagger\":{\"\$nmatch\":\"Pipeline\"}" +
+                    "    }"  +
+                    ").include(\"name\", \"path\")"
+
+    List resultsList  = search(aqlQuery)
+    return resultsList
+}
+
+def downloadMSI(String repo, String path, String name, String localFileName){
+    String artifactUrl = "${contextURL}/${repo}/${path}/${name}"
+    artifactUrl = artifactUrl.replaceAll(" ", "%20")
+    String sCmd = "curl -f -X GET -u \"" + "${uname}" + "\":\"" + "${pword}" + "\" \"${artifactUrl}\" -o \"${localFileName}\""
+    logger.quiet("Execute cmd: ${sCmd}")
+
+    try {
+        exec {
+            commandLine 'sh', '-c', sCmd
+        }
+    }
+    catch (Exception e) {
+        logger.quiet ("Could not download file: " + e.toString())
+    }
+}
+
+def extractMSIInfo(String name){
+    try{
+        logger.quiet("Extract Info from MSI: ${name}")
+        def sout = new StringBuilder(), serr = new StringBuilder()
+        def shellCommand = "powershell.exe .\\MSIInfoExtractor.ps1 .\\${name}"
+        def process = shellCommand.execute()
+        process.consumeProcessOutput( sout, serr )
+        process.waitForOrKill( 120000 )
+
+        logger.quiet(sout.toString())
+        def msi = new JsonSlurper().parseText(sout.toString())
+
+        return msi
+    }
+    catch(Exception e){
+        logger.quiet("Could not extract metadata from this MSI: ${name}. Error: ${e.toString()}")
+    }
+}
+
+def getArtifactProperties(String repo, String path, String name){
+    def now = new Date()
+    String outputFilename = "${now.format("yyyyMMdd_HHmmss_SSS")}.json"
+    String artifactUrl = "${contextURL}/api/storage/${repo}"
+    if(path != null && path != "" && name != null & name != ""){
+        artifactUrl += "/${path}/${name}?properties"
+    }
+    else{
+        artifactUrl += "?properties"
+    }
+    artifactUrl = artifactUrl.replaceAll(" ", "%20")
+    String sCmd = "curl -f -X GET -u \"" + "${uname}" + "\":\"" + "${pword}" + "\" \"${artifactUrl}\" -o \"${outputFilename}\""
+    logger.quiet("Execute cmd: ${sCmd}")
+
+    try {
+        exec {
+            commandLine 'sh', '-c', sCmd
+        }
+
+        File outputFile = new File(outputFilename)
+        if(outputFile.exists()){
+            String rtnText = outputFile.text
+            logger.quiet(rtnText)
+            def resultsJson = new JsonSlurper().parseText(rtnText)
+            Map results  = resultsJson.properties
+            outputFile.delete()
+
+            return results
+        }
+    }
+    catch (Exception e) {
+        logger.quiet(e.toString())
+        logger.quiet("Could not retrieve any properties")
+    }
+}
+
+def putArtifactProperties(String repo, String path, String name, Map props){
+    def selectedDate = new Date()
+    String selectedDateString = selectedDate.format("yyyy-MM-dd hh:mm:ss")
+    String propsString = "ArtifactTaggerWatermark=${selectedDateString}"
+    props.each { prop ->
+        propsString += "%7C${prop.key}=${prop.value}"
+    }
+
+    String artifactUrl = "${contextURL}/api/storage/${repo}/${path}/${name}?properties=${propsString}"
+    artifactUrl = artifactUrl.replaceAll(" ", "%20")
+    String sCmd = "curl -f -X PUT -u \"" + "${uname}" + "\":\"" + "${pword}" + "\" \"${artifactUrl}\""
+    logger.quiet("Execute cmd: ${sCmd}")
+
+    try {
+        exec {
+            commandLine 'sh', '-c', sCmd
+        }
+    }
+    catch (Exception e) {
+        logger.quiet(e.toString())
+        logger.quiet("Could not put properties")
+    }
+}
+
+def setRepoWatermark(String repo){
+    def selectedDate = new Date()
+    String selectedDateString = selectedDate.format("yyyy-MM-dd hh:mm:ss")
+
+    setRepoProperty(repo,"ArtifactTaggerWatermark", selectedDateString)
+}
+
+def getRepoWatermark(String repo){
+    def watermark = (new Date(0)).format("yyyy-MM-dd hh:mm:ss")
+    def props = getArtifactProperties(repo, null, null)
+    props.each{prop ->
+        logger.quiet(prop.key + " : " + prop.value)
+        if(prop.key == "ArtifactTaggerWatermark"){
+            watermark = prop.value[0]
+        }
+    }
+
+    return watermark
+}
+
+def setRepoProperty(String repo, String name, String value){
+    String artifactUrl = "${contextURL}/api/storage/${repo}?properties=${name}=${value}&recursive=0"
+    artifactUrl = artifactUrl.replaceAll(" ", "%20")
+    String sCmd = "curl -f -X PUT -u \"" + "${uname}" + "\":\"" + "${pword}" + "\" \"${artifactUrl}\""
+    logger.quiet("Execute cmd: ${sCmd}")
+
+    try {
+        exec {
+            commandLine 'sh', '-c', sCmd
+        }
+    }
+    catch (Exception e) {
+        logger.quiet(e.toString())
+        logger.quiet("Could not put properties")
+    }
+}
+
+def List search(String aql ){
+    logger.quiet("Artifactory query: $aql")
+
+    def String resultsJsonText = executeAQL(aql)
+    def resultsJson = new JsonSlurper().parseText(resultsJsonText)
+
+    List resultsList  = resultsJson.results
+    File searchResultFile = new File ("searchResult.json")
+    searchResultFile.text = "${resultsJsonText}"
+
+    return resultsList
+}
+
+def String executeAQL(String query){
+    String filePath =""
+    File tempArtifactsList = File.createTempFile("aqlResult",".result");
+    filePath = tempArtifactsList.getAbsolutePath()
+    filePath = filePath.replaceAll("\\\\","/")
+
+    File aqlQueryFile=File.createTempFile("aqlQueryFile",".query");
+    String aqlQueryFilePath = aqlQueryFile.getAbsolutePath()
+    aqlQueryFilePath = aqlQueryFilePath.replaceAll("\\\\","/")
+
+    aqlQueryFile.text = "${query}"
+
+    String sCmd = "curl -f -X POST -u \"" + "$uname" + "\":\"" + "$pword" + "\" \"$contextURL/api/search/aql\" -T\"${aqlQueryFilePath}\"  -o \"$filePath\""
+    logger.quiet("Execute AQL: ${sCmd}")
+
+    try {
+        exec {
+            commandLine 'sh', '-c', sCmd
+        }
+    }
+    catch (Exception e) {
+        logger.quiet (e.toString())
+
+    }
+
+    //def inputJSON = new JsonSlurper().parseText(tempArtifactsList.text)
+    String rtnText = tempArtifactsList.text
+    tempArtifactsList.delete()
+    aqlQueryFile.delete()
+
+    return rtnText
+}
+
+def extractBuildVersionFromPath(String path){
+    def parts = path.tokenize("/")
+    String version = parts[parts.size() - 1]
+
+    return version
+}
+
+def extractArtifactIdFromPath(String path){
+    def parts = path.tokenize("/")
+    String artifactId = parts[parts.size() - 2]
+
+    return artifactId
+}
+
+def extractGroupIdFromPath(String path){
+    String groupId = ""
+    def parts = path.tokenize("/")
+    for(int i = 0; i < parts.size() - 2; i++){
+        if(i < parts.size() - 3){
+            groupId += parts[i] + "."
+        }
+        else{
+            groupId += parts[i]
+        }
+    }
+
+    return groupId
+}

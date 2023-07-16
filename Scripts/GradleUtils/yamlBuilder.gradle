@@ -1,0 +1,934 @@
+import groovy.json.JsonSlurper
+import groovy.util.XmlSlurper
+import java.util.regex.*;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import groovy.json.JsonOutput
+
+buildscript {
+    repositories {
+        maven {
+            url "${artifactory_contextUrl}/plugins-release"
+            credentials {
+                username = "${artifactory_user}"
+                password = "${artifactory_password}"
+            }
+        }
+    }
+    dependencies {
+        classpath 'org.yaml:snakeyaml:1.16-SNAPSHOT'
+        classpath 'com.github.sarxos:windows-registry-util:latest.release'
+    }
+}
+
+import org.yaml.snakeyaml.Yaml
+
+task yamlBuilder() << {
+
+    transformYamlFiles("${yamlFiles}")
+
+}
+
+//TODO: change to this
+//runLocalDeployController.dependsOn yamlBuilder
+
+init.dependsOn yamlBuilder
+
+/******************** */
+def transformYamlFiles(String iYamlFiles){
+
+    def String[] yamlFiles = "${iYamlFiles}".split(',');
+    yamlValidation (yamlFiles)
+    for (String yamlSrcPath : yamlFiles) {
+        transformYamlFile (yamlSrcPath)
+    }
+}
+
+def transformYamlFile(String iYamlFile){
+    File sourceFile = new File (iYamlFile)
+    String sourceContent = sourceFile.getText("UTF-8")
+    if (sourceContent.indexOf("wfoComponents") >= 0){
+        logger.quiet("wfoComponents exists - THIS IS OLD YAML - No transformation needed : ${iYamlFile}")
+    }
+    else{
+        logger.quiet("THIS IS NEW YAML - Need transformation: ${iYamlFile}")
+        logger.quiet("Backup the yaml to : ${iYamlFile}.bak")
+        ant.copy (file: "${iYamlFile}", tofile: "${iYamlFile}.bak", verbose: true)
+        logger.quiet("Now do the tranformation...")
+        buildYaml(iYamlFile)
+    }
+}
+
+def buildYaml(String configFilePath){
+    def strMasterBuildVersion="${currentVersion}"
+
+    logger.quiet("Current version: ${strMasterBuildVersion}")
+
+// Build Params
+    def m_zData = [ MasterBuildVersion          : "${strMasterBuildVersion}",
+                    configFilePath       : "${configFilePath}",
+                    vmIP       : "${vmIP}",
+                    vmUser       : "${vmUser}",
+                    vmPwd       : "${vmPw}"
+                    ]
+    // Get default config
+    m_zData = loadDefaultConfig() + m_zData
+//    prettyPrintMapData (m_zData)
+
+    // Get user config
+    def userConfigData = loadUserConfig("${m_zData.configFilePath}")
+//    prettyPrintMapData (userConfigData)
+
+    //Merge the component Map as it is special
+    def mergedComponentMap = mergeComponentMaps(m_zData."Components" , userConfigData."Components" )
+//    prettyPrintMapData (mergedComponentMap)
+
+
+    userConfigData.put("Components",mergedComponentMap)
+    m_zData.remove("Components")
+
+    //Now mergeMaps
+    m_zData= mergeMaps(m_zData, userConfigData )
+    //logger.quiet ("GradleUtils: m_zData: ${m_zData}")
+//    prettyPrintMapData (m_zData)
+
+    //Do the translation now
+    m_zData = fillParameterizedMapWithData(m_zData,m_zData)
+
+//    prettyPrintMapData (m_zData)
+
+    //Fill other data like version
+    m_zData = fillOtherData(m_zData)
+
+    //Let fill the information to the componentMap
+    m_zData = fillComponentsData(m_zData )
+    //prettyPrintMapData (m_zData)
+
+    //Let generate the legacy yaml
+    generateLegacyYaml (configFilePath,m_zData)
+}
+
+
+def loadDefaultConfig(){
+    logger.quiet ("GradleUtils: loadLibDefaultConfig")
+    def rtnMap = [:]
+    File sourceFile = new File ('defaultConfigs.yaml');
+    String sourceContent = sourceFile.getText("UTF-8")
+    Yaml yaml = new Yaml();
+    Object data = yaml.load(sourceContent);
+    return  rtnMap + data
+}
+
+def loadUserConfig(String configFilePath){
+    logger.quiet ("GradleUtils: loadUserConfig from path: ${configFilePath}")
+    def rtnMap = [:]
+    File sourceFile = new File (configFilePath);
+    String sourceContent = sourceFile.getText("UTF-8")
+    Yaml yaml = new Yaml();
+    Object data = yaml.load(sourceContent);
+    return  rtnMap + data
+
+}
+
+def Map mergeComponentMaps(Object defaultMap,Object userMap){
+
+    def rtnMap = [:] as HashMap
+    rtnMap += userMap
+
+    if (userMap)
+    {
+        //prettyPrintMapData(userMap)
+
+        def keys=userMap.keySet().toArray()
+
+        for(int i = 0; i < keys.size(); i++) { // Using "for" interator since it is serializable
+            def key=keys[i]
+            def value = userMap.get(key)
+            def defaultValue = [:] as HashMap
+            def defaultFromDefaultValue = [:] as HashMap
+//            logger.quiet(" key : ${key} ")
+//            prettyPrintMapData(value)
+            if (defaultMap."${key}"){
+                defaultValue += defaultMap."${key}"
+//                logger.quiet(" defaultValue : ")
+//                prettyPrintMapData(defaultValue)
+                rtnMap."${key}" = mergeMaps( defaultValue, value)
+            }else{
+                defaultFromDefaultValue += defaultMap."default"
+//                logger.quiet(" defaultFromDefaultValue: ")
+//                prettyPrintMapData(defaultFromDefaultValue)
+                rtnMap."${key}" = mergeMaps( defaultFromDefaultValue, value)
+            }
+//            logger.quiet(" ====================> ")
+//            prettyPrintMapData(rtnMap."${key}")
+        }
+        logger.quiet(" Merge map completed : ")
+        prettyPrintMapData(rtnMap)
+    }
+    else
+    {
+        logger.quiet "There are not parameters to update!"
+    }
+    return rtnMap
+}
+
+Map fillOtherData(Object configData){
+    def buildVersion= configData."MasterBuildVersion"
+    def (m_majorVersion, m_minorVersion, m_subVersion, m_buildNumber) = buildVersion.tokenize( '.' )
+    if ("${configData.MajorRelease}"=="")
+        configData.MajorRelease="${m_majorVersion}.${m_minorVersion}"
+    if ("${configData.MinorRelease}"=="")
+        configData.MinorRelease="${m_subVersion}"
+
+    return  configData
+}
+Map fillComponentsData(Object configData){
+
+    def componentsMap = [:] as HashMap
+    componentsMap +=configData."Components"
+
+    def rtnMap = [:] as HashMap
+    def rtnComponentsMap = [:] as HashMap
+    rtnMap += configData
+
+    def keys=componentsMap.keySet().toArray()
+    for(int i = 0; i < keys.size(); i++) { // Using "for" interator since it is serializable
+        def key=keys[i]
+        def valueMap = [:] as HashMap
+        valueMap += componentsMap.get(key)
+
+        def rtnAfterFill= fillComponentData(key,valueMap,configData)
+
+        def mapItem = [:] as HashMap
+        mapItem.put(key,rtnAfterFill)
+
+//        logger.quiet("-------------------------------------------------------------------------------------")
+//        logger.quiet("-------------------------------------------------------------------------------------")
+//        prettyPrintMapData(mapItem)
+//        logger.quiet("-------------------------------------------------------------------------------------")
+//        logger.quiet("-------------------------------------------------------------------------------------")
+
+        rtnComponentsMap = rtnComponentsMap + mapItem
+
+//        logger.quiet("-------------------------------------------------------------------------------------")
+//        logger.quiet("-------------------------------------------------------------------------------------")
+//        prettyPrintMapData(rtnComponentsMap)
+//        logger.quiet("-------------------------------------------------------------------------------------")
+//        logger.quiet("-------------------------------------------------------------------------------------")
+
+    }
+
+//    prettyPrintMapData(rtnComponentsMap)
+
+    rtnMap.put("Components",rtnComponentsMap)
+
+    return rtnMap
+}
+
+Map fillComponentData(String componentKey,Object componentMap, Object configData){
+    def rtnMap = [:] as HashMap
+    rtnMap += componentMap
+
+
+    //Now try to get the GAV hahahha
+    // First let get the component Informaiton from the Artifactory
+    def compInfo =getComponentInfoFromArtifactory(componentKey,componentMap, configData)
+    logger.quiet ("GradleUtils: data return form artifactory for: ${componentKey}:")
+    prettyPrintMapData(compInfo)
+
+    def strVersion = componentMap."Version"
+    if(strVersion.contains("RELEASE")){
+        strVersion = "${compInfo.majorRelease}.${compInfo.minorRelease}.+"
+        logger.quiet ("GradleUtils: updated Version to " + strVersion)
+    }
+
+    //def strGAV =  "${compInfo.groupID}:${compInfo.artifactID}:${compInfo.version}"  // Not use the version from the search result but use the version from Input
+    def strGAV =  "${compInfo.groupID}:${compInfo.artifactID}:${strVersion}"
+
+    rtnMap.put("ComponentGAV",strGAV)
+
+// Get the ComponentName (aka DisplayName) for uninstall from target machine with VM
+    def strInstallAction = componentMap."InstallAction"
+    def strComponentName= compInfo.productName// Not the key but ProductName: componentKey
+
+    def strInstallationUnitGUID = compInfo.installationUnitGUID
+    rtnMap.put("InstallationUnitGUID",strInstallationUnitGUID)
+
+    def strProductCode = compInfo.productCode
+    rtnMap.put("ProductCode",strProductCode)
+
+
+    if ((strProductCode) && ("${strProductCode}"!="")) {
+        //TODO:
+        if ((strInstallAction == "both") || (strInstallAction == "uninstall")) {
+            def String strComponentNameRemote = getDisplayNameFromRegistry(strProductCode,
+                    configData."vmIP",
+                    configData."vmUser",
+                    configData."vmPwd"
+            )
+            if (strComponentNameRemote != "") {
+                // Add another check to make sure if the ComponentName remote contains the ArtfiactID
+                if (!strComponentNameRemote.contains("${compInfo.artifactID}")){
+                    logger.quiet ("************************** NOTE - BEHAVIOR CHANGE **************************")
+                    logger.quiet ("GradleUtils: yamlBuilder: The target VM has the SAME component installed: ${strComponentNameRemote}. So we won't do the uninstall part")
+                    logger.quiet ("GradleUtils: yamlBuilder:  Using the Product Name as Component Name: ${strComponentName}.")
+                    logger.quiet ("***************************************************************************")
+                    // Get the default is Product Name
+                }else {
+                    strComponentName = strComponentNameRemote
+                }
+            }
+        }
+    }
+    rtnMap.put("DisplayName",strComponentName)
+
+    return rtnMap
+}
+
+def getDisplayNameFromRegistry(String strComponentGUID, String strVmIP, String strVmUser, String strVmPwd){
+    def strDisplayName=""
+    def jsonFileName = "regInfo.info"
+
+    def psFile = "./scripts/ps/zGetDisplayNameFromRegistry.ps1"
+    def psScript = "powershell.exe -File ${psFile} -vmIP ${strVmIP} -vmUser ${strVmUser} -vmPwd ${strVmPwd} -componentGUID \"${strComponentGUID}\" -jsonOutFileName \"${jsonFileName}\""
+    logger.quiet ("Running ${psFile} script ...")
+    logger.quiet ("Running script: ${psScript} ")
+
+    String rtnCode = ""
+    try {
+        exec {
+            commandLine 'cmd', '/c', psScript
+        }
+
+        logger.quiet ( "[GradleUtil:getDisplayNameFromRegistry]:jsonFileName: \n ${jsonFileName} ")
+
+        def String jsonDataText =(new File("${projectDir}\\${jsonFileName}")).getText("UTF-8")
+        // This is the weird thign here, where the json generated by Powershell is having the abnomral charater at first which cause the invalid json object
+        // So have to do the read substring!!!
+        def String jsonDataTextReal = jsonDataText.substring(jsonDataText.indexOf("{"), jsonDataText.lastIndexOf("}") + 1)
+        logger.quiet ( "[GradleUtil:getDisplayNameFromRegistry]:jsonData: \n--${jsonDataTextReal}--\n")
+
+        //def jsonData =m_steps.readJSON file: "${jsonFileName}"
+        def jsonData =new JsonSlurper().parseText(jsonDataTextReal)
+
+        strDisplayName= jsonData.ComponentDisplayName
+
+    }
+    catch (Exception e) {
+        logger.quiet ("GradleUtils: getDisplayNameFromRegistry " + e.toString())
+        strDisplayName=""
+    }
+
+    return strDisplayName
+
+}
+
+def Map getComponentInfoFromArtifactory(String componentKey,Object componentMap, Object configData){
+    def compInfo = [groupID:"",artifactID:"",version:"",installationUnitGUID:"",productCode:"",productName:""] as HashMap
+    compInfo.version=componentMap."Version"
+
+    String strComponentKey=componentKey
+    String strResolveRepo = componentMap."ResolveRepo"  // Do this so user in case explicitly specify where to get it, should have component and metadata
+    String strRepo = componentMap."ResolveMetaRepo"  // Do this so user in case explicitly specify where to get it, should have component and metadata
+    if (strRepo=="") strRepo=strResolveRepo
+    //String strRepo = configData."ResolveVirtualRepo"  // This so it can resolve the path in case the metadata is not ready and there happen to have one sastify
+    String strMajorRelease=componentMap."MajorRelease" //configData."MajorRelease"
+    String strMinorRelease=componentMap."MinorRelease" //configData."MinorRelease"
+
+    // Check if the component has the setting for Major and Minor Release?
+
+    String strDefaultMajorRelease=configData."MajorRelease"
+    String strDefaultMinorRelease=configData."MinorRelease"
+
+    logger.quiet ("GradleUtils:componentMap.MasterBuildVersion: " + componentMap."MasterBuildVersion")
+    if (componentMap."MasterBuildVersion"){
+        def (m_majorVersion, m_minorVersion, m_subVersion, m_buildNumber) = componentMap."MasterBuildVersion".tokenize( '.' )
+        strMajorRelease="${m_majorVersion}.${m_minorVersion}"
+        strMinorRelease="${m_subVersion}"
+    }
+    else{
+        if (strMajorRelease=="") strMajorRelease=strDefaultMajorRelease
+        if (strMinorRelease=="") strMinorRelease=strDefaultMinorRelease
+    }
+    logger.quiet ("GradleUtils:componentMap: ${componentMap}")
+    logger.quiet ("GradleUtils:strMajorRelease: ${strMajorRelease}")
+    logger.quiet ("GradleUtils:strMinorRelease: ${strMinorRelease}")
+
+    def tagsMap = componentMap."SearchProperties"
+    logger.quiet ("GradleUtils:SearchProperties:${tagsMap}")
+
+    String strTagsSearch=""
+    if ( isMapObject(tagsMap) ) {
+        def keys = tagsMap.keySet().toArray()
+        for (int i = 0; i < keys.size(); i++) { // Using "for" interator since it is serializable
+            def key = keys[i]
+            def value = tagsMap.get(key)
+            if (strTagsSearch==""){
+                strTagsSearch = strTagsSearch + "        ,\"@${key}\":{\"\$match\":\"${value}\"}"
+            }else{
+                strTagsSearch = strTagsSearch + "\n" + "        ,\"@${key}\":{\"\$match\":\"${value}\"}"
+            }
+        }
+    }else{
+        String strTagsMapString="${tagsMap}"
+
+        int firstIndex = "${strTagsMapString}".indexOf("{")+1
+        int lastIndex = "${strTagsMapString}".lastIndexOf("}")
+
+        //logger.quiet ("GradleUtils:strTagsMapString:${strTagsMapString}")
+        String strTagsMapStringReal = strTagsMapString.substring(firstIndex, lastIndex)
+        logger.quiet ("GradleUtils:searchProperties:${strTagsMapStringReal}")
+
+        def strTagsMaps = "${strTagsMapStringReal}".split(', ')
+
+        for (int i=0; i< strTagsMaps.length; i++){
+            String strTagsMap="${strTagsMaps[i]}"
+            //logger.quiet ("GradleUtils:strTagsMap : ${strTagsMap}")
+            def tagItem = "${strTagsMap}".split('=');
+            def key = tagItem[0]
+            def value = tagItem[1]
+            if (strTagsSearch==""){
+                strTagsSearch = strTagsSearch + "        ,\"@${key}\":{\"\$match\":\"${value}\"}"
+            }else{
+                strTagsSearch = strTagsSearch + "\n" + "        ,\"@${key}\":{\"\$match\":\"${value}\"}"
+            }
+
+        }
+
+    }
+    String notMatch="${artifactToExclude}"
+
+    String aqlQuery =
+            "items.find" + "\n" +
+                    "(" + "\n" +
+                    "    {" + "\n" +
+                    "        \"repo\":{\"\$eq\":\"${strRepo}\"}" + "\n" +
+                    "        ,\"@INSTALLATIONUNIT\":{\"\$match\":\"${strComponentKey}\"}" + "\n" +
+                    "        ,\"@MajorRelease\":{\"\$match\":\"${strMajorRelease}\"}" + "\n" +
+                    "        ,\"@MinorRelease\":{\"\$match\":\"${strMinorRelease}\"}" + "\n" +
+                    "${strTagsSearch}" + "\n" +
+                    "        ,\"name\":{\"\$nmatch\":\"${notMatch}*\"}" + "\n" +
+                    "    }"  + "\n" +
+                    ").include(\"@INSTALLATIONUNITGUID\",\"@GroupID\",\"@ArtifactID\",\"@ProductCode\",\"@MasterBuildVersion\",\"@ProductName\" )" + "\n"
+
+    List resultsList  = search(aqlQuery)
+
+    if (resultsList.size()>0){
+        compInfo = pickItemFromSearchResult (resultsList)
+        compInfo.majorRelease = strMajorRelease
+        compInfo.minorRelease = strMinorRelease
+    }else{
+        throw new GradleException ("Couldn't find out the information about component need to install: ${componentKey}. Build failed")
+    }
+
+    return compInfo
+
+}
+
+def Object pickItemFromSearchResult(List resultsList){
+
+
+    def mapToSort = [:]
+    def keyToSort = "version"
+    def keyList = []
+
+    def compInfoRtn = [groupID:"",artifactID:"",version:"",installationUnitGUID:"",productCode:"",productName:""] as HashMap
+
+
+    for(int i = 0; i < resultsList.size(); i++){
+
+
+        def resultItem= resultsList[i]
+
+        //logger.quiet("yamlBuilder resultItem: ${resultItem}")
+
+        def compInfo = [groupID:"",artifactID:"",version:"",installationUnitGUID:"",productCode:"",productName:""] as HashMap
+
+        String strItemPath = resultItem."path"
+        // Exampel: com/verint/foundation/kbs/KB140042/15.2.2.51
+        int lastIndex = "${strItemPath}".lastIndexOf("/")
+        String strGA = strItemPath.substring(0,lastIndex)
+        lastIndex = "${strGA}".lastIndexOf("/")
+        String strG=strGA.substring(0,lastIndex).replaceAll("/",".")
+        String strA=strGA.substring(lastIndex+1)
+
+        lastIndex = "${strItemPath}".lastIndexOf("/")
+        String strVersion=strItemPath.substring(lastIndex+1)
+
+        compInfo.groupID=strG
+        compInfo.artifactID=strA
+        compInfo.installationUnitGUID = getListItemValue(resultItem.properties,"INSTALLATIONUNITGUID")
+        compInfo.productCode = getListItemValue(resultItem.properties,"ProductCode")
+        compInfo.productName = getListItemValue(resultItem.properties,"ProductName")
+        compInfo.version = strVersion
+
+        String strSortKeyValue = "${compInfo."${keyToSort}"}"
+        mapToSort.put (strSortKeyValue,compInfo)
+        keyList.add (strSortKeyValue)
+    }
+
+    //logger.quiet("yamlBuilder map before short: ${keyList}")
+    // now sort it, DESC
+    logger.quiet("yamlBuilder: List of final key that matched without sorting:\n ${keyList}")
+    //keyList=keyList.sort()
+    //logger.quiet("yamlBuilder map after sorted: ${keyList}")
+    //keyList=keyList.reverse()
+
+    //logger.quiet("yamlBuilder: List of final key that matched:\n ${keyList}")
+
+    def String keyToPick = keyList[-1]
+    // and now take the top
+
+    compInfoRtn = mapToSort.get(keyToPick)
+
+    logger.quiet("yamlBuilder component return: ${compInfoRtn}")
+
+    return compInfoRtn
+
+}
+def String getListItemValue(Object iProperties, String key){
+    String strRtn = ""
+
+    if (iProperties.size()>0){
+        for (int i=0; i< iProperties.size(); i++){
+            def itemList = iProperties[i]
+            //logger.quiet("itemList:${itemList}")
+            if (itemList."key"=="${key}")
+                return  itemList."value"
+        }
+    }
+    return  strRtn
+}
+def List search(String aql ){
+    logger.quiet("Artifactory query: $aql")
+
+    def String resultsJsonText = executeAQL(aql)
+    def resultsJson = new JsonSlurper().parseText(resultsJsonText)
+
+    List resultsList  = resultsJson.results
+    File searchResultFile = new File ("searchResult.json")
+    searchResultFile.text = "${resultsJsonText}"
+
+    return resultsList
+}
+def String executeAQL(String query){
+    String filePath =""
+    File tempArtifactsList = File.createTempFile("aqlResult",".result");
+    filePath = tempArtifactsList.getAbsolutePath()
+    filePath = filePath.replaceAll("\\\\","/")
+
+    File aqlQueryFile=File.createTempFile("aqlQueryFile",".query");
+    String aqlQueryFilePath = aqlQueryFile.getAbsolutePath()
+    aqlQueryFilePath = aqlQueryFilePath.replaceAll("\\\\","/")
+
+    aqlQueryFile.text = "${query}"
+
+    String sCmd = "curl -f -X POST -u \"" + "$artifactory_user" + "\":\"" + "$artifactory_password" + "\" \"$artifactory_contextUrl/api/search/aql\" -T\"${aqlQueryFilePath}\"  -o \"$filePath\""
+    logger.quiet("Execute AQL: ${sCmd}")
+
+    try {
+        exec {
+            //commandLine 'sh', '-c', sCmd
+            commandLine 'cmd', '/c', sCmd
+        }
+    }
+    catch (Exception e) {
+        logger.quiet ("GRadleUtil yamlBuilder: some " + e.toString())
+
+    }
+
+    //def inputJSON = new JsonSlurper().parseText(tempArtifactsList.text)
+    String rtnText = tempArtifactsList.text
+    tempArtifactsList.delete()
+    //aqlQueryFile.delete()
+
+    return rtnText
+}
+
+def generateLegacyYaml (String configFilePath, Object m_zData){
+    File fConfig = new File (configFilePath)
+    String strYamlContent = "---\n" +
+            "wfoComponents:"
+
+    def componentsMap = [:] as HashMap
+    def strMasterBuildVersion
+    componentsMap += m_zData."Components"
+    def keys=componentsMap.keySet().toArray()
+    for(int i = 0; i < keys.size(); i++) { // Using "for" interator since it is serializable
+        def key=keys[i]
+        def componentItem = [:] as HashMap
+        componentItem += componentsMap.get(key)
+
+//        logger.quiet("Yaml: key: ${key} :  ")
+//        logger.quiet("Yaml: componentItem: ${componentItem} :  ")
+
+//    for (componentsMapItem in componentsMap){
+//        logger.quiet("Yaml: componentsMapItem: ${componentsMapItem} :  ")
+//        logger.quiet("Yaml: key: ${componentsMapItem.key} :  ")
+//        logger.quiet("Yaml: value: ${componentsMapItem.value} :  ")
+//
+//        componentItem = componentsMapItem.value
+
+//        logger.quiet("Yaml: componentItem: ${componentItem} :  ")
+
+        String strComponentName=componentItem."DisplayName"
+        strYamlContent = strYamlContent + "\n" + "   - ComponentName: ${strComponentName}"
+
+        String strComponentGAV = componentItem."ComponentGAV"
+        strComponentGAV=strComponentGAV.replaceAll(" ", "%20" )
+        if(componentItem."MasterBuildVersion"){
+            strMasterBuildVersion = componentItem."MasterBuildVersion"
+        }
+        else{
+            strMasterBuildVersion = m_zData."MasterBuildVersion"
+        }
+        //strComponentGAV=strComponentGAV.replaceAll("\\[RELEASE\\]","${strMasterBuildVersion}")
+        strYamlContent = strYamlContent + "\n" + "     ComponentGAV: '${strComponentGAV}'"
+
+        String strComponentPC=componentItem."PromoteEnabled"
+        strYamlContent = strYamlContent + "\n" + "     ComponentPC: ${strComponentPC}"
+
+        String strComponentRepo=componentItem."ResolveRepo"
+        strYamlContent = strYamlContent + "\n" + "     ComponentRepo: ${strComponentRepo}"
+
+        String strComponentActionReceive=componentItem."InstallAction"
+        strYamlContent = strYamlContent + "\n" + "     ComponentActionReceive: ${strComponentActionReceive}"
+
+        String strComponentInstallOptions=componentItem."InstallParams"
+        if (strComponentInstallOptions){
+            strYamlContent = strYamlContent + "\n" + "     ComponentInstallOptions: ${strComponentInstallOptions}"
+        }
+    }
+
+    logger.quiet("Yaml: ${configFilePath} : Transform result ")
+
+    logger.quiet("Source YAML:\n --> \n${fConfig.text}")
+    fConfig.text = strYamlContent
+    logger.quiet("Transform YAML:\n --> \n${fConfig.text}")
+
+}
+//******************************************************Lib from declarative *******************
+
+def stringToMap(String mapAsString){
+    def map = [:] as HashMap
+    def itemList=mapAsString[1..-2].split(', ')
+    for (int i=0; i< itemList.length; i++){
+        def pair = itemList[i].split('=')
+        if (pair.length>1) {
+            def keyName = pair[0];
+            def keyValue = pair[1];
+            map.put(keyName, keyValue)
+        }
+    }
+    return map
+}
+
+
+def Map fillParameterizedMapWithData(Object parameterizedMap,Object iData){
+
+    def rtnMap = [:] as HashMap
+
+    rtnMap =rtnMap+ parameterizedMap
+
+    if (parameterizedMap)
+    {
+        //logger.quiet "zDevLib: fillParameterizedMapWithData:parameterizedMap : \n ${parameterizedMap} "
+        def keys=parameterizedMap.keySet().toArray()
+
+        for(int i = 0; i < keys.size(); i++) { // Using "for" interator since it is serializable
+            def key=keys[i]
+            def value = parameterizedMap.get(key)
+
+            //logger.quiet "zDevLib: fillParameterizedMapWithData:parameterizedMap :value \n ${value} "
+
+            if ( isMapObject(value) ){
+                def valueMap = [:] as HashMap
+                valueMap +=value
+
+                valueMap =  fillParameterizedMapWithData(valueMap, iData)
+                //logger.quiet "zDevLib: fillParameterizedMapWithData:parameterizedMap :value after translation:  ${value} "
+                rtnMap.put(key,valueMap)
+            } else {
+                value = getParameterizedValue(value,iData)
+                //logger.quiet "zDevLib: fillParameterizedMapWithData:parameterizedMap :value after translation:  ${value} "
+                rtnMap.put(key,value)
+            }
+        }
+        //logger.quiet("zDevLib: fillParameterizedMapWithData Merge map completed : result:${rtnMap}")
+    }
+    else
+    {
+        logger.quiet "GradleUtil: fillParameterizedMapWithData: There are not parameters to update!"
+    }
+    return rtnMap
+}
+
+def String getParameterizedValue(Object iPieceOfCode, Object iData){
+    //Example: -Penv=release -PcurrentVersion=${MasterBuildVersion} -PcurrentVersion=${Loading Something.vmIp}
+
+
+    def String strRtn=iPieceOfCode
+
+    //logger.quiet "getParameterizedValue: iPieceOfCode : ${iPieceOfCode} "
+
+    try {
+        String regex = '\\$\\{([^}]+)\\}';
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(iPieceOfCode);
+        while (matcher.find()) {
+            String token = matcher.group();     // Ex: ${fizz}
+            String tokenKey = matcher.group(1); // Ex: fizz
+            String replacementValue = ""
+
+            def replacementObjRoot=iData
+            def replacementObjKey=tokenKey
+
+            while (replacementObjKey.contains('.')) {
+                int firstIndexOfDot = replacementObjKey.indexOf('.')
+                String strSubMap = replacementObjKey.substring(0, firstIndexOfDot)
+                String strSubKey = replacementObjKey.substring(firstIndexOfDot + 1)
+
+                //logger.quiet "getParameterizedValue: \n firstIndexOfDot: ${firstIndexOfDot}  strSubMap: ${strSubMap} strSubKey: ${strSubKey}  "
+
+                replacementObjRoot = replacementObjRoot."${strSubMap}"
+
+                replacementObjKey = strSubKey
+
+                //logger.quiet "getParameterizedValue: \n replacementObjRoot: ${replacementObjRoot} "
+                //logger.quiet "getParameterizedValue: \n replacementObjKey: ${replacementObjKey} "
+
+            }
+
+            replacementValue = replacementObjRoot."${replacementObjKey}" ;
+
+            //logger.quiet "getParameterizedValue: \n token: ${token} tokenKey: ${tokenKey} replacementValue: ${replacementValue} "
+            strRtn = strRtn.replaceFirst(Pattern.quote(token), replacementValue);
+        }
+    } catch (Exception e){
+        //logger.quiet "zDevLib: getParameterizedValue: Skip the getting value of-  ${strRtn}  - due to issue: \n ${e}"
+    }
+    return strRtn;
+}
+
+
+def convertToString(Object sObj){
+    def String strRtn = sObj
+    return strRtn;
+}
+
+def boolean isMapObject(Object mObj){
+    def boolean rtnValue= false
+    def subkeys =null
+    try {
+        subkeys=mObj.keySet()
+    } catch (Exception e)          {
+        //logger.quiet "zDevLib: fillParameterizedMapWithData:parameterizedMap :e \n ${e} "
+        subkeys =null
+    }
+
+    if (subkeys){
+        rtnValue = true
+    }
+
+    return rtnValue
+
+}
+
+def Map mergeMaps(Object secondaryMap,Object primaryMap){
+
+    def rtnMap = [:] as HashMap
+
+    rtnMap =rtnMap+ secondaryMap
+
+    if (primaryMap)
+    {
+        //prettyPrintMapData(primaryMap)
+
+        def keys=primaryMap.keySet().toArray()
+        for(int i = 0; i < keys.size(); i++) { // Using "for" interator since it is serializable
+            def key=keys[i]
+            def value = primaryMap.get(key)
+            if (!(secondaryMap."${key}") || (!isMapObject(value))) {
+                //logger.quiet(" mergeMaps put:${key} :  ${value}")
+
+                rtnMap.put (key, value)
+            }else if (isMapObject(value)) {
+                //logger.quiet(" mergeMaps put:${key} :  ${value}")
+                rtnMap.put (key, value)
+
+            } else {
+                //logger.quiet(" mergeMaps + :${key} :  ${value}")
+                rtnMap."${key}" = rtnMap."${key}" + value
+            }
+        }
+        //logger.quiet(" Merge map completed : result:${rtnMap}")
+    }
+    else
+    {
+        logger.quiet "There are not parameters to update!"
+    }
+    return rtnMap
+}
+
+// Traverse thorough all causes and put into a list
+
+def String getJenkinsMasterDomain(String jenkinsURL)
+{
+    def domain = "";
+    try{
+        logger.quiet  "<getJenkinsMasterDomain> - ${jenkinsURL}"
+        //find & remove protocol (http, ftp, etc.) and get domain
+        if (jenkinsURL.indexOf('://') > -1) {
+            domain = jenkinsURL.split('/')[2];
+            logger.quiet  "Domain: " + domain
+        }
+        if (domain.indexOf(':') > -1 ) {
+            domain = domain.split(':')[0];
+            logger.quiet  "Domain: " + domain
+        }
+    }
+    catch (Exception exp){
+        logger.quiet ("ERROR","Failed to get jenkins domain of ${jenkinsURL} ," + exp)
+        return ""
+    }
+    logger.quiet  "domain = " + domain
+    return domain
+
+}
+
+def loadPSScripts(String iScriptListString){
+    logger.quiet "zDevOpsHelper: load PSScripts: ${iScriptListString}"
+
+    def rtnMap = [:] as HashMap
+    def scriptList = "${iScriptListString}".split(',');
+    for (int i = 0; i < scriptList.size(); i++) {
+
+        def String strScriptName = scriptList[i]
+//            def bFileExist  =m_steps.fileExists file: "${strScriptName}"
+//            if (!bFileExist) {
+        logger.quiet "zDevOpsHelper: loadPSScripts: ${strScriptName}"
+        def strText = m_steps.libraryResource "scripts/ps/${strScriptName}"
+        m_steps.writeFile file: "${strScriptName}", text: "${strText}"
+//            }else{
+//                logger.quiet "zDevOpsHelper: script already exist  ${strScriptName}"
+//            }
+    }
+    return  rtnMap
+}
+
+def getInstalledVersionFromRegistry(String strComponentName, String strVmIP, String strVmUser, String strVmPwd){
+
+    def jsonFileName = "regInfo.info"
+
+    loadPSScripts("zPSConstant.ps1,zPSCommonLibs.ps1,zGetInstalledVersionFromRegistry.ps1")
+
+    def psFile = "zGetInstalledVersionFromRegistry.ps1"
+    def psScript = "powershell.exe -File ${psFile} -vmIP ${strVmIP} -vmUser ${strVmUser} -vmPwd ${strVmPwd} -componentName \"${strComponentName}\" -jsonOutFileName \"${jsonFileName}\""
+    logger.quiet ("Running ${psFile} script ...")
+    logger.quiet ("Running script: ${psScript} ")
+
+    def resultCode = m_steps.bat(script: "$psScript", returnStatus: true)
+    if (resultCode != 0) {
+        logger.quiet ( "[zDevLib:getInstalledVersionFromRegistry]: zGetInstalledVersionFromRegistry powershell script exit with error: ${resultCode}")
+        throw new Exception ("Error in executing powershell")
+    }
+
+    logger.quiet ( "[zDevLib:getInstalledVersionFromRegistry]:jsonFileName: \n ${jsonFileName} ")
+
+    def String jsonDataText =m_steps.readFile file: "${jsonFileName}", encoding: "UTF-8"
+    // This is the weird thign here, where the json generated by Powershell is having the abnomral charater at first which cause the invalid json object
+    // So have to do the read substring!!!
+    def String jsonDataTextReal = jsonDataText.substring(jsonDataText.indexOf("{"), jsonDataText.lastIndexOf("}") + 1)
+    logger.quiet ( "[zDevLib:getInstalledVersionFromRegistry]:jsonData: \n--${jsonDataTextReal}--\n")
+
+    //def jsonData =m_steps.readJSON file: "${jsonFileName}"
+    def jsonData =m_steps.readJSON text: "${jsonDataTextReal}"
+
+    return jsonData.ComponentVersion
+
+}
+
+def getRemoteEnvValue(String strEnvName, String strVmIP, String strVmUser, String strVmPwd){
+
+    def jsonFileName = "outInfo.info"
+
+    loadPSScripts("zPSConstant.ps1,zPSCommonLibs.ps1,zGetEnvProperty.ps1")
+
+    def psFile = "zGetEnvProperty.ps1"
+    def psScript = "powershell.exe -File ${psFile} -vmIP ${strVmIP} -vmUser ${strVmUser} -vmPwd ${strVmPwd} -propName \"${strEnvName}\" -jsonOutFileName \"${jsonFileName}\""
+    logger.quiet ("Running ${psFile} script ...")
+    logger.quiet ("Running script: ${psScript} ")
+
+    def resultCode = m_steps.bat(script: "$psScript", returnStatus: true)
+    if (resultCode != 0) {
+        logger.quiet ( "[zDevLib:getRemoteEnvValue]: zGetEnvProperty powershell script exit with error: ${resultCode}")
+        throw new Exception ("Error in executing powershell")
+    }
+
+    logger.quiet ( "[zDevLib:getRemoteEnvValue]:jsonFileName: \n ${jsonFileName} ")
+
+    def String jsonDataText =m_steps.readFile file: "${jsonFileName}", encoding: "UTF-8"
+    // This is the weird thign here, where the json generated by Powershell is having the abnomral charater at first which cause the invalid json object
+    // So have to do the read substring!!!
+    def String jsonDataTextReal = jsonDataText.substring(jsonDataText.indexOf("{"), jsonDataText.lastIndexOf("}") + 1)
+    logger.quiet ( "[zDevLib:getRemoteEnvValue]:jsonData: \n--${jsonDataTextReal}--\n")
+
+    def jsonData =m_steps.readJSON text: "${jsonDataTextReal}"
+
+    return jsonData.PropValue
+
+}
+
+def copyRemoteEar(String strVmIP, String strVmUser, String strVmPwd, String toFolder){
+
+    loadPSScripts("zPSConstant.ps1,zPSCommonLibs.ps1,zCopyTheEar.ps1")
+
+    def psFile = "zCopyTheEar.ps1"
+    def psScript = "powershell.exe -File ${psFile} -vmIP ${strVmIP} -vmUser ${strVmUser} -vmPwd ${strVmPwd} -toFolder \"${toFolder}\" "
+    logger.quiet ("Running ${psFile} script ...")
+    logger.quiet ("Running script: ${psScript} ")
+
+    def resultCode = m_steps.bat(script: "$psScript", returnStatus: true)
+    if (resultCode != 0) {
+        logger.quiet ( "[zDevLib:copyRemoteEar]: copyRemoteEar powershell script exit with error: ${resultCode}")
+        throw new Exception ("Error in executing powershell")
+    }
+
+    return resultCode
+
+}
+
+def verifyConsolidateRegistry(String localKbJsonPath, String remoteKbJsonPath, String strVmIP, String strVmUser, String strVmPwd){
+
+
+    loadPSScripts("zPSConstant.ps1,zPSCommonLibs.ps1,zVerifyConsolidateRegistry.ps1")
+
+    def psFile = "zVerifyConsolidateRegistry.ps1"
+    def psScript = "powershell.exe -File ${psFile} -vmIP ${strVmIP} -vmUser ${strVmUser} -vmPwd ${strVmPwd} -kbJsonPath \"${remoteKbJsonPath}\" "
+    logger.quiet ("Running ${psFile} script ...")
+    logger.quiet ("Running script: ${psScript} ")
+
+    def resultCode = m_steps.bat(script: "$psScript", returnStatus: true)
+    if (resultCode != 0) {
+        logger.quiet ( "[zDevLib:verifyConsolidateRegistry]: zGetInstalledVersionFromRegistry powershell script exit with error: ${resultCode}")
+        throw new Exception ("Error in executing powershell")
+    }
+
+    logger.quiet ( "[zDevLib:verifyConsolidateRegistry]:jsonFileName: \n ${localKbJsonPath} ")
+
+    def String jsonDataText =m_steps.readFile file: "${localKbJsonPath}", encoding: "UTF-8"
+    // This is the weird thign here, where the json generated by Powershell is having the abnomral charater at first which cause the invalid json object
+    // So have to do the read substring!!!
+    def String jsonDataTextReal = jsonDataText.substring(jsonDataText.indexOf("{"), jsonDataText.lastIndexOf("}") + 1)
+    logger.quiet ( "[zDevLib:verifyConsolidateRegistry]:jsonData: \n--${jsonDataTextReal}--\n")
+
+    //def jsonData =m_steps.readJSON file: "${jsonFileName}"
+    def jsonData =m_steps.readJSON text: "${jsonDataTextReal}"
+    //
+    return jsonData
+
+}
+
+def prettyPrintMapData(Object mapData) {
+    logger.quiet JsonOutput.prettyPrint(JsonOutput.toJson(mapData))
+}
